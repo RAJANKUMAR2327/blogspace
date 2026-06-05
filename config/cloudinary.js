@@ -1,6 +1,6 @@
 const cloudinary = require('cloudinary').v2
-const { CloudinaryStorage } = require('multer-storage-cloudinary')
 const multer = require('multer')
+const cloudinaryStorage = require('multer-storage-cloudinary')
 
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -8,24 +8,18 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET
 })
 
-const blogStorage = new CloudinaryStorage({
-  cloudinary,
-  params: {
-    folder: 'blogspace/blogs',
-    allowed_formats: ['jpg', 'jpeg', 'png', 'webp'],
-    transformation: [{ width: 1200, height: 630, crop: 'fill', quality: 'auto' }]
-  }
+const blogStorage = new cloudinaryStorage({
+  cloudinary: cloudinary,
+  folder: 'blogspace/blogs',
+  allowedFormats: ['jpg', 'jpeg', 'png', 'webp']
 })
 
-const profileStorage = new CloudinaryStorage({
-  cloudinary,
-  params: {
-    folder: 'blogspace/profiles',
-    allowed_formats: ['jpg', 'jpeg', 'png', 'webp'],
-    transformation: [{ width: 200, height: 200, crop: 'fill', quality: 'auto' }]
-  }
+const profileStorage = new cloudinaryStorage({
+  cloudinary: cloudinary,
+  folder: 'blogspace/profiles',
+  allowedFormats: ['jpg', 'jpeg', 'png', 'webp']
 })
 
-exports.uploadBlogImage   = multer({ storage: blogStorage })
+exports.uploadBlogImage    = multer({ storage: blogStorage })
 exports.uploadProfileImage = multer({ storage: profileStorage })
-exports.cloudinary        = cloudinary
+exports.cloudinary         = cloudinary
