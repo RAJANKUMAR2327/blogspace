@@ -59,3 +59,11 @@ userSchema.methods.getResetPasswordToken = function () {
 }
 
 module.exports = mongoose.model('User', userSchema)
+// models/User.js — add inside the schema
+readHistory: [{
+  type: mongoose.Schema.Types.ObjectId,
+  ref: 'Blog'
+}]
+// models/User.js — add to schema
+following: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }]
+followers: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }]

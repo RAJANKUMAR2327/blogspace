@@ -14,6 +14,7 @@
     "@uiw/react-md-editor": "^4.1.1",
     "axios": "^1.17.0",
     "date-fns": "^4.4.0",
+    "framer-motion": "^12.40.0",
     "react": "^19.2.6",
     "react-dom": "^19.2.6",
     "react-hot-toast": "^2.6.0",

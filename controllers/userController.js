@@ -82,3 +82,59 @@ exports.deleteUser = async (req, res, next) => {
     next(error)
   }
 }
+// Add to controllers/userController.js
+
+// GET /api/users/history — Get reading history
+exports.getHistory = async (req, res, next) => {
+  try {
+    const user = await User.findById(req.user.id)
+      .populate('readHistory', 'title slug image category readTime createdAt author')
+      .populate('readHistory.author', 'name profileImage')
+    
+    res.json({ success: true, history: user.readHistory || [] })
+  } catch (error) {
+    next(error)
+  }
+}
+
+// POST /api/users/history/:blogId — Add to reading history
+exports.addToHistory = async (req, res, next) => {
+  try {
+    await User.findByIdAndUpdate(req.user.id, {
+      $addToSet: { readHistory: req.params.blogId }   // addToSet prevents duplicates
+    })
+    res.json({ success: true })
+  } catch (error) {
+    next(error)
+  }
+}
+// controllers/userController.js
+exports.followToggle = async (req, res, next) => {
+  try {
+    const targetId = req.params.id
+    const userId   = req.user.id
+
+    if (targetId === userId) {
+      return res.status(400).json({ success: false, message: "Can't follow yourself" })
+    }
+
+    const target = await User.findById(targetId)
+    if (!target) return res.status(404).json({ success: false, message: 'User not found' })
+
+    const isFollowing = target.followers.includes(userId)
+
+    if (isFollowing) {
+      // Unfollow
+      await User.findByIdAndUpdate(targetId, { $pull: { followers: userId } })
+      await User.findByIdAndUpdate(userId,   { $pull: { following: targetId } })
+    } else {
+      // Follow
+      await User.findByIdAndUpdate(targetId, { $addToSet: { followers: userId } })
+      await User.findByIdAndUpdate(userId,   { $addToSet: { following: targetId } })
+    }
+
+    res.json({ success: true, isFollowing: !isFollowing })
+  } catch (error) {
+    next(error)
+  }
+}
