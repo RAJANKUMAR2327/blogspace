@@ -4,8 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { blogAPI, commentAPI } from '../services/api'
 import { AuthContext } from '../context/AuthContext'
 import toast from 'react-hot-toast'
-import { FiHeart, FiEye, FiClock, FiShare2, FiBookmark, FiTrash2, FiArrowLeft, FiMessageSquare } from 'react-icons/fi'
-import { formatDistanceToNow } from 'date-fns'
+import { FiHeart, FiEye, FiClock, FiShare2, FiArrowLeft, FiMessageSquare } from 'react-icons/fi'
 
 export default function SingleBlog() {
   const { slug } = useParams()
@@ -60,7 +59,7 @@ export default function SingleBlog() {
     <div style={{ background: '#080810', minHeight: '100vh', paddingTop: 64 }}>
       <div style={{ maxWidth: 760, margin: '0 auto', padding: '60px 24px' }}>
         {[...Array(8)].map((_, i) => (
-          <div key={i} style={{ height: i === 0 ? 48 : 16, background: 'rgba(255,255,255,0.05)', borderRadius: 8, marginBottom: 16, width: i === 0 ? '80%' : `${60 + Math.random() * 40}%`, animation: 'pulse 1.5s ease-in-out infinite' }} />
+          <div key={i} style={{ height: i === 0 ? 48 : 16, background: 'rgba(255,255,255,0.05)', borderRadius: 8, marginBottom: 16, width: i === 0 ? '80%' : `${60 + (i * 7) % 35}%` }} />
         ))}
       </div>
     </div>

@@ -1,26 +1,32 @@
-import { createContext, useState, useEffect } from 'react'
+import { createContext, useState, useEffect, useContext } from 'react'
 import axios from 'axios'
 
+// 1. Create the context
 export const AuthContext = createContext()
 
-export function AuthProvider({ children }) {
-  const [user, setUser] = useState(null)
-  const [loading, setLoading] = useState(true)
-
-  useEffect(() => {
-    const token = localStorage.getItem('token')
-    const savedUser = localStorage.getItem('user')
-    if (token && savedUser) {
-      try {
-        setUser(JSON.parse(savedUser))
-        axios.defaults.headers.common['Authorization'] = `Bearer ${token}`
-      } catch {
-        localStorage.removeItem('token')
-        localStorage.removeItem('user')
-      }
+// Helper function to safely parse localStorage on initial load
+const getInitialUser = () => {
+  const token = localStorage.getItem('token')
+  const savedUser = localStorage.getItem('user')
+  
+  if (token && savedUser) {
+    try {
+      // Set the axios token immediately during initialization
+      axios.defaults.headers.common['Authorization'] = `Bearer ${token}`
+      return JSON.parse(savedUser)
+    } catch {
+      localStorage.removeItem('token')
+      localStorage.removeItem('user')
+      return null
     }
-    setLoading(false)
-  }, [])
+  }
+  return null
+}
+
+export function AuthProvider({ children }) {
+  // 2. Initialize state synchronously (No more useEffect cascading renders!)
+  const [user, setUser] = useState(getInitialUser)
+  const [loading, setLoading] = useState(false) // Can default to false since we check sync
 
   const login = (userData, token) => {
     localStorage.setItem('token', token)
@@ -42,3 +48,6 @@ export function AuthProvider({ children }) {
     </AuthContext.Provider>
   )
 }
+
+// 3. Custom hook for easier consumption across your app
+export const useAuth = () => useContext(AuthContext)
