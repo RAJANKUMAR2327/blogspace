@@ -8,113 +8,54 @@ require('dotenv').config()
 const connectDB = require('./config/db')
 const errorHandler = require('./middleware/errorHandler')
 
-const authRoutes = require('./routes/authRoutes')
-const blogRoutes = require('./routes/blogRoutes')
-const commentRoutes = require('./routes/commentRoutes')
-const userRoutes = require('./routes/userRoutes')
+const authRoutes      = require('./routes/authRoutes')
+const blogRoutes      = require('./routes/blogRoutes')
+const commentRoutes   = require('./routes/commentRoutes')
+const userRoutes      = require('./routes/userRoutes')
 const newsletterRoutes = require('./routes/newsletterRoutes')
-const uploadRoutes = require('./routes/uploadRoutes')
+const uploadRoutes    = require('./routes/uploadRoutes')
 
 const app = express()
 
-// =======================
-// CONNECT DATABASE
-// =======================
 connectDB()
 
-// =======================
-// CORS CONFIGURATION
-// =======================
-const allowedOrigins = [
-  'http://localhost:5173',
-  'http://localhost:5174',
-  'http://localhost:5175',
-  'https://blogspace-2f5r.vercel.app',
-  'https://blogspace-six.vercel.app',
-  process.env.CLIENT_URL
-].filter(Boolean)
+// ── CORS ──────────────────────────────────────────────
+app.use(cors({ origin: true, credentials: true }))
 
-app.use(cors({
-  origin: function (origin, callback) {
-    // allow tools like Postman / server requests
-    if (!origin) return callback(null, true)
-
-    if (allowedOrigins.includes(origin)) {
-      return callback(null, true)
-    }
-
-    return callback(new Error('Not allowed by CORS'))
-  },
-  credentials: true
-}))
-
-// =======================
-// SECURITY MIDDLEWARE
-// =======================
-app.use(helmet())
+// ── SECURITY ──────────────────────────────────────────
+app.use(helmet({ crossOriginResourcePolicy: false }))
 app.use(morgan('dev'))
-
 app.use(express.json({ limit: '10mb' }))
 app.use(express.urlencoded({ extended: true }))
 
-// =======================
-// RATE LIMITING
-// =======================
-const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
+// ── RATE LIMIT ────────────────────────────────────────
+app.use('/api', rateLimit({
+  windowMs: 15 * 60 * 1000,
   max: 100,
-  message: {
-    success: false,
-    message: 'Too many requests, please try again later'
-  },
-  validate: {
-    xForwardedForHeader: false
-  }
-})
+  validate: { xForwardedForHeader: false }
+}))
 
-app.use('/api', limiter)
-
-// =======================
-// ROUTES
-// =======================
-app.use('/api/auth', authRoutes)
-app.use('/api/blogs', blogRoutes)
-app.use('/api/comments', commentRoutes)
-app.use('/api/users', userRoutes)
+// ── ROUTES ────────────────────────────────────────────
+app.use('/api/auth',       authRoutes)
+app.use('/api/blogs',      blogRoutes)
+app.use('/api/comments',   commentRoutes)
+app.use('/api/users',      userRoutes)
 app.use('/api/newsletter', newsletterRoutes)
-app.use('/api/upload', uploadRoutes)
+app.use('/api/upload',     uploadRoutes)
 
-// =======================
-// HEALTH CHECK
-// =======================
+// ── HEALTH CHECK ──────────────────────────────────────
 app.get('/', (req, res) => {
-  res.json({
-    success: true,
-    message: 'Blog API is running!',
-    version: '1.0.0'
-  })
+  res.json({ success: true, message: '✅ Blog API is running!', version: '1.0.0' })
 })
 
-// =======================
-// 404 HANDLER
-// =======================
+// ── 404 ───────────────────────────────────────────────
 app.use((req, res) => {
-  res.status(404).json({
-    success: false,
-    message: 'Route not found'
-  })
+  res.status(404).json({ success: false, message: 'Route not found' })
 })
 
-// =======================
-// GLOBAL ERROR HANDLER
-// =======================
+// ── ERROR HANDLER ─────────────────────────────────────
 app.use(errorHandler)
 
-// =======================
-// START SERVER
-// =======================
+// ── START ─────────────────────────────────────────────
 const PORT = process.env.PORT || 5000
-
-app.listen(PORT, () => {
-  console.log(`🚀 Server running on port ${PORT}`)
-})
+app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`))
