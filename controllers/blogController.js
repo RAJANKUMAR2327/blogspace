@@ -4,25 +4,27 @@ const slugify = require('slugify')
 // @GET /api/blogs
 exports.getBlogs = async (req, res, next) => {
   try {
-    const page = parseInt(req.query.page) || 1
+    const page  = parseInt(req.query.page)  || 1
     const limit = parseInt(req.query.limit) || 9
-    const { category, search, tag } = req.query
+    const { category, search, tag, sort } = req.query
 
     let query = { status: 'published' }
     if (category) query.category = category
-    if (tag) query.tags = tag
+    if (tag)      query.tags = tag
     if (search) {
       query.$or = [
-        { title: { $regex: search, $options: 'i' } },
+        { title:   { $regex: search, $options: 'i' } },
         { content: { $regex: search, $options: 'i' } },
-        { tags: { $regex: search, $options: 'i' } }
+        { tags:    { $regex: search, $options: 'i' } }
       ]
     }
+
+    const sortObj = sort === 'views' ? { views: -1 } : { createdAt: -1 }
 
     const total = await Blog.countDocuments(query)
     const blogs = await Blog.find(query)
       .populate('author', 'name profileImage')
-      .sort({ createdAt: -1 })
+      .sort(sortObj)
       .skip((page - 1) * limit)
       .limit(limit)
 
@@ -40,6 +42,19 @@ exports.getBlogs = async (req, res, next) => {
   }
 }
 
+// @GET /api/blogs/trending
+exports.getTrending = async (req, res, next) => {
+  try {
+    const blogs = await Blog.find({ status: 'published' })
+      .populate('author', 'name profileImage')
+      .sort({ views: -1 })
+      .limit(5)
+    res.json({ success: true, blogs })
+  } catch (error) {
+    next(error)
+  }
+}
+
 // @GET /api/blogs/:slug
 exports.getBlogBySlug = async (req, res, next) => {
   try {
@@ -47,7 +62,7 @@ exports.getBlogBySlug = async (req, res, next) => {
       { slug: req.params.slug, status: 'published' },
       { $inc: { views: 1 } },
       { new: true }
-    ).populate('author', 'name profileImage bio')
+    ).populate('author', 'name profileImage bio followers')
 
     if (!blog) return res.status(404).json({ message: 'Blog not found' })
     res.json({ success: true, blog })
@@ -59,14 +74,22 @@ exports.getBlogBySlug = async (req, res, next) => {
 // @POST /api/blogs
 exports.createBlog = async (req, res, next) => {
   try {
-    const { title, content, category, tags, status, image } = req.body
-    const slug = slugify(title, { lower: true, strict: true }) +
-      '-' + Date.now()
+    const { title, content, category, tags, status, image, featured, scheduledAt } = req.body
+
+    const slug = slugify(title, { lower: true, strict: true }) + '-' + Date.now()
+
+    // If scheduledAt is in the future, keep as draft
+    const actualStatus = scheduledAt && new Date(scheduledAt) > new Date()
+      ? 'draft'
+      : status
 
     const blog = await Blog.create({
-      title, content, category, tags, status, image, slug,
+      title, content, category, tags, image, featured, slug,
+      status: actualStatus,
+      scheduledAt: scheduledAt || null,
       author: req.user._id
     })
+
     res.status(201).json({ success: true, blog })
   } catch (error) {
     next(error)
@@ -79,8 +102,7 @@ exports.updateBlog = async (req, res, next) => {
     const blog = await Blog.findById(req.params.id)
     if (!blog) return res.status(404).json({ message: 'Blog not found' })
 
-    if (blog.author.toString() !== req.user._id.toString() &&
-        req.user.role !== 'admin') {
+    if (blog.author.toString() !== req.user._id.toString() && req.user.role !== 'admin') {
       return res.status(403).json({ message: 'Not authorized' })
     }
 
@@ -99,8 +121,7 @@ exports.deleteBlog = async (req, res, next) => {
     const blog = await Blog.findById(req.params.id)
     if (!blog) return res.status(404).json({ message: 'Blog not found' })
 
-    if (blog.author.toString() !== req.user._id.toString() &&
-        req.user.role !== 'admin') {
+    if (blog.author.toString() !== req.user._id.toString() && req.user.role !== 'admin') {
       return res.status(403).json({ message: 'Not authorized' })
     }
 
@@ -122,9 +143,37 @@ exports.toggleLike = async (req, res, next) => {
       blog.likes.pull(req.user._id)
     } else {
       blog.likes.push(req.user._id)
+
+      // Create notification for blog author
+      if (blog.author.toString() !== req.user._id.toString()) {
+        const Notification = require('../models/Notification')
+        await Notification.create({
+          recipient: blog.author,
+          sender:    req.user._id,
+          type:      'like',
+          blog:      blog._id,
+          message:   `${req.user.name} liked your article "${blog.title}"`
+        })
+      }
     }
+
     await blog.save()
     res.json({ success: true, likes: blog.likes.length, isLiked: !isLiked })
+  } catch (error) {
+    next(error)
+  }
+}
+
+// @POST /api/blogs/:id/clap  (NEW)
+exports.clapBlog = async (req, res, next) => {
+  try {
+    const blog = await Blog.findByIdAndUpdate(
+      req.params.id,
+      { $inc: { claps: 1 } },
+      { new: true }
+    )
+    if (!blog) return res.status(404).json({ message: 'Blog not found' })
+    res.json({ success: true, claps: blog.claps })
   } catch (error) {
     next(error)
   }

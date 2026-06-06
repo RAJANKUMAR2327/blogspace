@@ -38,26 +38,30 @@ const blogSchema = new mongoose.Schema({
       'Travel', 'Food', 'Lifestyle', 'Other'
     ]
   },
-  tags: [{ type: String, lowercase: true, trim: true }],
-  views: { type: Number, default: 0 },
-  likes: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+  tags:     [{ type: String, lowercase: true, trim: true }],
+  views:    { type: Number, default: 0 },
+  likes:    [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+  claps:    { type: Number, default: 0 },  // NEW — clap system
   status: {
     type: String,
     enum: ['draft', 'published'],
     default: 'draft'
   },
-  readTime: { type: Number, default: 1 },
-  featured: { type: Boolean, default: false }
+  featured:    { type: Boolean, default: false },
+  readTime:    { type: Number, default: 1 },
+  scheduledAt: { type: Date, default: null },  // NEW — scheduled publishing
 }, { timestamps: true })
 
-// ✅ FIX: Use async pre-save hook (no next parameter) — avoids Express 5 / Mongoose next() conflict
+// Auto-generate excerpt and readTime
 blogSchema.pre('save', async function () {
-  if (this.content && !this.excerpt) {
-    this.excerpt = this.content.replace(/<[^>]*>/g, '').substring(0, 200) + '...'
+  const plainText = this.content.replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim()
+
+  if (plainText && !this.excerpt) {
+    this.excerpt = plainText.substring(0, 200) + '...'
   }
   if (this.content) {
-    const wordCount = this.content.replace(/<[^>]*>/g, '').split(' ').length
-    this.readTime = Math.ceil(wordCount / 200)
+    const wordCount = plainText.split(' ').filter(Boolean).length
+    this.readTime = Math.max(1, Math.ceil(wordCount / 200))
   }
 })
 

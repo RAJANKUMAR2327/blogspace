@@ -20,12 +20,9 @@ const commentSchema = new mongoose.Schema({
   parentComment: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Comment',
-    default: null
+    default: null   // null = top-level comment, value = reply
   },
-  isApproved: {
-    type: Boolean,
-    default: true
-  },
+  isApproved: { type: Boolean, default: true },
   likes: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }]
 }, { timestamps: true })
 

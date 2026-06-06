@@ -1,10 +1,11 @@
 const express = require('express')
 const router = express.Router()
-const { getComments, addComment, deleteComment } = require('../controllers/commentController')
-const { protect } = require('../middleware/auth')
+const { getComments, addComment, deleteComment, getAllComments } = require('../controllers/commentController')
+const { protect, adminOnly } = require('../middleware/auth')
 
-router.get('/:blogId', getComments)
+router.get('/',         protect, adminOnly, getAllComments)  // admin: all comments
+router.get('/:blogId',  getComments)
 router.post('/:blogId', protect, addComment)
-router.delete('/:id', protect, deleteComment)
+router.delete('/:id',   protect, deleteComment)
 
 module.exports = router

@@ -1,39 +1,29 @@
 const express = require('express')
 const router = express.Router()
-
 const {
-  getProfile,
-  updateProfile,
-  toggleSaveBlog,
-  getSavedBlogs,
-  getAllUsers,
-  toggleBan,
-  deleteUser,
-  getHistory,
-  addToHistory,
-  followToggle
+  getProfile, updateProfile,
+  toggleSaveBlog, getSavedBlogs,
+  getHistory, addToHistory,
+  followToggle,
+  getAllUsers, getStats, toggleBan, deleteUser
 } = require('../controllers/userController')
-
 const { protect, adminOnly } = require('../middleware/auth')
 
-// Reading History
-router.get('/history', protect, getHistory)
-router.post('/history/:blogId', protect, addToHistory)
+// IMPORTANT: specific named routes BEFORE /:id routes
+router.get('/profile',          protect, getProfile)
+router.put('/profile',          protect, updateProfile)
+router.post('/save/:blogId',    protect, toggleSaveBlog)
+router.get('/saved',            protect, getSavedBlogs)
+router.get('/history',          protect, getHistory)          // NEW
+router.post('/history/:blogId', protect, addToHistory)        // NEW
+router.get('/stats',            protect, adminOnly, getStats) // NEW
 
-// Profile
-router.get('/profile', protect, getProfile)
-router.put('/profile', protect, updateProfile)
+// Admin routes
+router.get('/',          protect, adminOnly, getAllUsers)
+router.put('/:id/ban',   protect, adminOnly, toggleBan)
+router.delete('/:id',    protect, adminOnly, deleteUser)
 
-// Saved Blogs
-router.post('/save/:blogId', protect, toggleSaveBlog)
-router.get('/saved', protect, getSavedBlogs)
-
-// Follow / Unfollow
-router.post('/:id/follow', protect, followToggle)
-
-// Admin Routes
-router.get('/', protect, adminOnly, getAllUsers)
-router.put('/:id/ban', protect, adminOnly, toggleBan)
-router.delete('/:id', protect, adminOnly, deleteUser)
+// Follow toggle (after /stats, /history etc.)
+router.post('/:id/follow', protect, followToggle)             // NEW
 
 module.exports = router
