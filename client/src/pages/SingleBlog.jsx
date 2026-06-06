@@ -4,7 +4,8 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { blogAPI, commentAPI } from '../services/api'
 import { AuthContext } from '../context/AuthContext'
 import toast from 'react-hot-toast'
-import { FiHeart, FiEye, FiClock, FiShare2, FiArrowLeft, FiMessageSquare } from 'react-icons/fi'
+import { FiHeart, FiEye, FiClock, FiShare2, FiArrowLeft, FiMessageSquare, FiTrash2 } from 'react-icons/fi'
+import { formatDistanceToNow } from 'date-fns'
 
 export default function SingleBlog() {
   const { slug } = useParams()
