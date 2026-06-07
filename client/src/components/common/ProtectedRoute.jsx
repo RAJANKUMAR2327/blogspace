@@ -1,28 +1,21 @@
 import { useContext } from 'react'
-import { Navigate, useLocation } from 'react-router-dom'
+import { Navigate } from 'react-router-dom'
 import { AuthContext } from '../../context/AuthContext'
 
 export default function ProtectedRoute({ children, adminOnly = false }) {
-  // ✅ FIX: Use AuthContext directly (has safe default value now)
   const { user, loading } = useContext(AuthContext)
-  const location = useLocation()
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-purple-600" />
+  if (loading) return (
+    <div style={{ background: '#080810', minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <div style={{ textAlign: 'center' }}>
+        <div style={{ width: 48, height: 48, borderRadius: '50%', border: '2px solid rgba(255,255,255,0.06)', borderTop: '2px solid #7c3aed', animation: 'spin 0.8s linear infinite', margin: '0 auto 16px' }} />
+        <p style={{ fontSize: 14, color: 'rgba(255,255,255,0.25)', fontFamily: "'Inter',sans-serif" }}>Loading...</p>
       </div>
-    )
-  }
+      <style>{`@keyframes spin { to { transform: rotate(360deg) } }`}</style>
+    </div>
+  )
 
-  if (!user) {
-    // ✅ Save where they were going so Login can redirect back
-    return <Navigate to="/login" state={{ from: location }} replace />
-  }
-
-  if (adminOnly && user.role !== 'admin') {
-    return <Navigate to="/" replace />
-  }
-
+  if (!user) return <Navigate to="/login" replace />
+  if (adminOnly && user.role !== 'admin') return <Navigate to="/" replace />
   return children
 }

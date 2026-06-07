@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useSearchParams, Link } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { blogAPI } from '../services/api'
@@ -26,100 +26,97 @@ export default function SearchResults() {
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-12">
-      {/* Search Bar */}
-      <div className="max-w-2xl mx-auto mb-10">
-        <form onSubmit={handleSearch} className="flex gap-3">
-          <div className="relative flex-1">
-            <FiSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-lg" />
-            <input
-              type="text"
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              placeholder="Search articles, topics, tags..."
-              className="w-full pl-12 pr-4 py-4 rounded-2xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500 text-lg"
-            />
-          </div>
-          <button
-            type="submit"
-            className="bg-purple-600 text-white px-8 py-4 rounded-2xl hover:bg-purple-700 transition-colors font-medium"
-          >
-            Search
-          </button>
-        </form>
-      </div>
+    <div style={{ background: '#080810', minHeight: '100vh', paddingTop: 64, fontFamily: "'Inter',sans-serif" }}>
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Inter:wght@300;400;500&display=swap');
+        .sr-input {
+          flex:1; padding:16px 16px 16px 48px;
+          background:rgba(255,255,255,0.05);
+          border:1px solid rgba(255,255,255,0.08);
+          border-radius:12px; font-size:16px; color:#fff; outline:none;
+          font-family:'Inter',sans-serif; transition:all 0.2s;
+        }
+        .sr-input:focus { border-color:rgba(167,139,250,0.4); background:rgba(167,139,250,0.04); }
+        .sr-input::placeholder { color:rgba(255,255,255,0.2); }
+        .sr-btn {
+          padding:16px 28px; background:linear-gradient(135deg,#7c3aed,#2563eb);
+          color:white; border:none; border-radius:12px; font-size:15px;
+          font-weight:500; cursor:pointer; font-family:'Inter',sans-serif;
+          transition:all 0.2s; white-space:nowrap;
+        }
+        .sr-btn:hover { transform:translateY(-1px); box-shadow:0 8px 24px rgba(124,58,237,0.4); }
+        .skeleton { background:rgba(255,255,255,0.05);border-radius:14px;animation:pulse 1.5s ease-in-out infinite; }
+        @keyframes pulse { 0%,100%{opacity:0.5}50%{opacity:1} }
+      `}</style>
 
-      {/* Results Header */}
-      {query && (
-        <div className="mb-8">
-          {isLoading ? (
-            <p className="text-gray-500 dark:text-gray-400">Searching for "{query}"...</p>
-          ) : (
-            <p className="text-gray-600 dark:text-gray-300">
-              Found{' '}
-              <span className="font-semibold text-gray-900 dark:text-white">
-                {data?.blogs?.length || 0}
-              </span>{' '}
-              results for{' '}
-              <span className="font-semibold text-purple-600 dark:text-purple-400">
-                "{query}"
-              </span>
+      <div style={{ maxWidth: 900, margin: '0 auto', padding: '60px 24px 80px' }}>
+        {/* Header */}
+        <div style={{ marginBottom: 40 }}>
+          <div style={{ fontSize: 11, letterSpacing: '2px', textTransform: 'uppercase', color: 'rgba(167,139,250,0.6)', marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
+            <span style={{ width: 16, height: 1, background: 'rgba(167,139,250,0.4)', display: 'inline-block' }} />
+            Search
+          </div>
+          <h1 style={{ fontFamily: "'Syne',sans-serif", fontSize: 'clamp(28px,5vw,48px)', fontWeight: 800, color: '#fff', letterSpacing: '-1px', marginBottom: 8 }}>
+            {query ? `Results for "${query}"` : 'Search stories'}
+          </h1>
+          {query && !isLoading && (
+            <p style={{ fontSize: 15, color: 'rgba(255,255,255,0.3)', fontWeight: 300 }}>
+              Found {data?.blogs?.length || 0} stories
             </p>
           )}
         </div>
-      )}
 
-      {/* Loading Skeletons */}
-      {isLoading && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {[...Array(6)].map((_, i) => (
-            <div key={i} className="animate-pulse">
-              <div className="bg-gray-200 dark:bg-gray-700 h-48 rounded-xl mb-4"></div>
-              <div className="bg-gray-200 dark:bg-gray-700 h-4 rounded mb-2"></div>
-              <div className="bg-gray-200 dark:bg-gray-700 h-4 rounded w-3/4"></div>
-            </div>
-          ))}
-        </div>
-      )}
+        {/* Search Bar */}
+        <form onSubmit={handleSearch} style={{ display: 'flex', gap: 10, marginBottom: 48 }}>
+          <div style={{ position: 'relative', flex: 1 }}>
+            <FiSearch style={{ position: 'absolute', left: 16, top: '50%', transform: 'translateY(-50%)', color: 'rgba(255,255,255,0.25)', fontSize: 18 }} />
+            <input className="sr-input" type="text" value={input}
+              onChange={(e) => setInput(e.target.value)}
+              placeholder="Search stories, topics, authors..." />
+          </div>
+          <button type="submit" className="sr-btn">Search</button>
+        </form>
 
-      {/* No Query State */}
-      {!query && !isLoading && (
-        <div className="text-center py-20">
-          <p className="text-6xl mb-4">🔍</p>
-          <h2 className="text-2xl font-semibold text-gray-700 dark:text-gray-300 mb-2">
-            Start searching
-          </h2>
-          <p className="text-gray-500">Type something above to find articles</p>
-        </div>
-      )}
+        {/* States */}
+        {!query && (
+          <div style={{ textAlign: 'center', padding: '60px 20px' }}>
+            <div style={{ fontSize: 64, marginBottom: 16, filter: 'grayscale(0.3)' }}>🔍</div>
+            <h3 style={{ fontFamily: "'Syne',sans-serif", fontSize: 24, fontWeight: 700, color: '#fff', marginBottom: 8 }}>
+              Start searching
+            </h3>
+            <p style={{ color: 'rgba(255,255,255,0.3)', fontSize: 15 }}>
+              Type something to discover great stories
+            </p>
+          </div>
+        )}
 
-      {/* No Results */}
-      {query && !isLoading && data?.blogs?.length === 0 && (
-        <div className="text-center py-20">
-          <p className="text-6xl mb-4">😕</p>
-          <h2 className="text-2xl font-semibold text-gray-700 dark:text-gray-300 mb-2">
-            No results found
-          </h2>
-          <p className="text-gray-500 mb-6">
-            No articles matched "{query}". Try different keywords.
-          </p>
-          <Link
-            to="/blogs"
-            className="text-purple-600 dark:text-purple-400 hover:underline font-medium"
-          >
-            Browse all articles →
-          </Link>
-        </div>
-      )}
+        {isLoading && (
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 20 }}>
+            {[...Array(6)].map((_, i) => <div key={i} className="skeleton" style={{ height: 360 }} />)}
+          </div>
+        )}
 
-      {/* Results Grid */}
-      {!isLoading && data?.blogs?.length > 0 && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {data.blogs.map(blog => (
-            <BlogCard key={blog._id} blog={blog} />
-          ))}
-        </div>
-      )}
+        {query && !isLoading && data?.blogs?.length === 0 && (
+          <div style={{ textAlign: 'center', padding: '60px 20px' }}>
+            <div style={{ fontSize: 64, marginBottom: 16 }}>😕</div>
+            <h3 style={{ fontFamily: "'Syne',sans-serif", fontSize: 24, fontWeight: 700, color: '#fff', marginBottom: 8 }}>
+              No results found
+            </h3>
+            <p style={{ color: 'rgba(255,255,255,0.3)', marginBottom: 24, fontSize: 15 }}>
+              No stories matched "{query}" — try different keywords
+            </p>
+            <Link to="/blogs" style={{ display: 'inline-block', padding: '12px 28px', background: 'linear-gradient(135deg,#7c3aed,#2563eb)', color: 'white', borderRadius: 12, textDecoration: 'none', fontSize: 14, fontWeight: 500 }}>
+              Browse all stories →
+            </Link>
+          </div>
+        )}
+
+        {!isLoading && data?.blogs?.length > 0 && (
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 20 }}>
+            {data.blogs.map(blog => <BlogCard key={blog._id} blog={blog} />)}
+          </div>
+        )}
+      </div>
     </div>
   )
 }

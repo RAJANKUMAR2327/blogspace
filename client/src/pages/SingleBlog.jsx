@@ -1,100 +1,52 @@
-import { useContext, useState, useEffect } from 'react'
+import { useContext, useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { blogAPI, commentAPI, userAPI } from '../services/api'
+import { blogAPI, commentAPI } from '../services/api'
 import { AuthContext } from '../context/AuthContext'
 import toast from 'react-hot-toast'
-import {
-  FiHeart,
-  FiEye,
-  FiClock,
-  FiShare2,
-  FiTrash2,
-  FiMessageSquare,
-  FiCornerDownRight
-} from 'react-icons/fi'
+import { FiHeart, FiEye, FiClock, FiShare2, FiBookmark, FiTrash2, FiArrowLeft, FiMessageSquare } from 'react-icons/fi'
 import { formatDistanceToNow } from 'date-fns'
-import SEO from '../components/common/SEO'
 
 export default function SingleBlog() {
   const { slug } = useParams()
   const { user } = useContext(AuthContext)
   const queryClient = useQueryClient()
   const [comment, setComment] = useState('')
-  const [replyTo, setReplyTo] = useState(null) // { id, name }
-  const [replyText, setReplyText] = useState('')
-  const [localClaps, setLocalClaps] = useState(0)
 
-  const { data, isLoading } = useQuery({
+  const { data: blog, isLoading } = useQuery({
     queryKey: ['blog', slug],
-    queryFn: () => blogAPI.getBySlug(slug).then(r => r.data.blog)
+    queryFn: async () => {
+      const res = await blogAPI.getBySlug(slug)
+      return res.data.blog
+    }
   })
 
   const { data: comments } = useQuery({
-    queryKey: ['comments', data?._id],
-    queryFn: () => commentAPI.getAll(data._id).then(r => r.data.comments),
-    enabled: !!data?._id
+    queryKey: ['comments', blog?._id],
+    queryFn: async () => {
+      const res = await commentAPI.getAll(blog._id)
+      return res.data.comments
+    },
+    enabled: !!blog?._id
   })
 
-  // Track reading history
-  useEffect(() => {
-    if (data?._id && user) {
-      userAPI.addToHistory(data._id).catch(() => {})
-    }
-  }, [data?._id, user])
-
-  // JSON-LD structured data
-  useEffect(() => {
-    if (!data) return
-    const script = document.createElement('script')
-    script.type = 'application/ld+json'
-    script.text = JSON.stringify({
-      '@context': 'https://schema.org',
-      '@type': 'BlogPosting',
-      headline: data.title,
-      image: data.image,
-      author: { '@type': 'Person', name: data.author?.name },
-      datePublished: data.createdAt,
-      dateModified: data.updatedAt,
-      description: data.excerpt
-    })
-    document.head.appendChild(script)
-    return () => document.head.contains(script) && document.head.removeChild(script)
-  }, [data])
-
   const likeMutation = useMutation({
-    mutationFn: () => blogAPI.toggleLike(data._id),
+    mutationFn: () => blogAPI.toggleLike(blog._id),
     onSuccess: () => queryClient.invalidateQueries(['blog', slug])
   })
 
-  const clapMutation = useMutation({
-    mutationFn: () => blogAPI.clapBlog(data._id),
-    onSuccess: () => setLocalClaps(c => c + 1)
-  })
-
   const commentMutation = useMutation({
-    mutationFn: (content) => commentAPI.add(data._id, { content }),
+    mutationFn: (content) => commentAPI.add(blog._id, { content }),
     onSuccess: () => {
-      queryClient.invalidateQueries(['comments', data._id])
+      queryClient.invalidateQueries(['comments', blog._id])
       setComment('')
       toast.success('Comment posted!')
     }
   })
 
-  const replyMutation = useMutation({
-    mutationFn: ({ content, parentComment }) =>
-      commentAPI.add(data._id, { content, parentComment }),
-    onSuccess: () => {
-      queryClient.invalidateQueries(['comments', data._id])
-      setReplyTo(null)
-      setReplyText('')
-      toast.success('Reply posted!')
-    }
-  })
-
   const deleteCommentMutation = useMutation({
     mutationFn: (id) => commentAPI.delete(id),
-    onSuccess: () => queryClient.invalidateQueries(['comments', data._id])
+    onSuccess: () => queryClient.invalidateQueries(['comments', blog._id])
   })
 
   const handleShare = () => {
@@ -102,238 +54,214 @@ export default function SingleBlog() {
     toast.success('Link copied!')
   }
 
+  const isLiked = user && blog?.likes?.includes(user._id)
+
   if (isLoading) return (
-    <div className="max-w-4xl mx-auto px-4 py-12 animate-pulse">
-      <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded mb-4 w-3/4" />
-      <div className="h-64 bg-gray-200 dark:bg-gray-700 rounded-2xl mb-8" />
-      {[...Array(6)].map((_, i) => (
-        <div key={i} className="h-4 bg-gray-200 dark:bg-gray-700 rounded mb-3" />
-      ))}
+    <div style={{ background: '#080810', minHeight: '100vh', paddingTop: 64 }}>
+      <div style={{ maxWidth: 760, margin: '0 auto', padding: '60px 24px' }}>
+        {[...Array(8)].map((_, i) => (
+          <div key={i} style={{ height: i === 0 ? 48 : 16, background: 'rgba(255,255,255,0.05)', borderRadius: 8, marginBottom: 16, width: i === 0 ? '80%' : `${60 + Math.random() * 40}%`, animation: 'pulse 1.5s ease-in-out infinite' }} />
+        ))}
+      </div>
     </div>
   )
 
-  if (!data) return (
-    <div className="text-center py-20">
-      <h2 className="text-2xl font-bold text-gray-700 dark:text-gray-300">Blog not found</h2>
-      <Link to="/blogs" className="text-purple-600 hover:underline mt-4 block">← Back to blogs</Link>
+  if (!blog) return (
+    <div style={{ background: '#080810', minHeight: '100vh', paddingTop: 64, display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: 16 }}>
+      <div style={{ fontSize: 64 }}>📭</div>
+      <h2 style={{ fontFamily: "'Syne',sans-serif", fontSize: 28, fontWeight: 700, color: '#fff' }}>Story not found</h2>
+      <Link to="/blogs" style={{ color: '#a78bfa', textDecoration: 'none', fontSize: 15 }}>← Back to all stories</Link>
     </div>
   )
-
-  const isLiked = user && data.likes?.includes(user._id)
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-12">
-      <SEO title={data.title} description={data.excerpt} image={data.image} />
+    <div style={{ background: '#080810', minHeight: '100vh', paddingTop: 64, fontFamily: "'Inter',sans-serif" }}>
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Inter:wght@300;400;500&display=swap');
+        @keyframes pulse { 0%,100%{opacity:0.5}50%{opacity:1} }
+        .comment-input {
+          width:100%; padding:14px 16px;
+          background:rgba(255,255,255,0.05);
+          border:1px solid rgba(255,255,255,0.08);
+          border-radius:12px; font-size:14px; color:#fff; outline:none;
+          font-family:'Inter',sans-serif; transition:border-color 0.2s;
+          resize:none; box-sizing:border-box;
+        }
+        .comment-input:focus { border-color:rgba(167,139,250,0.4); }
+        .comment-input::placeholder { color:rgba(255,255,255,0.2); }
+        .action-btn {
+          display:inline-flex; align-items:center; gap:8px;
+          padding:10px 20px; border-radius:10px; font-size:14px;
+          font-weight:500; cursor:pointer; transition:all 0.2s;
+          font-family:'Inter',sans-serif; border:1px solid rgba(255,255,255,0.08);
+          background:rgba(255,255,255,0.04); color:rgba(255,255,255,0.5);
+        }
+        .action-btn:hover { border-color:rgba(255,255,255,0.15); color:#fff; }
+        .action-btn.liked { background:rgba(248,113,113,0.1); border-color:rgba(248,113,113,0.3); color:#f87171; }
+        .tag-chip {
+          font-size:11px; letter-spacing:1px; text-transform:uppercase;
+          padding:4px 10px; border-radius:6px; font-weight:500;
+          background:rgba(167,139,250,0.1); color:rgba(167,139,250,0.7);
+          border:1px solid rgba(167,139,250,0.15);
+        }
+      `}</style>
 
-      {/* Category */}
-      <div className="mb-4">
-        <Link to={`/blogs?category=${data.category}`}
-          className="text-sm font-semibold text-purple-600 dark:text-purple-400 uppercase tracking-wide hover:underline">
-          {data.category}
+      {/* Hero Image */}
+      {blog.image && (
+        <div style={{ width: '100%', height: '420px', position: 'relative', overflow: 'hidden' }}>
+          <img src={blog.image} alt={blog.title} style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: 0.4 }} />
+          <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, transparent 30%, #080810 100%)' }} />
+        </div>
+      )}
+
+      <div style={{ maxWidth: 760, margin: '0 auto', padding: blog.image ? '0 24px 80px' : '60px 24px 80px', marginTop: blog.image ? -120 : 0, position: 'relative' }}>
+
+        {/* Back */}
+        <Link to="/blogs" style={{ display: 'inline-flex', alignItems: 'center', gap: 8, fontSize: 13, color: 'rgba(255,255,255,0.35)', textDecoration: 'none', marginBottom: 32, transition: 'color 0.2s' }}
+          onMouseEnter={e => e.currentTarget.style.color = '#a78bfa'}
+          onMouseLeave={e => e.currentTarget.style.color = 'rgba(255,255,255,0.35)'}>
+          <FiArrowLeft /> Back to stories
         </Link>
-      </div>
 
-      {/* Title */}
-      <h1 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-6 leading-tight">
-        {data.title}
-      </h1>
+        {/* Category */}
+        <div style={{ marginBottom: 16 }}>
+          <span style={{ fontSize: 11, letterSpacing: '2px', textTransform: 'uppercase', color: '#a78bfa', display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+            <span style={{ width: 12, height: 1, background: '#a78bfa', display: 'inline-block' }} />
+            {blog.category}
+          </span>
+        </div>
 
-      {/* Author & Stats */}
-      <div className="flex flex-wrap items-center justify-between gap-4 mb-8 pb-8 border-b border-gray-100 dark:border-gray-800">
-        <div className="flex items-center gap-3">
-          <img
-            src={data.author?.profileImage || `https://placehold.co/48x48/9333ea/ffffff?text=${data.author?.name?.[0]}`}
-            alt={data.author?.name}
-            className="w-12 h-12 rounded-full object-cover"
-          />
-          <div>
-            <p className="font-semibold text-gray-900 dark:text-white">{data.author?.name}</p>
-            <p className="text-sm text-gray-500">
-              {formatDistanceToNow(new Date(data.createdAt), { addSuffix: true })}
-            </p>
+        {/* Title */}
+        <h1 style={{ fontFamily: "'Syne',sans-serif", fontSize: 'clamp(28px,5vw,48px)', fontWeight: 800, color: '#fff', lineHeight: 1.1, letterSpacing: '-1px', marginBottom: 24 }}>
+          {blog.title}
+        </h1>
+
+        {/* Author & Meta */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 16, marginBottom: 32, paddingBottom: 32, borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <div style={{ width: 44, height: 44, borderRadius: '50%', background: 'linear-gradient(135deg,#7c3aed,#2563eb)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: "'Syne',sans-serif", fontWeight: 700, fontSize: 16, color: '#fff', flexShrink: 0 }}>
+              {blog.author?.name?.[0] || 'A'}
+            </div>
+            <div>
+              <p style={{ fontSize: 15, fontWeight: 500, color: '#fff', marginBottom: 2 }}>{blog.author?.name}</p>
+              <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.3)' }}>
+                {formatDistanceToNow(new Date(blog.createdAt), { addSuffix: true })}
+              </p>
+            </div>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 16, fontSize: 13, color: 'rgba(255,255,255,0.25)' }}>
+            <span style={{ display: 'flex', alignItems: 'center', gap: 5 }}><FiEye size={13} /> {blog.views || 0}</span>
+            <span style={{ display: 'flex', alignItems: 'center', gap: 5 }}><FiClock size={13} /> {blog.readTime || 5} min read</span>
+            <span style={{ display: 'flex', alignItems: 'center', gap: 5 }}><FiMessageSquare size={13} /> {comments?.length || 0}</span>
           </div>
         </div>
-        <div className="flex items-center gap-4 text-sm text-gray-500">
-          <span className="flex items-center gap-1"><FiEye /> {data.views}</span>
-          <span className="flex items-center gap-1"><FiClock /> {data.readTime} min read</span>
-        </div>
-      </div>
 
-      {/* Cover Image */}
-      {data.image && (
-        <img src={data.image} alt={data.title}
-          className="w-full h-80 object-cover rounded-2xl mb-10" />
-      )}
+        {/* Content */}
+        <div className="prose" style={{ marginBottom: 48, lineHeight: 1.85, fontSize: 17, color: 'rgba(255,255,255,0.7)', fontWeight: 300 }}
+          dangerouslySetInnerHTML={{ __html: blog.content?.replace(/\n/g, '<br/>') }} />
 
-      {/* Content */}
-      <div
-        className="prose prose-lg dark:prose-invert max-w-none mb-12 prose-headings:text-gray-900 dark:prose-headings:text-white prose-a:text-purple-600"
-        dangerouslySetInnerHTML={{ __html: data.content }}
-      />
-
-      {/* Tags */}
-      {data.tags?.length > 0 && (
-        <div className="flex flex-wrap gap-2 mb-8">
-          {data.tags.map(tag => (
-            <Link key={tag} to={`/blogs?tag=${tag}`}
-              className="px-3 py-1 bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 rounded-full text-sm hover:bg-purple-50 hover:text-purple-600 transition-colors">
-              #{tag}
-            </Link>
-          ))}
-        </div>
-      )}
-
-      {/* Action Buttons */}
-      <div className="flex flex-wrap items-center gap-3 py-6 border-t border-b border-gray-100 dark:border-gray-800 mb-10">
-        {/* Like */}
-        <button
-          onClick={() => user ? likeMutation.mutate() : toast.error('Login to like')}
-          className={`flex items-center gap-2 px-5 py-2.5 rounded-full border transition-colors ${
-            isLiked
-              ? 'bg-red-50 border-red-200 text-red-500 dark:bg-red-900/20 dark:border-red-800'
-              : 'border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 hover:border-red-200 hover:text-red-500'
-          }`}>
-          <FiHeart className={isLiked ? 'fill-current' : ''} />
-          {data.likes?.length || 0}
-        </button>
-
-        {/* Clap (NEW) */}
-        <button
-          onClick={() => user ? clapMutation.mutate() : toast.error('Login to clap')}
-          className="flex items-center gap-2 px-5 py-2.5 rounded-full border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 hover:border-yellow-300 hover:text-yellow-500 transition-colors">
-          👏 {(data.claps || 0) + localClaps}
-        </button>
-
-        {/* Share */}
-        <button onClick={handleShare}
-          className="flex items-center gap-2 px-5 py-2.5 rounded-full border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 hover:border-purple-300 hover:text-purple-600 transition-colors">
-          <FiShare2 /> Share
-        </button>
-      </div>
-
-      {/* Comments */}
-      <div>
-        <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-2">
-          <FiMessageSquare /> Comments ({comments?.length || 0})
-        </h2>
-
-        {/* Add Comment */}
-        {user ? (
-          <div className="mb-8">
-            <textarea
-              value={comment}
-              onChange={(e) => setComment(e.target.value)}
-              placeholder="Share your thoughts..."
-              rows={3}
-              className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500 resize-none"
-            />
-            <button
-              onClick={() => comment.trim() && commentMutation.mutate(comment)}
-              disabled={!comment.trim() || commentMutation.isPending}
-              className="mt-2 bg-purple-600 text-white px-6 py-2.5 rounded-xl hover:bg-purple-700 transition-colors disabled:opacity-50">
-              {commentMutation.isPending ? 'Posting...' : 'Post Comment'}
-            </button>
-          </div>
-        ) : (
-          <div className="bg-gray-50 dark:bg-gray-800 rounded-xl p-4 mb-8 text-center">
-            <p className="text-gray-600 dark:text-gray-300">
-              <Link to="/login" className="text-purple-600 hover:underline font-medium">Login</Link> to join the conversation
-            </p>
+        {/* Tags */}
+        {blog.tags?.length > 0 && (
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 40 }}>
+            {blog.tags.map(tag => <span key={tag} className="tag-chip">#{tag}</span>)}
           </div>
         )}
 
-        {/* Comments List */}
-        <div className="space-y-4">
-          {comments?.map(c => (
-            <div key={c._id} className="bg-white dark:bg-gray-800 rounded-xl p-5 border border-gray-100 dark:border-gray-700">
-              <div className="flex items-start justify-between">
-                <div className="flex items-center gap-3 mb-3">
-                  <img
-                    src={c.user?.profileImage || `https://placehold.co/36x36/9333ea/ffffff?text=${c.user?.name?.[0]}`}
-                    alt={c.user?.name}
-                    className="w-9 h-9 rounded-full object-cover"
-                  />
-                  <div>
-                    <p className="font-medium text-gray-900 dark:text-white text-sm">{c.user?.name}</p>
-                    <p className="text-xs text-gray-400">
-                      {formatDistanceToNow(new Date(c.createdAt), { addSuffix: true })}
-                    </p>
-                  </div>
+        {/* Action Buttons */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '24px 0', borderTop: '1px solid rgba(255,255,255,0.06)', borderBottom: '1px solid rgba(255,255,255,0.06)', marginBottom: 48, flexWrap: 'wrap' }}>
+          <button onClick={() => user ? likeMutation.mutate() : toast.error('Sign in to like')}
+            className={`action-btn ${isLiked ? 'liked' : ''}`}>
+            <FiHeart style={{ fill: isLiked ? 'currentColor' : 'none' }} />
+            {blog.likes?.length || 0} {blog.likes?.length === 1 ? 'Like' : 'Likes'}
+          </button>
+          <button onClick={handleShare} className="action-btn">
+            <FiShare2 /> Share
+          </button>
+          {user?.role === 'admin' && (
+            <Link to={`/admin/edit/${blog._id}`} style={{ marginLeft: 'auto', display: 'inline-flex', alignItems: 'center', gap: 8, padding: '10px 20px', borderRadius: 10, fontSize: 14, fontWeight: 500, background: 'rgba(124,58,237,0.15)', border: '1px solid rgba(124,58,237,0.3)', color: '#a78bfa', textDecoration: 'none', transition: 'all 0.2s' }}>
+              Edit Story
+            </Link>
+          )}
+        </div>
+
+        {/* Comments Section */}
+        <div>
+          <h2 style={{ fontFamily: "'Syne',sans-serif", fontSize: 24, fontWeight: 700, color: '#fff', marginBottom: 28, letterSpacing: '-0.3px' }}>
+            Discussion <span style={{ fontSize: 16, color: 'rgba(255,255,255,0.3)', fontWeight: 400 }}>({comments?.length || 0})</span>
+          </h2>
+
+          {/* Add Comment */}
+          {user ? (
+            <div style={{ marginBottom: 32, background: '#0d0d1a', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 14, padding: 20 }}>
+              <div style={{ display: 'flex', gap: 12, marginBottom: 12 }}>
+                <div style={{ width: 32, height: 32, borderRadius: '50%', background: 'linear-gradient(135deg,#7c3aed,#2563eb)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, fontWeight: 700, color: '#fff', flexShrink: 0 }}>
+                  {user.name?.[0]}
                 </div>
-                <div className="flex items-center gap-2">
-                  {user && (
-                    <button onClick={() => setReplyTo({ id: c._id, name: c.user?.name })}
-                      className="text-xs text-gray-400 hover:text-purple-600 flex items-center gap-1">
-                      <FiCornerDownRight size={12} /> Reply
-                    </button>
-                  )}
+                <span style={{ fontSize: 14, color: 'rgba(255,255,255,0.5)', paddingTop: 6 }}>{user.name}</span>
+              </div>
+              <textarea
+                className="comment-input"
+                value={comment}
+                onChange={(e) => setComment(e.target.value)}
+                placeholder="Share your thoughts on this story..."
+                rows={3}
+              />
+              <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 12 }}>
+                <button
+                  onClick={() => comment.trim() && commentMutation.mutate(comment)}
+                  disabled={!comment.trim() || commentMutation.isPending}
+                  style={{ padding: '10px 24px', background: comment.trim() ? 'linear-gradient(135deg,#7c3aed,#2563eb)' : 'rgba(255,255,255,0.06)', color: comment.trim() ? 'white' : 'rgba(255,255,255,0.25)', border: 'none', borderRadius: 10, fontSize: 14, fontWeight: 500, cursor: comment.trim() ? 'pointer' : 'not-allowed', transition: 'all 0.2s', fontFamily: "'Inter',sans-serif" }}>
+                  {commentMutation.isPending ? 'Posting...' : 'Post comment'}
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div style={{ background: '#0d0d1a', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 14, padding: 24, marginBottom: 32, textAlign: 'center' }}>
+              <p style={{ color: 'rgba(255,255,255,0.4)', marginBottom: 12, fontSize: 14 }}>
+                Sign in to join the discussion
+              </p>
+              <Link to="/login" style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '10px 24px', background: 'linear-gradient(135deg,#7c3aed,#2563eb)', color: 'white', borderRadius: 10, textDecoration: 'none', fontSize: 14, fontWeight: 500 }}>
+                Sign in to comment
+              </Link>
+            </div>
+          )}
+
+          {/* Comments List */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+            {comments?.map(c => (
+              <div key={c._id} style={{ background: '#0d0d1a', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 14, padding: 20, transition: 'border-color 0.2s' }}
+                onMouseEnter={e => e.currentTarget.style.borderColor = 'rgba(167,139,250,0.15)'}
+                onMouseLeave={e => e.currentTarget.style.borderColor = 'rgba(255,255,255,0.06)'}>
+                <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 12 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                    <div style={{ width: 34, height: 34, borderRadius: '50%', background: 'linear-gradient(135deg,#7c3aed,#2563eb)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, fontWeight: 700, color: '#fff', flexShrink: 0 }}>
+                      {c.user?.name?.[0] || 'U'}
+                    </div>
+                    <div>
+                      <p style={{ fontSize: 14, fontWeight: 500, color: '#fff', marginBottom: 2 }}>{c.user?.name}</p>
+                      <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.25)' }}>
+                        {formatDistanceToNow(new Date(c.createdAt), { addSuffix: true })}
+                      </p>
+                    </div>
+                  </div>
                   {(user?._id === c.user?._id || user?.role === 'admin') && (
                     <button onClick={() => deleteCommentMutation.mutate(c._id)}
-                      className="text-gray-400 hover:text-red-500 transition-colors">
-                      <FiTrash2 size={14} />
+                      style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(255,255,255,0.2)', fontSize: 14, padding: 4, transition: 'color 0.2s', display: 'flex', alignItems: 'center' }}
+                      onMouseEnter={e => e.currentTarget.style.color = '#f87171'}
+                      onMouseLeave={e => e.currentTarget.style.color = 'rgba(255,255,255,0.2)'}>
+                      <FiTrash2 />
                     </button>
                   )}
                 </div>
+                <p style={{ fontSize: 14, color: 'rgba(255,255,255,0.6)', lineHeight: 1.7, fontWeight: 300 }}>{c.content}</p>
               </div>
-
-              <p className="text-gray-700 dark:text-gray-300 text-sm leading-relaxed">{c.content}</p>
-
-              {/* Replies */}
-              {c.replies?.length > 0 && (
-                <div className="mt-4 ml-6 space-y-3 border-l-2 border-purple-100 dark:border-purple-900/30 pl-4">
-                  {c.replies.map(reply => (
-                    <div key={reply._id} className="flex items-start gap-3">
-                      <img
-                        src={reply.user?.profileImage || `https://placehold.co/28x28/9333ea/ffffff?text=${reply.user?.name?.[0]}`}
-                        alt={reply.user?.name}
-                        className="w-7 h-7 rounded-full object-cover flex-shrink-0 mt-0.5"
-                      />
-                      <div className="flex-1">
-                        <div className="flex items-center justify-between">
-                          <p className="text-xs font-medium text-gray-900 dark:text-white">{reply.user?.name}</p>
-                          {(user?._id === reply.user?._id || user?.role === 'admin') && (
-                            <button onClick={() => deleteCommentMutation.mutate(reply._id)}
-                              className="text-gray-300 hover:text-red-400 transition-colors">
-                              <FiTrash2 size={12} />
-                            </button>
-                          )}
-                        </div>
-                        <p className="text-sm text-gray-600 dark:text-gray-400 mt-0.5">{reply.content}</p>
-                        <p className="text-xs text-gray-400 mt-0.5">
-                          {formatDistanceToNow(new Date(reply.createdAt), { addSuffix: true })}
-                        </p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-
-              {/* Reply Box */}
-              {replyTo?.id === c._id && (
-                <div className="mt-4 ml-6">
-                  <textarea
-                    value={replyText}
-                    onChange={(e) => setReplyText(e.target.value)}
-                    placeholder={`Reply to ${replyTo.name}...`}
-                    rows={2}
-                    className="w-full px-3 py-2 text-sm rounded-xl border border-purple-200 dark:border-purple-800 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500 resize-none"
-                  />
-                  <div className="flex gap-2 mt-2">
-                    <button
-                      onClick={() => replyText.trim() && replyMutation.mutate({ content: replyText, parentComment: c._id })}
-                      disabled={!replyText.trim() || replyMutation.isPending}
-                      className="text-sm bg-purple-600 text-white px-4 py-1.5 rounded-lg hover:bg-purple-700 disabled:opacity-50 transition-colors">
-                      {replyMutation.isPending ? 'Posting...' : 'Post Reply'}
-                    </button>
-                    <button onClick={() => { setReplyTo(null); setReplyText('') }}
-                      className="text-sm text-gray-400 hover:text-gray-600 px-4 py-1.5 rounded-lg border border-gray-200 dark:border-gray-700">
-                      Cancel
-                    </button>
-                  </div>
-                </div>
-              )}
-            </div>
-          ))}
+            ))}
+            {comments?.length === 0 && (
+              <div style={{ textAlign: 'center', padding: '40px 20px', color: 'rgba(255,255,255,0.2)', fontSize: 14 }}>
+                No comments yet — be the first to share your thoughts!
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>
