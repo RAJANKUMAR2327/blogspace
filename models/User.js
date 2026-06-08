@@ -77,3 +77,5 @@ readHistory: [{
 // models/User.js — add to schema
 following: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }]
 followers: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }]
+following: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+followers: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }]

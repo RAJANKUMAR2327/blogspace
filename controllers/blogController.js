@@ -4,39 +4,40 @@ const slugify = require('slugify')
 // @GET /api/blogs
 exports.getBlogs = async (req, res, next) => {
   try {
-    const page  = parseInt(req.query.page)  || 1
+    const page = parseInt(req.query.page) || 1
     const limit = parseInt(req.query.limit) || 9
-    const { category, search, tag, sort } = req.query
+    const { category, search, tag, sortBy, minReadTime, maxReadTime } = req.query
 
     let query = { status: 'published' }
     if (category) query.category = category
-    if (tag)      query.tags = tag
+    if (tag) query.tags = { $in: [tag] }
+    if (minReadTime) query.readTime = { ...query.readTime, $gte: parseInt(minReadTime) }
+    if (maxReadTime) query.readTime = { ...query.readTime, $lte: parseInt(maxReadTime) }
     if (search) {
       query.$or = [
-        { title:   { $regex: search, $options: 'i' } },
+        { title: { $regex: search, $options: 'i' } },
         { content: { $regex: search, $options: 'i' } },
-        { tags:    { $regex: search, $options: 'i' } }
+        { tags: { $regex: search, $options: 'i' } },
+        { excerpt: { $regex: search, $options: 'i' } }
       ]
     }
 
-    const sortObj = sort === 'views' ? { views: -1 } : { createdAt: -1 }
+    const sortOptions = {
+      latest: { createdAt: -1 },
+      oldest: { createdAt: 1 },
+      popular: { views: -1 },
+      liked: { likes: -1 }
+    }
+    const sort = sortOptions[sortBy] || sortOptions.latest
 
     const total = await Blog.countDocuments(query)
     const blogs = await Blog.find(query)
       .populate('author', 'name profileImage')
-      .sort(sortObj)
+      .sort(sort)
       .skip((page - 1) * limit)
       .limit(limit)
 
-    res.json({
-      success: true,
-      blogs,
-      pagination: {
-        page,
-        pages: Math.ceil(total / limit),
-        total
-      }
-    })
+    res.json({ success: true, blogs, pagination: { page, pages: Math.ceil(total / limit), total } })
   } catch (error) {
     next(error)
   }
@@ -174,6 +175,19 @@ exports.clapBlog = async (req, res, next) => {
     )
     if (!blog) return res.status(404).json({ message: 'Blog not found' })
     res.json({ success: true, claps: blog.claps })
+  } catch (error) {
+    next(error)
+  }
+}
+
+// @GET /api/blogs/trending
+exports.getTrending = async (req, res, next) => {
+  try {
+    const blogs = await Blog.find({ status: 'published' })
+      .populate('author', 'name profileImage')
+      .sort({ views: -1, createdAt: -1 })
+      .limit(5)
+    res.json({ success: true, blogs })
   } catch (error) {
     next(error)
   }

@@ -1,0 +1,26 @@
+{
+  "name": "BlogSpace",
+  "short_name": "BlogSpace",
+  "description": "Discover stories, ideas, and expertise from great writers",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#080810",
+  "theme_color": "#7c3aed",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "https://placehold.co/192x192/7c3aed/ffffff?text=BS",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "https://placehold.co/512x512/7c3aed/ffffff?text=BS",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "screenshots": [],
+  "categories": ["news", "education", "lifestyle"]
+}

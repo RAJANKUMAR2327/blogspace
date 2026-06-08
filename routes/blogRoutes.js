@@ -6,6 +6,9 @@ const {
   toggleLike, clapBlog
 } = require('../controllers/blogController')
 const { protect, adminOnly } = require('../middleware/auth')
+const { getBlogs, getBlogBySlug, createBlog, updateBlog, deleteBlog, toggleLike, getTrending } = require('../controllers/blogController')
+
+router.get('/trending', getTrending)
 
 // IMPORTANT: specific routes must come BEFORE /:slug
 router.get('/trending', getTrending)     // GET /api/blogs/trending

@@ -6,6 +6,8 @@ import { AuthContext } from '../context/AuthContext'
 import toast from 'react-hot-toast'
 import { FiHeart, FiEye, FiClock, FiShare2, FiBookmark, FiTrash2, FiArrowLeft, FiMessageSquare } from 'react-icons/fi'
 import { formatDistanceToNow } from 'date-fns'
+import NestedComments from '../components/blog/NestedComments'
+<NestedComments comments={comments} blogId={blog._id} user={user} />
 
 export default function SingleBlog() {
   const { slug } = useParams()

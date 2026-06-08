@@ -27,3 +27,31 @@ const commentSchema = new mongoose.Schema({
 }, { timestamps: true })
 
 module.exports = mongoose.model('Comment', commentSchema)
+
+// @GET /api/comments/:blogId — replace existing
+exports.getComments = async (req, res, next) => {
+  try {
+    // Get top-level comments
+    const comments = await Comment.find({
+      blog: req.params.blogId,
+      parentComment: null,
+      isApproved: true
+    })
+    .populate('user', 'name profileImage')
+    .sort({ createdAt: -1 })
+
+    // Get replies for each comment
+    const commentsWithReplies = await Promise.all(
+      comments.map(async (comment) => {
+        const replies = await Comment.find({ parentComment: comment._id, isApproved: true })
+          .populate('user', 'name profileImage')
+          .sort({ createdAt: 1 })
+        return { ...comment.toObject(), replies }
+      })
+    )
+
+    res.json({ success: true, comments: commentsWithReplies })
+  } catch (error) {
+    next(error)
+  }
+}

@@ -18,6 +18,8 @@ router.get('/history',          protect, getHistory)          // NEW
 router.post('/history/:blogId', protect, addToHistory)        // NEW
 router.get('/stats',            protect, adminOnly, getStats) // NEW
 
+router.post('/follow/:id', protect, toggleFollow)
+router.get('/:id/profile', getPublicProfile)
 // Admin routes
 router.get('/',          protect, adminOnly, getAllUsers)
 router.put('/:id/ban',   protect, adminOnly, toggleBan)

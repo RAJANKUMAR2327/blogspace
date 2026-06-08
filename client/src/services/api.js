@@ -96,3 +96,14 @@ export const uploadAPI = {
 }
 
 export default API
+
+export const blogAPI = {
+  // ... existing methods
+  getTrending: () => API.get('/blogs/trending'),
+}
+
+export const userAPI = {
+  // ...existing
+  follow: (id) => API.post(`/users/follow/${id}`),
+  getPublicProfile: (id) => API.get(`/users/${id}/profile`),
+}

@@ -4,6 +4,10 @@ import { useSearchParams } from 'react-router-dom'
 import { blogAPI } from '../services/api'
 import BlogCard from '../components/blog/BlogCard'
 import { FiSearch, FiGrid, FiList } from 'react-icons/fi'
+import SearchFilters from '../components/common/SearchFilters'
+
+// In the toolbar div, add:
+<SearchFilters />
 
 const CATEGORIES = ['All','Technology','Programming','Design','Business','Science','Health','Travel','Food','Lifestyle','Other']
 

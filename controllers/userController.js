@@ -204,6 +204,48 @@ exports.addToHistory = async (req, res, next) => {
     next(error)
   }
 }
+// @POST /api/users/follow/:id
+exports.toggleFollow = async (req, res, next) => {
+  try {
+    if (req.params.id === req.user._id.toString()) {
+      return res.status(400).json({ message: "You can't follow yourself" })
+    }
+    const userToFollow = await User.findById(req.params.id)
+    if (!userToFollow) return res.status(404).json({ message: 'User not found' })
+
+    const currentUser = await User.findById(req.user._id)
+    const isFollowing = currentUser.following.includes(req.params.id)
+
+    if (isFollowing) {
+      currentUser.following.pull(req.params.id)
+      userToFollow.followers.pull(req.user._id)
+    } else {
+      currentUser.following.push(req.params.id)
+      userToFollow.followers.push(req.user._id)
+    }
+
+    await currentUser.save()
+    await userToFollow.save()
+
+    res.json({ success: true, isFollowing: !isFollowing, followersCount: userToFollow.followers.length })
+  } catch (error) {
+    next(error)
+  }
+}
+
+// @GET /api/users/:id/profile
+exports.getPublicProfile = async (req, res, next) => {
+  try {
+    const user = await User.findById(req.params.id).select('-password')
+    if (!user) return res.status(404).json({ message: 'User not found' })
+    const blogs = await Blog.find({ author: req.params.id, status: 'published' })
+      .sort({ createdAt: -1 }).limit(10)
+    res.json({ success: true, user, blogs })
+  } catch (error) {
+    next(error)
+  }
+}
+
 // controllers/userController.js
 exports.followToggle = async (req, res, next) => {
   try {
