@@ -1,6 +1,5 @@
 const mongoose = require('mongoose')
 const bcrypt = require('bcryptjs')
-const crypto = require('crypto')
 
 const userSchema = new mongoose.Schema({
   name: {
@@ -21,61 +20,61 @@ const userSchema = new mongoose.Schema({
     minlength: 6,
     select: false
   },
-  profileImage: { type: String, default: '' },
-  bio: { type: String, maxlength: 200, default: '' },
+  profileImage: {
+    type: String,
+    default: ''
+  },
+  bio: {
+    type: String,
+    maxlength: 200,
+    default: ''
+  },
   role: {
     type: String,
     enum: ['user', 'admin'],
     default: 'user'
   },
-
-  // Bookmarks
-  savedBlogs: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Blog' }],
-
-  // Reading History (NEW)
-  readHistory: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Blog' }],
-
-  // Follow System (NEW)
-  following: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
-  followers: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
-
-  // Auth
-  isVerified: { type: Boolean, default: false },
-  googleId:   { type: String },
-  isBanned:   { type: Boolean, default: false },
-
-  // Password Reset
-  resetPasswordToken:  { type: String },
-  resetPasswordExpire: { type: Date }
+  savedBlogs: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Blog'
+  }],
+  following: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User'
+  }],
+  followers: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User'
+  }],
+  isVerified: {
+    type: Boolean,
+    default: false
+  },
+  googleId: {
+    type: String
+  },
+  isBanned: {
+    type: Boolean,
+    default: false
+  },
+  resetPasswordToken: {
+    type: String
+  },
+  resetPasswordExpire: {
+    type: Date
+  }
 }, { timestamps: true })
 
-// Hash password before save
-userSchema.pre('save', async function () {
-  if (!this.isModified('password')) return
+// Hash password before saving
+userSchema.pre('save', async function(next) {
+  if (!this.isModified('password')) return next()
   this.password = await bcrypt.hash(this.password, 12)
+  next()
 })
 
-// Compare password
-userSchema.methods.comparePassword = async function (candidatePassword) {
+// Compare password method
+userSchema.methods.comparePassword = async function(candidatePassword) {
   return bcrypt.compare(candidatePassword, this.password)
 }
 
-// Generate reset token
-userSchema.methods.getResetPasswordToken = function () {
-  const rawToken = crypto.randomBytes(20).toString('hex')
-  this.resetPasswordToken  = crypto.createHash('sha256').update(rawToken).digest('hex')
-  this.resetPasswordExpire = Date.now() + 15 * 60 * 1000
-  return rawToken
-}
-
 module.exports = mongoose.model('User', userSchema)
-// models/User.js — add inside the schema
-readHistory: [{
-  type: mongoose.Schema.Types.ObjectId,
-  ref: 'Blog'
-}]
-// models/User.js — add to schema
-following: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }]
-followers: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }]
-following: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
-followers: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }]

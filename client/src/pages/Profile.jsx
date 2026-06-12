@@ -1,30 +1,53 @@
 import { useState, useContext } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { Link } from 'react-router-dom'
 import { AuthContext } from '../context/AuthContext'
 import { userAPI, uploadAPI } from '../services/api'
 import BlogCard from '../components/blog/BlogCard'
 import toast from 'react-hot-toast'
-import { FiEdit2, FiSave, FiBookmark, FiClock, FiCamera } from 'react-icons/fi'
+import {
+  FiEdit2, FiSave, FiX, FiBookmark, FiHeart,
+  FiUsers, FiCamera, FiUser, FiMail,
+  FiCalendar, FiShield
+} from 'react-icons/fi'
+
+const TABS = [
+  { id: 'saved',     label: 'Saved',     icon: FiBookmark },
+  { id: 'following', label: 'Following', icon: FiUsers },
+  { id: 'settings',  label: 'Settings',  icon: FiEdit2 },
+]
 
 export default function Profile() {
   const { user, login } = useContext(AuthContext)
   const queryClient = useQueryClient()
-  const [editing, setEditing] = useState(false)
-  const [formData, setFormData] = useState({ name: user?.name || '', bio: user?.bio || '' })
   const [activeTab, setActiveTab] = useState('saved')
-  const [uploadingAvatar, setUploadingAvatar] = useState(false)
+  const [editing, setEditing] = useState(false)
+  const [setUploading] = useState(false)
+  const [formData, setFormData] = useState({
+    name: user?.name || '',
+    bio: user?.bio || '',
+    profileImage: user?.profileImage || ''
+  })
 
-  const { data: savedBlogs } = useQuery({
+  // Saved blogs
+  const { data: savedBlogs, isLoading: savedLoading } = useQuery({
     queryKey: ['savedBlogs'],
-    queryFn: () => userAPI.getSaved().then(r => r.data.blogs)
+    queryFn: async () => {
+      const res = await userAPI.getSaved()
+      return res.data.blogs
+    }
   })
 
-  const { data: historyData } = useQuery({
-    queryKey: ['readHistory'],
-    queryFn: () => userAPI.getHistory().then(r => r.data.history),
-    enabled: activeTab === 'history'
+  // Following list
+  const { data: followingData } = useQuery({
+    queryKey: ['followingList'],
+    queryFn: async () => {
+      const res = await userAPI.getProfile()
+      return res.data.user
+    }
   })
 
+  // Update profile mutation
   const updateMutation = useMutation({
     mutationFn: (data) => userAPI.updateProfile(data),
     onSuccess: (res) => {
@@ -37,153 +60,363 @@ export default function Profile() {
     onError: () => toast.error('Update failed')
   })
 
+  // Avatar upload
   const handleAvatarUpload = async (e) => {
     const file = e.target.files[0]
     if (!file) return
-    if (file.size > 5 * 1024 * 1024) return toast.error('Image must be under 5MB')
-    setUploadingAvatar(true)
+    if (file.size > 3 * 1024 * 1024) return toast.error('Image must be under 3MB')
+    setUploading(true)
     try {
       const fd = new FormData()
       fd.append('image', file)
       const res = await uploadAPI.profileImage(fd)
-      await updateMutation.mutateAsync({ profileImage: res.data.url })
-      toast.success('Avatar updated!')
+      setFormData(p => ({ ...p, profileImage: res.data.url }))
+      toast.success('Photo uploaded!')
     } catch {
       toast.error('Upload failed')
     } finally {
-      setUploadingAvatar(false)
+      setUploading(false)
     }
   }
 
-  const tabs = [
-    { id: 'saved',   label: 'Saved',   icon: FiBookmark, count: savedBlogs?.length || 0 },
-    { id: 'history', label: 'History', icon: FiClock,    count: historyData?.length || 0 },
-  ]
-
-  const currentList = activeTab === 'saved' ? savedBlogs : historyData
+  const joinDate = user?.createdAt
+    ? new Date(user.createdAt).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
+    : 'Recently'
 
   return (
-    <div className="max-w-5xl mx-auto px-4 py-12">
+    <div style={{ background: '#080810', minHeight: '100vh', paddingTop: 64, fontFamily: "'Inter',sans-serif" }}>
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Inter:wght@300;400;500&display=swap');
+        @keyframes fadeUp { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:translateY(0)} }
+        @keyframes pulse { 0%,100%{opacity:0.5}50%{opacity:1} }
+        .profile-input {
+          width:100%; padding:12px 16px;
+          background:rgba(255,255,255,0.05);
+          border:1px solid rgba(255,255,255,0.08);
+          border-radius:10px; font-size:15px; color:#fff; outline:none;
+          font-family:'Inter',sans-serif; transition:all 0.2s; box-sizing:border-box;
+        }
+        .profile-input:focus { border-color:rgba(167,139,250,0.4); background:rgba(167,139,250,0.03); }
+        .profile-input::placeholder { color:rgba(255,255,255,0.2); }
+        .tab-btn {
+          display:inline-flex; align-items:center; gap:7px;
+          padding:10px 18px; border-radius:10px; font-size:14px; font-weight:500;
+          cursor:pointer; transition:all 0.2s; border:none; font-family:'Inter',sans-serif;
+          background:transparent; color:rgba(255,255,255,0.35);
+        }
+        .tab-btn:hover { color:rgba(255,255,255,0.7); }
+        .tab-btn.active {
+          background:rgba(124,58,237,0.15);
+          border:1px solid rgba(124,58,237,0.25);
+          color:#a78bfa;
+        }
+        .save-btn {
+          display:inline-flex; align-items:center; gap:8px;
+          padding:11px 24px; background:linear-gradient(135deg,#7c3aed,#2563eb);
+          color:white; border:none; border-radius:10px; font-size:14px;
+          font-weight:500; cursor:pointer; font-family:'Inter',sans-serif;
+          transition:all 0.2s; box-shadow:0 6px 20px rgba(124,58,237,0.3);
+        }
+        .save-btn:hover { transform:translateY(-1px); box-shadow:0 10px 28px rgba(124,58,237,0.5); }
+        .save-btn:disabled { opacity:0.6; cursor:not-allowed; }
+        .cancel-btn {
+          display:inline-flex; align-items:center; gap:8px;
+          padding:11px 20px; background:rgba(255,255,255,0.05);
+          border:1px solid rgba(255,255,255,0.08); color:rgba(255,255,255,0.5);
+          border-radius:10px; font-size:14px; font-weight:500;
+          cursor:pointer; font-family:'Inter',sans-serif; transition:all 0.2s;
+        }
+        .cancel-btn:hover { border-color:rgba(255,255,255,0.15); color:#fff; }
+        .stat-card {
+          background:#0d0d1a; border:1px solid rgba(255,255,255,0.06);
+          border-radius:12px; padding:16px 20px; text-align:center;
+          transition:border-color 0.2s;
+        }
+        .stat-card:hover { border-color:rgba(167,139,250,0.2); }
+        .skeleton { background:rgba(255,255,255,0.05);border-radius:14px;animation:pulse 1.5s ease-in-out infinite; }
+      `}</style>
 
       {/* Profile Header */}
-      <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-8 mb-8">
-        <div className="flex flex-col md:flex-row items-start md:items-center gap-6">
+      <div style={{ position: 'relative', overflow: 'hidden' }}>
+        {/* Banner */}
+        <div style={{ height: 180, background: 'linear-gradient(135deg,rgba(124,58,237,0.3),rgba(37,99,235,0.2),rgba(52,211,153,0.1))', position: 'relative' }}>
+          <div style={{ position: 'absolute', inset: 0, backgroundImage: 'radial-gradient(rgba(255,255,255,0.03) 1px, transparent 1px)', backgroundSize: '24px 24px' }} />
+        </div>
 
-          {/* Avatar */}
-          <div className="relative">
-            <img
-              src={user?.profileImage || `https://placehold.co/96x96/9333ea/ffffff?text=${user?.name?.[0]}`}
-              alt={user?.name}
-              className="w-24 h-24 rounded-full object-cover ring-4 ring-purple-100 dark:ring-purple-900"
-            />
-            <label className="absolute bottom-0 right-0 bg-purple-600 text-white p-1.5 rounded-full cursor-pointer hover:bg-purple-700 transition-colors">
-              <input type="file" accept="image/*" onChange={handleAvatarUpload} className="hidden" />
-              {uploadingAvatar ? (
-                <span className="animate-spin block w-4 h-4 border-2 border-white border-t-transparent rounded-full" />
-              ) : (
-                <FiCamera size={14} />
+        <div style={{ maxWidth: 900, margin: '0 auto', padding: '0 48px' }}>
+          <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', marginTop: -60, marginBottom: 28, flexWrap: 'wrap', gap: 16 }}>
+
+            {/* Avatar */}
+            <div style={{ position: 'relative' }}>
+              <div style={{ width: 100, height: 100, borderRadius: '50%', border: '3px solid #080810', overflow: 'hidden', background: 'linear-gradient(135deg,#7c3aed,#2563eb)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                {formData.profileImage || user?.profileImage ? (
+                  <img src={formData.profileImage || user?.profileImage} alt={user?.name}
+                    style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                ) : (
+                  <span style={{ fontFamily: "'Syne',sans-serif", fontSize: 36, fontWeight: 800, color: '#fff' }}>
+                    {user?.name?.[0]?.toUpperCase()}
+                  </span>
+                )}
+              </div>
+              {editing && (
+                <label style={{ position: 'absolute', bottom: 2, right: 2, width: 28, height: 28, background: 'linear-gradient(135deg,#7c3aed,#2563eb)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', border: '2px solid #080810' }}>
+                  <input type="file" accept="image/*" onChange={handleAvatarUpload} style={{ display: 'none' }} />
+                  <FiCamera size={13} style={{ color: '#fff' }} />
+                </label>
               )}
-            </label>
-          </div>
+            </div>
 
-          <div className="flex-1">
-            {editing ? (
-              <div className="space-y-3">
-                <input
-                  type="text" value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  className="w-full px-4 py-2 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
-                />
-                <textarea
-                  value={formData.bio}
-                  onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
-                  placeholder="Tell us about yourself..."
-                  rows={2} maxLength={200}
-                  className="w-full px-4 py-2 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500 resize-none"
-                />
-                <p className="text-xs text-gray-400">{formData.bio.length}/200</p>
-                <div className="flex gap-3">
-                  <button onClick={() => updateMutation.mutate(formData)}
-                    disabled={updateMutation.isPending}
-                    className="flex items-center gap-2 bg-purple-600 text-white px-5 py-2 rounded-xl hover:bg-purple-700 transition-colors disabled:opacity-50">
-                    <FiSave /> {updateMutation.isPending ? 'Saving...' : 'Save'}
-                  </button>
-                  <button onClick={() => setEditing(false)}
-                    className="px-5 py-2 rounded-xl border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
-                    Cancel
+            {/* Actions */}
+            <div style={{ display: 'flex', gap: 10, paddingBottom: 8 }}>
+              {user?.role === 'admin' && (
+                <Link to="/admin" style={{ display: 'inline-flex', alignItems: 'center', gap: 7, padding: '9px 18px', background: 'rgba(167,139,250,0.1)', border: '1px solid rgba(167,139,250,0.25)', borderRadius: 10, color: '#a78bfa', textDecoration: 'none', fontSize: 13, fontWeight: 500, transition: 'all 0.2s' }}>
+                  <FiShield size={14} /> Admin Panel
+                </Link>
+              )}
+              {!editing ? (
+                <button onClick={() => { setEditing(true); setFormData({ name: user?.name || '', bio: user?.bio || '', profileImage: user?.profileImage || '' }) }}
+                  style={{ display: 'inline-flex', alignItems: 'center', gap: 7, padding: '9px 18px', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 10, color: 'rgba(255,255,255,0.6)', fontSize: 13, fontWeight: 500, cursor: 'pointer', fontFamily: "'Inter',sans-serif", transition: 'all 0.2s' }}>
+                  <FiEdit2 size={13} /> Edit Profile
+                </button>
+              ) : (
+                <div style={{ display: 'flex', gap: 8 }}>
+                  <button onClick={() => setEditing(false)} className="cancel-btn"><FiX size={14} /> Cancel</button>
+                  <button onClick={() => updateMutation.mutate(formData)} className="save-btn" disabled={updateMutation.isPending}>
+                    <FiSave size={14} /> {updateMutation.isPending ? 'Saving...' : 'Save'}
                   </button>
                 </div>
+              )}
+            </div>
+          </div>
+
+          {/* User Info */}
+          <div style={{ marginBottom: 28, animation: 'fadeUp 0.6s ease both' }}>
+            {editing ? (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 12, maxWidth: 480 }}>
+                <input className="profile-input" type="text" value={formData.name}
+                  onChange={(e) => setFormData(p => ({ ...p, name: e.target.value }))}
+                  placeholder="Your name" style={{ fontSize: 22, fontFamily: "'Syne',sans-serif", fontWeight: 700 }} />
+                <textarea className="profile-input" value={formData.bio}
+                  onChange={(e) => setFormData(p => ({ ...p, bio: e.target.value }))}
+                  placeholder="Tell the world about yourself..."
+                  rows={3} style={{ resize: 'none' }} maxLength={200} />
+                <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.2)', textAlign: 'right' }}>
+                  {formData.bio.length}/200
+                </p>
               </div>
             ) : (
               <>
-                <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{user?.name}</h1>
-                <p className="text-gray-500 dark:text-gray-400 text-sm">{user?.email}</p>
-                <p className="text-gray-600 dark:text-gray-300 mt-1 text-sm">{user?.bio || 'No bio yet'}</p>
-                <button onClick={() => setEditing(true)}
-                  className="flex items-center gap-2 mt-3 text-sm text-purple-600 dark:text-purple-400 hover:underline">
-                  <FiEdit2 /> Edit Profile
-                </button>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
+                  <h1 style={{ fontFamily: "'Syne',sans-serif", fontSize: 28, fontWeight: 800, color: '#fff', letterSpacing: '-0.5px' }}>
+                    {user?.name}
+                  </h1>
+                  {user?.role === 'admin' && (
+                    <span style={{ fontSize: 11, padding: '3px 10px', background: 'rgba(167,139,250,0.15)', border: '1px solid rgba(167,139,250,0.3)', borderRadius: 100, color: '#a78bfa', letterSpacing: '1px', textTransform: 'uppercase' }}>Admin</span>
+                  )}
+                </div>
+                <p style={{ fontSize: 15, color: 'rgba(255,255,255,0.4)', marginBottom: 12, fontWeight: 300, maxWidth: 480, lineHeight: 1.6 }}>
+                  {user?.bio || 'No bio yet — click Edit Profile to add one.'}
+                </p>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 16, fontSize: 13, color: 'rgba(255,255,255,0.25)' }}>
+                  <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <FiMail size={13} /> {user?.email}
+                  </span>
+                  <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <FiCalendar size={13} /> Joined {joinDate}
+                  </span>
+                </div>
               </>
             )}
           </div>
 
-          <div className="flex flex-col items-center gap-2">
-            <span className={`px-4 py-1.5 rounded-full text-sm font-medium ${
-              user?.role === 'admin'
-                ? 'bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400'
-                : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300'
-            }`}>
-              {user?.role === 'admin' ? '👑 Admin' : '👤 Member'}
-            </span>
-            <div className="text-center text-xs text-gray-400">
-              <p className="font-semibold text-gray-900 dark:text-white text-base">
-                {user?.followers?.length || 0}
-              </p>
-              followers
-            </div>
+          {/* Stats Row */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 12, marginBottom: 32 }}>
+            {[
+              { label: 'Saved', value: savedBlogs?.length || 0, icon: FiBookmark, color: '#a78bfa' },
+              { label: 'Following', value: followingData?.following?.length || 0, icon: FiUsers, color: '#60a5fa' },
+              { label: 'Followers', value: followingData?.followers?.length || 0, icon: FiHeart, color: '#f472b6' },
+              { label: 'Role', value: user?.role === 'admin' ? 'Admin' : 'Member', icon: FiUser, color: '#34d399' },
+            ].map(({ label, value, icon: Icon, color }) => (
+              <div key={label} className="stat-card">
+                <Icon size={18} style={{ color, marginBottom: 8 }} />
+                <p style={{ fontFamily: "'Syne',sans-serif", fontSize: 22, fontWeight: 800, color: '#fff', marginBottom: 2 }}>{value}</p>
+                <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.3)' }}>{label}</p>
+              </div>
+            ))}
+          </div>
+
+          {/* Tabs */}
+          <div style={{ display: 'flex', gap: 4, borderBottom: '1px solid rgba(255,255,255,0.06)', marginBottom: 32 }}>
+            {TABS.map(({ id, label, icon: Icon }) => (
+              <button key={id} onClick={() => setActiveTab(id)}
+                className={`tab-btn ${activeTab === id ? 'active' : ''}`}>
+                <Icon size={14} /> {label}
+                {id === 'saved' && savedBlogs?.length > 0 && (
+                  <span style={{ fontSize: 11, padding: '1px 6px', background: 'rgba(167,139,250,0.2)', borderRadius: 100, color: '#a78bfa' }}>
+                    {savedBlogs.length}
+                  </span>
+                )}
+              </button>
+            ))}
           </div>
         </div>
       </div>
 
-      {/* Tabs */}
-      <div className="flex gap-1 mb-6 bg-gray-100 dark:bg-gray-800 p-1 rounded-xl w-fit">
-        {tabs.map(({ id, label, icon: Icon, count }) => (
-          <button key={id} onClick={() => setActiveTab(id)}
-            className={`flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-medium transition-colors ${
-              activeTab === id
-                ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm'
-                : 'text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'
-            }`}>
-            <Icon size={14} /> {label}
-            <span className={`text-xs px-1.5 py-0.5 rounded-full ${
-              activeTab === id
-                ? 'bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400'
-                : 'bg-gray-200 dark:bg-gray-700 text-gray-500'
-            }`}>
-              {count}
-            </span>
-          </button>
-        ))}
-      </div>
+      {/* Tab Content */}
+      <div style={{ maxWidth: 900, margin: '0 auto', padding: '0 48px 80px' }}>
 
-      {/* Content */}
-      {!currentList?.length ? (
-        <div className="text-center py-16">
-          <p className="text-5xl mb-4">{activeTab === 'saved' ? '🔖' : '📚'}</p>
-          <h3 className="text-lg font-semibold text-gray-700 dark:text-gray-300 mb-1">
-            {activeTab === 'saved' ? 'No saved articles yet' : 'No reading history yet'}
-          </h3>
-          <p className="text-gray-500 text-sm">
-            {activeTab === 'saved' ? 'Save articles you want to read later' : 'Articles you read will appear here'}
-          </p>
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {currentList.map(blog => (
-            <BlogCard key={blog._id} blog={blog} />
-          ))}
-        </div>
-      )}
+        {/* Saved Articles */}
+        {activeTab === 'saved' && (
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}>
+              <h2 style={{ fontFamily: "'Syne',sans-serif", fontSize: 22, fontWeight: 700, color: '#fff' }}>
+                Saved Articles
+              </h2>
+              {savedBlogs?.length > 0 && (
+                <span style={{ fontSize: 13, color: 'rgba(255,255,255,0.3)' }}>{savedBlogs.length} saved</span>
+              )}
+            </div>
+
+            {savedLoading ? (
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 20 }}>
+                {[1,2,3].map(i => <div key={i} className="skeleton" style={{ height: 360 }} />)}
+              </div>
+            ) : savedBlogs?.length === 0 ? (
+              <div style={{ textAlign: 'center', padding: '60px 20px' }}>
+                <div style={{ fontSize: 56, marginBottom: 16 }}>🔖</div>
+                <h3 style={{ fontFamily: "'Syne',sans-serif", fontSize: 22, fontWeight: 700, color: '#fff', marginBottom: 8 }}>
+                  No saved articles yet
+                </h3>
+                <p style={{ color: 'rgba(255,255,255,0.3)', marginBottom: 24, fontSize: 15 }}>
+                  Save articles you want to read later by clicking the bookmark icon
+                </p>
+                <Link to="/blogs" style={{ display: 'inline-block', padding: '12px 28px', background: 'linear-gradient(135deg,#7c3aed,#2563eb)', color: 'white', borderRadius: 12, textDecoration: 'none', fontSize: 14, fontWeight: 500 }}>
+                  Browse stories →
+                </Link>
+              </div>
+            ) : (
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 20 }}>
+                {savedBlogs.map(blog => <BlogCard key={blog._id} blog={blog} />)}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Following */}
+        {activeTab === 'following' && (
+          <div>
+            <h2 style={{ fontFamily: "'Syne',sans-serif", fontSize: 22, fontWeight: 700, color: '#fff', marginBottom: 24 }}>
+              Following
+            </h2>
+            {!followingData?.following?.length ? (
+              <div style={{ textAlign: 'center', padding: '60px 20px' }}>
+                <div style={{ fontSize: 56, marginBottom: 16 }}>👥</div>
+                <h3 style={{ fontFamily: "'Syne',sans-serif", fontSize: 22, fontWeight: 700, color: '#fff', marginBottom: 8 }}>
+                  Not following anyone yet
+                </h3>
+                <p style={{ color: 'rgba(255,255,255,0.3)', marginBottom: 24, fontSize: 15 }}>
+                  Follow writers you love to see their stories in your feed
+                </p>
+                <Link to="/blogs" style={{ display: 'inline-block', padding: '12px 28px', background: 'linear-gradient(135deg,#7c3aed,#2563eb)', color: 'white', borderRadius: 12, textDecoration: 'none', fontSize: 14, fontWeight: 500 }}>
+                  Discover writers →
+                </Link>
+              </div>
+            ) : (
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2,1fr)', gap: 12 }}>
+                {followingData.following.map(writer => (
+                  <div key={writer._id || writer} style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '16px 18px', background: '#0d0d1a', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 12, transition: 'border-color 0.2s' }}
+                    onMouseEnter={e => e.currentTarget.style.borderColor = 'rgba(167,139,250,0.2)'}
+                    onMouseLeave={e => e.currentTarget.style.borderColor = 'rgba(255,255,255,0.06)'}>
+                    <div style={{ width: 44, height: 44, borderRadius: '50%', background: 'linear-gradient(135deg,#7c3aed,#2563eb)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16, fontWeight: 700, color: '#fff', flexShrink: 0 }}>
+                      {writer.name?.[0] || '?'}
+                    </div>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <p style={{ fontSize: 15, fontWeight: 500, color: '#fff', marginBottom: 2 }}>{writer.name || 'Unknown'}</p>
+                      <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.25)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{writer.email || ''}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Settings */}
+        {activeTab === 'settings' && (
+          <div style={{ maxWidth: 520 }}>
+            <h2 style={{ fontFamily: "'Syne',sans-serif", fontSize: 22, fontWeight: 700, color: '#fff', marginBottom: 24 }}>
+              Account Settings
+            </h2>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+              {/* Profile Info */}
+              <div style={{ background: '#0d0d1a', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 14, padding: 24 }}>
+                <h3 style={{ fontSize: 15, fontWeight: 600, color: '#fff', marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <FiUser size={15} style={{ color: '#a78bfa' }} /> Profile Information
+                </h3>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+                  <div>
+                    <label style={{ fontSize: 12, color: 'rgba(255,255,255,0.35)', display: 'block', marginBottom: 6, letterSpacing: '0.5px' }}>Display Name</label>
+                    <input className="profile-input" type="text" value={formData.name}
+                      onChange={(e) => setFormData(p => ({ ...p, name: e.target.value }))}
+                      placeholder="Your name" />
+                  </div>
+                  <div>
+                    <label style={{ fontSize: 12, color: 'rgba(255,255,255,0.35)', display: 'block', marginBottom: 6, letterSpacing: '0.5px' }}>Bio</label>
+                    <textarea className="profile-input" value={formData.bio}
+                      onChange={(e) => setFormData(p => ({ ...p, bio: e.target.value }))}
+                      placeholder="Tell the world about yourself..."
+                      rows={3} style={{ resize: 'none' }} maxLength={200} />
+                  </div>
+                  <div>
+                    <label style={{ fontSize: 12, color: 'rgba(255,255,255,0.35)', display: 'block', marginBottom: 6, letterSpacing: '0.5px' }}>Profile Image URL</label>
+                    <input className="profile-input" type="url" value={formData.profileImage}
+                      onChange={(e) => setFormData(p => ({ ...p, profileImage: e.target.value }))}
+                      placeholder="https://..." />
+                  </div>
+                  <button onClick={() => updateMutation.mutate(formData)} className="save-btn"
+                    disabled={updateMutation.isPending} style={{ width: 'fit-content' }}>
+                    <FiSave size={14} /> {updateMutation.isPending ? 'Saving...' : 'Save Changes'}
+                  </button>
+                </div>
+              </div>
+
+              {/* Account Info */}
+              <div style={{ background: '#0d0d1a', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 14, padding: 24 }}>
+                <h3 style={{ fontSize: 15, fontWeight: 600, color: '#fff', marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <FiMail size={15} style={{ color: '#60a5fa' }} /> Account Details
+                </h3>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                  {[
+                    { label: 'Email', value: user?.email },
+                    { label: 'Role', value: user?.role === 'admin' ? '👑 Admin' : '👤 Member' },
+                    { label: 'Member since', value: joinDate },
+                  ].map(({ label, value }) => (
+                    <div key={label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 0', borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
+                      <span style={{ fontSize: 13, color: 'rgba(255,255,255,0.35)' }}>{label}</span>
+                      <span style={{ fontSize: 14, color: 'rgba(255,255,255,0.7)', fontWeight: 500 }}>{value}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Danger Zone */}
+              <div style={{ background: 'rgba(248,113,113,0.05)', border: '1px solid rgba(248,113,113,0.15)', borderRadius: 14, padding: 24 }}>
+                <h3 style={{ fontSize: 15, fontWeight: 600, color: '#f87171', marginBottom: 8 }}>Danger Zone</h3>
+                <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.3)', marginBottom: 16, lineHeight: 1.5 }}>
+                  Once you delete your account, there is no going back. Please be certain.
+                </p>
+                <button style={{ padding: '10px 20px', background: 'rgba(248,113,113,0.1)', border: '1px solid rgba(248,113,113,0.25)', borderRadius: 10, color: '#f87171', fontSize: 13, fontWeight: 500, cursor: 'pointer', fontFamily: "'Inter',sans-serif", transition: 'all 0.2s' }}
+                  onClick={() => toast.error('Contact admin to delete your account')}
+                  onMouseEnter={e => { e.currentTarget.style.background = 'rgba(248,113,113,0.15)' }}
+                  onMouseLeave={e => { e.currentTarget.style.background = 'rgba(248,113,113,0.1)' }}>
+                  Delete Account
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   )
 }

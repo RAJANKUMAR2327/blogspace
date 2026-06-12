@@ -1,13 +1,11 @@
+// ALL imports must be at the TOP of the file like this:
+import SearchFilters from '../components/common/SearchFilters'
 import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { useSearchParams } from 'react-router-dom'
 import { blogAPI } from '../services/api'
 import BlogCard from '../components/blog/BlogCard'
 import { FiSearch, FiGrid, FiList } from 'react-icons/fi'
-import SearchFilters from '../components/common/SearchFilters'
-
-// In the toolbar div, add:
-<SearchFilters />
 
 const CATEGORIES = ['All','Technology','Programming','Design','Business','Science','Health','Travel','Food','Lifestyle','Other']
 
@@ -136,13 +134,18 @@ export default function BlogList() {
         </div>
       </div>
 
-      {/* Results */}
+      {/* Results Container */}
       <div style={{ padding: '0 48px 80px' }}>
-        {/* Toolbar */}
+        
+        {/* Unified Toolbar */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}>
-          <p style={{ fontSize: 14, color: 'rgba(255,255,255,0.3)' }}>
-            {isLoading ? 'Loading...' : `${data?.blogs?.length || 0} of ${data?.pagination?.total || 0} stories`}
-          </p>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <p style={{ fontSize: 14, color: 'rgba(255,255,255,0.3)', margin: 0 }}>
+              {isLoading ? 'Loading...' : `${data?.blogs?.length || 0} of ${data?.pagination?.total || 0} stories`}
+            </p>
+            <SearchFilters />
+          </div>
+          
           <div style={{ display: 'flex', gap: 6 }}>
             <button onClick={() => setView('grid')} style={{ padding: '7px 10px', background: view === 'grid' ? 'rgba(124,58,237,0.3)' : 'rgba(255,255,255,0.04)', border: '1px solid', borderColor: view === 'grid' ? 'rgba(124,58,237,0.4)' : 'rgba(255,255,255,0.08)', borderRadius: 8, color: view === 'grid' ? '#a78bfa' : 'rgba(255,255,255,0.3)', cursor: 'pointer', fontSize: 16, display: 'flex', alignItems: 'center' }}>
               <FiGrid />
@@ -153,7 +156,7 @@ export default function BlogList() {
           </div>
         </div>
 
-        {/* Grid */}
+        {/* Grid/Layout Content */}
         {isLoading ? (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 20 }}>
             {[...Array(9)].map((_, i) => <div key={i} className="skeleton" style={{ height: 360 }} />)}

@@ -5,7 +5,7 @@ import { userAPI } from '../../services/api'
 import toast from 'react-hot-toast'
 import { useNavigate } from 'react-router-dom'
 
-export default function FollowButton({ userId, isFollowing, followersCount }) {
+export default function FollowButton({ userId, isFollowing }) {
   const { user } = useContext(AuthContext)
   const queryClient = useQueryClient()
   const navigate = useNavigate()
