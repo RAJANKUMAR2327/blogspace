@@ -9,14 +9,14 @@ cloudinary.config({
 })
 
 const blogStorage = new cloudinaryStorage({
-  cloudinary: cloudinary,
-  folder: 'blogspace/blogs',
+  cloudinary,
+  folder:         'blogspace/blogs',
   allowedFormats: ['jpg', 'jpeg', 'png', 'webp']
 })
 
 const profileStorage = new cloudinaryStorage({
-  cloudinary: cloudinary,
-  folder: 'blogspace/profiles',
+  cloudinary,
+  folder:         'blogspace/profiles',
   allowedFormats: ['jpg', 'jpeg', 'png', 'webp']
 })
 

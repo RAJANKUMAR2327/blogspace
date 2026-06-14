@@ -12,7 +12,10 @@ export default function FollowButton({ userId, isFollowing }) {
 
   const mutation = useMutation({
     mutationFn: () => userAPI.follow(userId),
-    onSuccess: () => queryClient.invalidateQueries(['publicProfile', userId]),
+    onSuccess: () => {
+      queryClient.invalidateQueries(['publicProfile', userId])
+      toast.success(isFollowing ? 'Unfollowed' : 'Following!')
+    },
     onError: () => toast.error('Failed to follow')
   })
 
@@ -23,13 +26,28 @@ export default function FollowButton({ userId, isFollowing }) {
       onClick={() => user ? mutation.mutate() : navigate('/login')}
       disabled={mutation.isPending}
       style={{
-        padding: '8px 20px', borderRadius: 10, fontSize: 13, fontWeight: 500,
-        cursor: 'pointer', transition: 'all 0.2s', fontFamily: "'Inter',sans-serif",
+        padding: '8px 20px',
+        borderRadius: 10,
+        fontSize: 13,
+        fontWeight: 500,
+        cursor: mutation.isPending ? 'not-allowed' : 'pointer',
+        transition: 'all 0.2s',
+        fontFamily: "'Inter',sans-serif",
         border: isFollowing ? '1px solid rgba(255,255,255,0.12)' : 'none',
-        background: isFollowing ? 'rgba(255,255,255,0.06)' : 'linear-gradient(135deg,#7c3aed,#2563eb)',
+        background: isFollowing
+          ? 'rgba(255,255,255,0.06)'
+          : 'linear-gradient(135deg,#7c3aed,#2563eb)',
         color: isFollowing ? 'rgba(255,255,255,0.6)' : '#fff',
-      }}>
-      {mutation.isPending ? '...' : isFollowing ? 'Following' : 'Follow'}
+        opacity: mutation.isPending ? 0.6 : 1,
+      }}
+      onMouseEnter={e => {
+        if (!isFollowing) e.currentTarget.style.boxShadow = '0 6px 20px rgba(124,58,237,0.4)'
+      }}
+      onMouseLeave={e => {
+        e.currentTarget.style.boxShadow = 'none'
+      }}
+    >
+      {mutation.isPending ? '...' : isFollowing ? '✓ Following' : '+ Follow'}
     </button>
   )
 }

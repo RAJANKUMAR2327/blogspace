@@ -3,13 +3,6 @@ const cors    = require('cors')
 const helmet  = require('helmet')
 const morgan  = require('morgan')
 const rateLimit = require('express-rate-limit')
-
-process.on('uncaughtException', (err) => {
-  if (err.code === 'EADDRINUSE') {
-    console.log(`Port ${process.env.PORT || 5000} is busy — retrying...`)
-    process.exit(1)
-  }
-})
 require('dotenv').config()
 
 const connectDB    = require('./config/db')

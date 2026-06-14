@@ -6,19 +6,16 @@ const {
   toggleLike, clapBlog
 } = require('../controllers/blogController')
 const { protect, adminOnly } = require('../middleware/auth')
-const { getBlogs, getBlogBySlug, createBlog, updateBlog, deleteBlog, toggleLike, getTrending } = require('../controllers/blogController')
 
-router.get('/trending', getTrending)
-
-// IMPORTANT: specific routes must come BEFORE /:slug
-router.get('/trending', getTrending)     // GET /api/blogs/trending
-router.get('/', getBlogs)                // GET /api/blogs
-router.get('/:slug', getBlogBySlug)      // GET /api/blogs/:slug
+// IMPORTANT: specific named routes BEFORE /:slug
+router.get('/trending',   getTrending)
+router.get('/',           getBlogs)
+router.get('/:slug',      getBlogBySlug)
 
 router.post('/',          protect, adminOnly, createBlog)
 router.put('/:id',        protect, updateBlog)
 router.delete('/:id',     protect, deleteBlog)
 router.post('/:id/like',  protect, toggleLike)
-router.post('/:id/clap',  protect, clapBlog)   // NEW
+router.post('/:id/clap',  protect, clapBlog)
 
 module.exports = router

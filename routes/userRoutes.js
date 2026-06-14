@@ -4,8 +4,9 @@ const {
   getProfile, updateProfile,
   toggleSaveBlog, getSavedBlogs,
   getHistory, addToHistory,
-  followToggle,
-  getAllUsers, getStats, toggleBan, deleteUser
+  followToggle, getPublicProfile,
+  getAllUsers, getStats,
+  toggleBan, deleteUser
 } = require('../controllers/userController')
 const { protect, adminOnly } = require('../middleware/auth')
 
@@ -14,18 +15,17 @@ router.get('/profile',          protect, getProfile)
 router.put('/profile',          protect, updateProfile)
 router.post('/save/:blogId',    protect, toggleSaveBlog)
 router.get('/saved',            protect, getSavedBlogs)
-router.get('/history',          protect, getHistory)          // NEW
-router.post('/history/:blogId', protect, addToHistory)        // NEW
-router.get('/stats',            protect, adminOnly, getStats) // NEW
+router.get('/history',          protect, getHistory)
+router.post('/history/:blogId', protect, addToHistory)
+router.get('/stats',            protect, adminOnly, getStats)
 
-router.post('/follow/:id', protect, toggleFollow)
-router.get('/:id/profile', getPublicProfile)
 // Admin routes
 router.get('/',          protect, adminOnly, getAllUsers)
 router.put('/:id/ban',   protect, adminOnly, toggleBan)
 router.delete('/:id',    protect, adminOnly, deleteUser)
 
-// Follow toggle (after /stats, /history etc.)
-router.post('/:id/follow', protect, followToggle)             // NEW
+// Public profile + follow (after named routes)
+router.get('/:id/profile',  getPublicProfile)
+router.post('/:id/follow',  protect, followToggle)
 
 module.exports = router

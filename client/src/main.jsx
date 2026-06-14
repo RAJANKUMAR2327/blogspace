@@ -14,21 +14,6 @@ const queryClient = new QueryClient({
   },
 })
 
-createRoot(document.getElementById('root')).render(
-  <StrictMode>
-    <BrowserRouter>
-      <QueryClientProvider client={queryClient}>
-        <ThemeProvider>
-          <AuthProvider>
-            <App />
-            <Toaster position="top-right" />
-          </AuthProvider>
-        </ThemeProvider>
-      </QueryClientProvider>
-    </BrowserRouter>
-  </StrictMode>
-)
-
 // Register Service Worker for PWA
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
@@ -37,3 +22,31 @@ if ('serviceWorker' in navigator) {
       .catch(err => console.log('SW failed:', err))
   })
 }
+
+createRoot(document.getElementById('root')).render(
+  <StrictMode>
+    <BrowserRouter>
+      <QueryClientProvider client={queryClient}>
+        <ThemeProvider>
+          <AuthProvider>
+            <App />
+            <Toaster
+              position="top-right"
+              toastOptions={{
+                style: {
+                  background: '#0d0d1a',
+                  color: '#fff',
+                  border: '1px solid rgba(255,255,255,0.08)',
+                  fontFamily: "'Inter', sans-serif",
+                  fontSize: '14px',
+                },
+                success: { iconTheme: { primary: '#34d399', secondary: '#0d0d1a' } },
+                error:   { iconTheme: { primary: '#f87171', secondary: '#0d0d1a' } },
+              }}
+            />
+          </AuthProvider>
+        </ThemeProvider>
+      </QueryClientProvider>
+    </BrowserRouter>
+  </StrictMode>
+)
