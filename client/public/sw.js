@@ -1,4 +1,4 @@
-const CACHE_NAME = 'blogspace-v1'
+const CACHE_NAME = 'blogspace-v2'
 const STATIC_ASSETS = ['/', '/index.html']
 
 self.addEventListener('install', (e) => {
@@ -20,6 +20,7 @@ self.addEventListener('activate', (e) => {
 self.addEventListener('fetch', (e) => {
   if (e.request.method !== 'GET') return
   if (e.request.url.includes('/api/')) return
+  if (e.request.url.includes('chrome-extension')) return
 
   e.respondWith(
     fetch(e.request)

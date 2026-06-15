@@ -7,7 +7,7 @@ import BlogCard from '../components/blog/BlogCard'
 import toast from 'react-hot-toast'
 import {
   FiEdit2, FiSave, FiX, FiBookmark, FiHeart,
-  FiUsers, FiCamera, FiUser, FiMail,
+  FiUsers, FiFileText, FiCamera, FiUser, FiMail,
   FiCalendar, FiShield
 } from 'react-icons/fi'
 
@@ -22,7 +22,7 @@ export default function Profile() {
   const queryClient = useQueryClient()
   const [activeTab, setActiveTab] = useState('saved')
   const [editing, setEditing] = useState(false)
-  const [setUploading] = useState(false)
+  const [uploading, setUploading] = useState(false)
   const [formData, setFormData] = useState({
     name: user?.name || '',
     bio: user?.bio || '',

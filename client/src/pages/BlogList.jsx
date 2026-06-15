@@ -1,5 +1,3 @@
-// ALL imports must be at the TOP of the file like this:
-import SearchFilters from '../components/common/SearchFilters'
 import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { useSearchParams } from 'react-router-dom'
@@ -134,18 +132,13 @@ export default function BlogList() {
         </div>
       </div>
 
-      {/* Results Container */}
+      {/* Results */}
       <div style={{ padding: '0 48px 80px' }}>
-        
-        {/* Unified Toolbar */}
+        {/* Toolbar */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <p style={{ fontSize: 14, color: 'rgba(255,255,255,0.3)', margin: 0 }}>
-              {isLoading ? 'Loading...' : `${data?.blogs?.length || 0} of ${data?.pagination?.total || 0} stories`}
-            </p>
-            <SearchFilters />
-          </div>
-          
+          <p style={{ fontSize: 14, color: 'rgba(255,255,255,0.3)' }}>
+            {isLoading ? 'Loading...' : `${data?.blogs?.length || 0} of ${data?.pagination?.total || 0} stories`}
+          </p>
           <div style={{ display: 'flex', gap: 6 }}>
             <button onClick={() => setView('grid')} style={{ padding: '7px 10px', background: view === 'grid' ? 'rgba(124,58,237,0.3)' : 'rgba(255,255,255,0.04)', border: '1px solid', borderColor: view === 'grid' ? 'rgba(124,58,237,0.4)' : 'rgba(255,255,255,0.08)', borderRadius: 8, color: view === 'grid' ? '#a78bfa' : 'rgba(255,255,255,0.3)', cursor: 'pointer', fontSize: 16, display: 'flex', alignItems: 'center' }}>
               <FiGrid />
@@ -156,7 +149,7 @@ export default function BlogList() {
           </div>
         </div>
 
-        {/* Grid/Layout Content */}
+        {/* Grid */}
         {isLoading ? (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 20 }}>
             {[...Array(9)].map((_, i) => <div key={i} className="skeleton" style={{ height: 360 }} />)}

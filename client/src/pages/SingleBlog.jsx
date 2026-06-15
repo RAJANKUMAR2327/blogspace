@@ -1,4 +1,3 @@
-import NestedComments from '../components/blog/NestedComments'
 import { useContext, useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
@@ -7,7 +6,6 @@ import { AuthContext } from '../context/AuthContext'
 import toast from 'react-hot-toast'
 import { FiHeart, FiEye, FiClock, FiShare2, FiBookmark, FiTrash2, FiArrowLeft, FiMessageSquare } from 'react-icons/fi'
 import { formatDistanceToNow } from 'date-fns'
-
 
 export default function SingleBlog() {
   const { slug } = useParams()
@@ -187,7 +185,10 @@ export default function SingleBlog() {
         </div>
 
         {/* Comments Section */}
-          <NestedComments comments={comments} blogId={blog._id} user={user} />
+        <div>
+          <h2 style={{ fontFamily: "'Syne',sans-serif", fontSize: 24, fontWeight: 700, color: '#fff', marginBottom: 28, letterSpacing: '-0.3px' }}>
+            Discussion <span style={{ fontSize: 16, color: 'rgba(255,255,255,0.3)', fontWeight: 400 }}>({comments?.length || 0})</span>
+          </h2>
 
           {/* Add Comment */}
           {user ? (
