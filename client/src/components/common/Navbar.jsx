@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { AuthContext } from '../../context/AuthContext'
 import { ThemeContext } from '../../context/ThemeContext'
 import { FiSearch, FiMenu, FiX, FiSun, FiMoon } from 'react-icons/fi'
+import NotificationBell from './NotificationBell'
 
 export default function Navbar() {
   const { user, logout } = useContext(AuthContext)
@@ -138,6 +139,7 @@ export default function Navbar() {
           <button onClick={toggleTheme} className="bs-theme-btn">
             {theme === 'dark' ? <FiSun /> : <FiMoon />}
           </button>
+          {user && <NotificationBell />}
 
           {user ? (
             <>

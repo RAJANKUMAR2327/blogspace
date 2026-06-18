@@ -58,7 +58,7 @@ export const userAPI = {
   updateProfile:  (data) => API.put('/users/profile', data),
   toggleSave:     (blogId) => API.post(`/users/save/${blogId}`),
   getSaved:       ()     => API.get('/users/saved'),
-  follow:         (id)   => API.post(`/users/follow/${id}`),
+  follow:         (id)   => API.post(`/users/${id}/follow`),
   getPublicProfile: (id) => API.get(`/users/${id}/profile`),
   getAllUsers:     ()     => API.get('/users'),
   toggleBan:      (id)   => API.put(`/users/${id}/ban`),
@@ -73,6 +73,14 @@ export const uploadAPI = {
   profileImage: (formData) => API.post('/upload/profile', formData, {
     headers: { 'Content-Type': 'multipart/form-data' }
   }),
+}
+
+// ── Notifications ───────────────────────────────────────
+export const notificationAPI = {
+  getAll:        ()  => API.get('/notifications'),
+  getUnreadCount: () => API.get('/notifications/unread'),
+  markAllRead:    () => API.put('/notifications/mark-read'),
+  delete:        (id) => API.delete(`/notifications/${id}`),
 }
 
 // ── Newsletter ────────────────────────────────────────

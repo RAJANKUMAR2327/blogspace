@@ -4,6 +4,8 @@ const helmet  = require('helmet')
 const morgan  = require('morgan')
 const rateLimit = require('express-rate-limit')
 require('dotenv').config()
+const dns = require('dns')
+dns.setServers(['8.8.8.8', '8.8.4.4'])
 
 const connectDB    = require('./config/db')
 const errorHandler = require('./middleware/errorHandler')
@@ -14,7 +16,7 @@ const commentRoutes    = require('./routes/commentRoutes')
 const userRoutes       = require('./routes/userRoutes')
 const newsletterRoutes = require('./routes/newsletterRoutes')
 const uploadRoutes     = require('./routes/uploadRoutes')
-
+const notificationRoutes = require('./routes/notificationRoutes')
 const app = express()
 
 // Connect Database
@@ -44,6 +46,7 @@ app.use('/api/comments',   commentRoutes)
 app.use('/api/users',      userRoutes)
 app.use('/api/newsletter', newsletterRoutes)
 app.use('/api/upload',     uploadRoutes)
+app.use('/api/notifications', notificationRoutes)
 
 // Health Check
 app.get('/', (req, res) => {
