@@ -5,11 +5,10 @@ export default function Footer() {
   return (
     <>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Inter:wght@300;400;500&display=swap');
         .bs-footer-wrap {
-          background: #04040c;
-          border-top: 1px solid rgba(255,255,255,0.04);
-          font-family: 'Inter', sans-serif;
+          background: var(--bg-surface-2);
+          border-top: 1px solid var(--border-soft);
+          font-family: var(--font-ui);
         }
         .bs-footer-main {
           display: grid;
@@ -20,70 +19,67 @@ export default function Footer() {
           margin: 0 auto;
         }
         .bs-footer-brand-logo {
-          font-family: 'Syne', sans-serif;
-          font-size: 22px; font-weight: 800;
-          background: linear-gradient(135deg, #a78bfa, #60a5fa, #34d399);
-          -webkit-background-clip: text;
-          -webkit-text-fill-color: transparent;
+          font-family: var(--font-display);
+          font-size: 22px; font-weight: 700;
+          color: var(--accent);
           text-decoration: none;
           display: inline-block;
           margin-bottom: 12px;
         }
         .bs-footer-brand-desc {
-          font-size: 14px; color: rgba(255,255,255,0.3);
-          line-height: 1.6; font-weight: 300;
+          font-size: 14px; color: var(--text-tertiary);
+          line-height: 1.6; font-family: var(--font-body);
           max-width: 240px; margin-bottom: 24px;
         }
         .bs-footer-socials { display: flex; gap: 10px; }
         .bs-social-btn {
           width: 34px; height: 34px;
-          background: rgba(255,255,255,0.05);
-          border: 1px solid rgba(255,255,255,0.08);
-          border-radius: 8px; display: flex;
+          background: var(--bg-surface);
+          border: 1px solid var(--border-soft);
+          border-radius: var(--radius-sm); display: flex;
           align-items: center; justify-content: center;
-          color: rgba(255,255,255,0.3); font-size: 15px;
+          color: var(--text-tertiary); font-size: 15px;
           transition: all 0.2s; text-decoration: none;
         }
         .bs-social-btn:hover {
-          background: rgba(167,139,250,0.1);
-          border-color: rgba(167,139,250,0.3);
-          color: #a78bfa;
+          background: var(--accent-soft);
+          border-color: var(--accent);
+          color: var(--accent);
           transform: translateY(-2px);
         }
         .bs-footer-col-title {
-          font-family: 'Syne', sans-serif;
+          font-family: var(--font-display);
           font-size: 13px; font-weight: 700;
-          color: rgba(255,255,255,0.7);
+          color: var(--text-secondary);
           letter-spacing: 0.5px;
           text-transform: uppercase;
           margin-bottom: 20px;
         }
         .bs-footer-col-links { display: flex; flex-direction: column; gap: 10px; }
         .bs-footer-col-link {
-          font-size: 14px; color: rgba(255,255,255,0.25);
+          font-size: 14px; color: var(--text-tertiary);
           text-decoration: none; transition: color 0.2s;
-          font-weight: 300;
         }
-        .bs-footer-col-link:hover { color: rgba(255,255,255,0.7); }
+        .bs-footer-col-link:hover { color: var(--text-primary); }
         .bs-footer-bottom {
           display: flex; align-items: center; justify-content: space-between;
           padding: 20px 48px;
-          border-top: 1px solid rgba(255,255,255,0.04);
+          border-top: 1px solid var(--border-soft);
           max-width: 1200px; margin: 0 auto;
         }
-        .bs-footer-copy { font-size: 12px; color: rgba(255,255,255,0.15); }
+        .bs-footer-copy { font-size: 12px; color: var(--text-tertiary); }
         .bs-footer-bottom-links { display: flex; gap: 20px; }
         .bs-footer-bottom-link {
-          font-size: 12px; color: rgba(255,255,255,0.15);
+          font-size: 12px; color: var(--text-tertiary);
           text-decoration: none; transition: color 0.2s;
         }
-        .bs-footer-bottom-link:hover { color: rgba(255,255,255,0.4); }
+        .bs-footer-bottom-link:hover { color: var(--text-primary); }
         .bs-footer-badge {
           display: inline-flex; align-items: center; gap: 6px;
-          font-size: 11px; color: rgba(255,255,255,0.15);
+          font-size: 11px; color: var(--text-tertiary);
         }
         .bs-footer-badge-dot {
-          width: 6px; height: 6px; background: #34d399;
+          width: 6px; height: 6px; background: var(--success);
           border-radius: 50%; animation: blink 2s ease-in-out infinite;
         }
         @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
@@ -138,7 +134,6 @@ export default function Footer() {
               <Link to="/login" className="bs-footer-col-link">Sign In</Link>
               <Link to="/register" className="bs-footer-col-link">Get Started</Link>
               <Link to="/profile" className="bs-footer-col-link">Profile</Link>
-              <Link to="/profile" className="bs-footer-col-link">Saved Articles</Link>
             </div>
           </div>
 

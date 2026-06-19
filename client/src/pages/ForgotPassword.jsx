@@ -14,7 +14,7 @@ export default function ForgotPassword() {
     if (!email) return toast.error('Please enter your email')
     setLoading(true)
     try {
-      await authAPI.forgotPassword({ email })
+      await authAPI.forgotPassword(email)
       setSent(true)
     } catch (err) {
       toast.error(err.response?.data?.message || 'Something went wrong')

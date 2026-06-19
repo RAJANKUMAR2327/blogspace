@@ -1,6 +1,4 @@
 import { Routes, Route } from 'react-router-dom'
-import { useContext } from 'react'
-import { ThemeContext } from './context/ThemeContext'
 
 // Pages
 import Home           from './pages/Home'
@@ -8,6 +6,8 @@ import BlogList       from './pages/BlogList'
 import SingleBlog     from './pages/SingleBlog'
 import Login          from './pages/Login'
 import Register       from './pages/Register'
+import ForgotPassword from './pages/ForgotPassword'
+import ResetPassword  from './pages/ResetPassword'
 import Profile        from './pages/Profile'
 import Categories     from './pages/Categories'
 import SearchResults  from './pages/SearchResults'
@@ -22,11 +22,12 @@ import ManageComments from './pages/admin/ManageComments'
 
 // Components
 import Navbar         from './components/common/Navbar'
+import Footer         from './components/common/Footer'
 import ProtectedRoute from './components/common/ProtectedRoute'
 
 function App() {
   return (
-    <div style={{ background: '#080810', minHeight: '100vh' }}>
+    <div style={{ background: 'var(--bg-page)', minHeight: '100vh' }}>
       <Navbar />
       <main>
         <Routes>
@@ -38,6 +39,8 @@ function App() {
           <Route path="/search"                element={<SearchResults />} />
           <Route path="/login"                 element={<Login />} />
           <Route path="/register"              element={<Register />} />
+          <Route path="/forgot-password"       element={<ForgotPassword />} />
+          <Route path="/reset-password/:token" element={<ResetPassword />} />
 
           {/* Protected User */}
           <Route path="/profile" element={
@@ -65,6 +68,7 @@ function App() {
           <Route path="*" element={<NotFound />} />
         </Routes>
       </main>
+      <Footer />
     </div>
   )
 }
