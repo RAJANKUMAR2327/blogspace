@@ -27,24 +27,22 @@ export default function FollowButton({ userId, isFollowing }) {
       disabled={mutation.isPending}
       style={{
         padding: '8px 20px',
-        borderRadius: 10,
+        borderRadius: 'var(--radius-md)',
         fontSize: 13,
         fontWeight: 500,
         cursor: mutation.isPending ? 'not-allowed' : 'pointer',
         transition: 'all 0.2s',
-        fontFamily: "'Inter',sans-serif",
-        border: isFollowing ? '1px solid rgba(255,255,255,0.12)' : 'none',
-        background: isFollowing
-          ? 'rgba(255,255,255,0.06)'
-          : 'linear-gradient(135deg,#7c3aed,#2563eb)',
-        color: isFollowing ? 'rgba(255,255,255,0.6)' : '#fff',
+        fontFamily: 'var(--font-ui)',
+        border: isFollowing ? '1px solid var(--border-strong)' : 'none',
+        background: isFollowing ? 'var(--bg-surface-2)' : 'var(--accent)',
+        color: isFollowing ? 'var(--text-secondary)' : 'var(--text-on-accent)',
         opacity: mutation.isPending ? 0.6 : 1,
       }}
       onMouseEnter={e => {
-        if (!isFollowing) e.currentTarget.style.boxShadow = '0 6px 20px rgba(124,58,237,0.4)'
+        if (!isFollowing) e.currentTarget.style.background = 'var(--accent-strong)'
       }}
       onMouseLeave={e => {
-        e.currentTarget.style.boxShadow = 'none'
+        if (!isFollowing) e.currentTarget.style.background = 'var(--accent)'
       }}
     >
       {mutation.isPending ? '...' : isFollowing ? '✓ Following' : '+ Follow'}
