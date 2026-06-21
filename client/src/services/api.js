@@ -29,6 +29,7 @@ API.interceptors.response.use(
 export const authAPI = {
   register: (data) => API.post('/auth/register', data),
   login:    (data) => API.post('/auth/login', data),
+  googleAuth: (credential) => API.post('/auth/google', { credential }),
   getMe:    ()     => API.get('/auth/me'),
   forgotPassword: (email) => API.post('/auth/forgot-password', { email }),
   resetPassword:  (token, password) => API.put(`/auth/reset-password/${token}`, { password }),
@@ -65,6 +66,14 @@ export const userAPI = {
   deleteUser:     (id)   => API.delete(`/users/${id}`),
 }
 
+// ── Notifications ───────────────────────────────────────
+export const notificationAPI = {
+  getAll:        ()  => API.get('/notifications'),
+  getUnreadCount: () => API.get('/notifications/unread'),
+  markAllRead:    () => API.put('/notifications/mark-read'),
+  delete:        (id) => API.delete(`/notifications/${id}`),
+}
+
 // ── Upload ────────────────────────────────────────────
 export const uploadAPI = {
   blogImage:    (formData) => API.post('/upload/blog', formData, {
@@ -73,14 +82,6 @@ export const uploadAPI = {
   profileImage: (formData) => API.post('/upload/profile', formData, {
     headers: { 'Content-Type': 'multipart/form-data' }
   }),
-}
-
-// ── Notifications ───────────────────────────────────────
-export const notificationAPI = {
-  getAll:        ()  => API.get('/notifications'),
-  getUnreadCount: () => API.get('/notifications/unread'),
-  markAllRead:    () => API.put('/notifications/mark-read'),
-  delete:        (id) => API.delete(`/notifications/${id}`),
 }
 
 // ── Newsletter ────────────────────────────────────────

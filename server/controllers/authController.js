@@ -1,6 +1,9 @@
 const crypto = require('crypto')
+const { OAuth2Client } = require('google-auth-library')
 const User = require('../models/User')
 const generateToken = require('../utils/generateToken')
+
+const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID)
 
 exports.register = async (req, res, next) => {
   try {
@@ -41,6 +44,49 @@ exports.login = async (req, res, next) => {
 
 exports.getMe = async (req, res) => {
   res.json({ success: true, user: req.user })
+}
+
+exports.googleAuth = async (req, res, next) => {
+  try {
+    const { credential } = req.body
+    if (!credential) return res.status(400).json({ message: 'Missing Google credential' })
+
+    const ticket = await googleClient.verifyIdToken({
+      idToken: credential,
+      audience: process.env.GOOGLE_CLIENT_ID
+    })
+    const payload = ticket.getPayload()
+    const { email, name, picture, sub: googleId } = payload
+
+    if (!email) return res.status(400).json({ message: 'Google account has no email' })
+
+    let user = await User.findOne({ $or: [{ googleId }, { email }] })
+
+    if (user) {
+      if (user.isBanned) return res.status(403).json({ message: 'Your account has been banned' })
+      if (!user.googleId) {
+        user.googleId = googleId
+        await user.save({ validateBeforeSave: false })
+      }
+    } else {
+      user = await User.create({
+        name,
+        email,
+        googleId,
+        profileImage: picture || '',
+        isVerified: true
+      })
+    }
+
+    const token = generateToken(user._id)
+    res.json({
+      success: true, token,
+      user: { _id: user._id, name: user.name, email: user.email, role: user.role, profileImage: user.profileImage }
+    })
+  } catch (error) {
+    console.error('❌ Google auth error:', error.message)
+    res.status(401).json({ message: 'Google sign-in failed' })
+  }
 }
 
 exports.forgotPassword = async (req, res, next) => {

@@ -57,34 +57,36 @@ export default function ManageComments() {
   )
 
   return (
-    <div style={{ background: '#080810', minHeight: '100vh', paddingTop: 64, fontFamily: "'Inter',sans-serif" }}>
+    <div style={{ background: 'var(--bg-page)', minHeight: '100vh', paddingTop: 64, fontFamily: 'var(--font-ui)' }}>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Inter:wght@300;400;500&display=swap');
         @keyframes pulse { 0%,100%{opacity:0.5}50%{opacity:1} }
-        .mc-search { padding:10px 14px 10px 38px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);border-radius:10px;font-size:14px;color:#fff;outline:none;font-family:'Inter',sans-serif;transition:border-color 0.2s;width:260px; }
-        .mc-search:focus { border-color:rgba(167,139,250,0.4); }
-        .mc-search::placeholder { color:rgba(255,255,255,0.2); }
-        .mc-select { padding:10px 14px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);border-radius:10px;font-size:13px;color:rgba(255,255,255,0.6);outline:none;font-family:'Inter',sans-serif;cursor:pointer;appearance:none;min-width:200px; }
-        .mc-select option { background:#0d0d1a;color:#fff; }
-        .del-btn { padding:7px;border-radius:8px;border:none;cursor:pointer;display:flex;align-items:center;background:rgba(255,255,255,0.04);color:rgba(248,113,113,0.5);transition:all 0.2s; }
-        .del-btn:hover { color:#f87171;background:rgba(248,113,113,0.1); }
-        .comment-row { border-bottom:1px solid rgba(255,255,255,0.03);transition:background 0.2s;padding:18px 24px; }
-        .comment-row:hover { background:rgba(255,255,255,0.02); }
-        .skeleton { background:rgba(255,255,255,0.05);border-radius:10px;animation:pulse 1.5s ease-in-out infinite; }
+        .mc-search { padding:10px 14px 10px 38px;background:var(--bg-surface-2);border:1px solid var(--border-soft);border-radius:10px;font-size:14px;color:var(--text-primary);outline:none;font-family:var(--font-ui);transition:border-color 0.2s;width:260px; }
+        .mc-search:focus { border-color: var(--accent); }
+        .mc-search::placeholder { color: var(--text-tertiary); }
+        .mc-select { padding:10px 14px;background:var(--bg-surface-2);border:1px solid var(--border-soft);border-radius:10px;font-size:13px;color:var(--text-secondary);outline:none;font-family:var(--font-ui);cursor:pointer;appearance:none;min-width:200px; }
+        .mc-select option { background:var(--bg-surface);color:var(--text-primary); }
+        .del-btn { padding:7px;border-radius:8px;border:none;cursor:pointer;display:flex;align-items:center;background:var(--bg-surface-2);color:var(--danger);opacity:0.6;transition:all 0.2s; }
+        .del-btn:hover { opacity:1;background:color-mix(in srgb, var(--danger) 12%, transparent); }
+        .comment-row { border-bottom:1px solid var(--border-soft);transition:background 0.2s;padding:18px 24px; }
+        .comment-row:hover { background: var(--bg-surface-2); }
+        .skeleton { background:var(--bg-surface-2);border-radius:10px;animation:pulse 1.5s ease-in-out infinite; }
+        @media (max-width: 800px) {
+          .mc-row-grid { grid-template-columns: 1fr !important; gap: 8px !important; }
+        }
       `}</style>
 
       <div style={{ padding: '48px' }}>
         {/* Header */}
         <div style={{ marginBottom: 32 }}>
-          <Link to="/admin" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 13, color: 'rgba(255,255,255,0.3)', textDecoration: 'none', marginBottom: 8, transition: 'color 0.2s' }}
-            onMouseEnter={e => e.currentTarget.style.color = '#a78bfa'}
-            onMouseLeave={e => e.currentTarget.style.color = 'rgba(255,255,255,0.3)'}>
+          <Link to="/admin" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 13, color: 'var(--text-tertiary)', textDecoration: 'none', marginBottom: 8, transition: 'color 0.2s' }}
+            onMouseEnter={e => e.currentTarget.style.color = 'var(--accent)'}
+            onMouseLeave={e => e.currentTarget.style.color = 'var(--text-tertiary)'}>
             ← Back to dashboard
           </Link>
-          <h1 style={{ fontFamily: "'Syne',sans-serif", fontSize: 32, fontWeight: 800, color: '#fff', letterSpacing: '-0.5px' }}>
+          <h1 style={{ fontFamily: 'var(--font-display)', fontSize: 32, fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '-0.5px' }}>
             Manage Comments
           </h1>
-          <p style={{ fontSize: 14, color: 'rgba(255,255,255,0.3)', marginTop: 4 }}>
+          <p style={{ fontSize: 14, color: 'var(--text-tertiary)', marginTop: 4 }}>
             {comments?.length || 0} total comments
           </p>
         </div>
@@ -92,17 +94,17 @@ export default function ManageComments() {
         {/* Stats */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 12, marginBottom: 28 }}>
           {[
-            { label: 'Total Comments', value: comments?.length || 0, color: '#a78bfa', icon: FiMessageSquare },
-            { label: 'On Stories', value: blogsData?.length || 0, color: '#60a5fa', icon: FiFilter },
-            { label: 'This Week', value: comments?.filter(c => new Date(c.createdAt) > new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)).length || 0, color: '#34d399', icon: FiMessageSquare },
-          ].map(({ label, value, color, icon: Icon }) => (
-            <div key={label} style={{ background: '#0d0d1a', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 12, padding: '16px 20px', display: 'flex', alignItems: 'center', gap: 14 }}>
-              <div style={{ width: 40, height: 40, borderRadius: 10, background: color + '15', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                <Icon size={18} style={{ color }} />
+            { label: 'Total Comments', value: comments?.length || 0, colorVar: '--accent', icon: FiMessageSquare },
+            { label: 'On Stories', value: blogsData?.length || 0, colorVar: '--cat-programming', icon: FiFilter },
+            { label: 'This Week', value: comments?.filter(c => new Date(c.createdAt) > new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)).length || 0, colorVar: '--success', icon: FiMessageSquare },
+          ].map(({ label, value, colorVar, icon: Icon }) => (
+            <div key={label} style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-soft)', borderRadius: 12, padding: '16px 20px', display: 'flex', alignItems: 'center', gap: 14 }}>
+              <div style={{ width: 40, height: 40, borderRadius: 10, background: `color-mix(in srgb, var(${colorVar}) 15%, transparent)`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                <Icon size={18} style={{ color: `var(${colorVar})` }} />
               </div>
               <div>
-                <p style={{ fontFamily: "'Syne',sans-serif", fontSize: 24, fontWeight: 800, color: '#fff', marginBottom: 2 }}>{value}</p>
-                <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.3)' }}>{label}</p>
+                <p style={{ fontFamily: 'var(--font-display)', fontSize: 24, fontWeight: 700, color: 'var(--text-primary)', marginBottom: 2 }}>{value}</p>
+                <p style={{ fontSize: 12, color: 'var(--text-tertiary)' }}>{label}</p>
               </div>
             </div>
           ))}
@@ -111,7 +113,7 @@ export default function ManageComments() {
         {/* Filters */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 20, flexWrap: 'wrap' }}>
           <div style={{ position: 'relative' }}>
-            <FiSearch style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'rgba(255,255,255,0.25)', fontSize: 14 }} />
+            <FiSearch style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-tertiary)', fontSize: 14 }} />
             <input className="mc-search" type="text" value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Search comments..." />
@@ -125,12 +127,12 @@ export default function ManageComments() {
                 </option>
               ))}
             </select>
-            <span style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', color: 'rgba(255,255,255,0.25)', pointerEvents: 'none', fontSize: 11 }}>▼</span>
+            <span style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-tertiary)', pointerEvents: 'none', fontSize: 11 }}>▼</span>
           </div>
         </div>
 
         {/* Comments List */}
-        <div style={{ background: '#0d0d1a', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 16, overflow: 'hidden' }}>
+        <div style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-soft)', borderRadius: 16, overflow: 'hidden' }}>
           {isLoading ? (
             <div style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 12 }}>
               {[...Array(6)].map((_, i) => (
@@ -140,36 +142,36 @@ export default function ManageComments() {
           ) : filtered?.length === 0 ? (
             <div style={{ textAlign: 'center', padding: '60px 20px' }}>
               <div style={{ fontSize: 48, marginBottom: 12 }}>💬</div>
-              <p style={{ fontFamily: "'Syne',sans-serif", fontSize: 18, fontWeight: 700, color: '#fff', marginBottom: 8 }}>
+              <p style={{ fontFamily: 'var(--font-display)', fontSize: 18, fontWeight: 700, color: 'var(--text-primary)', marginBottom: 8 }}>
                 No comments found
               </p>
-              <p style={{ color: 'rgba(255,255,255,0.3)', fontSize: 14 }}>
+              <p style={{ color: 'var(--text-tertiary)', fontSize: 14 }}>
                 {search ? 'Try different search terms' : 'No comments yet on any story'}
               </p>
             </div>
           ) : (
             <div>
               {/* Table Header */}
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 180px 140px 60px', gap: 16, padding: '12px 24px', borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
+              <div className="mc-row-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 180px 140px 60px', gap: 16, padding: '12px 24px', borderBottom: '1px solid var(--border-soft)' }}>
                 {['Comment', 'Story', 'Date', ''].map(h => (
-                  <div key={h} style={{ fontSize: 11, fontWeight: 500, color: 'rgba(255,255,255,0.25)', letterSpacing: '1px', textTransform: 'uppercase' }}>{h}</div>
+                  <div key={h} style={{ fontSize: 11, fontWeight: 500, color: 'var(--text-tertiary)', letterSpacing: '1px', textTransform: 'uppercase' }}>{h}</div>
                 ))}
               </div>
 
               {filtered?.map(comment => (
                 <div key={comment._id} className="comment-row">
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 180px 140px 60px', gap: 16, alignItems: 'start' }}>
+                  <div className="mc-row-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 180px 140px 60px', gap: 16, alignItems: 'start' }}>
                     {/* Comment Content */}
                     <div>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
-                        <div style={{ width: 30, height: 30, borderRadius: '50%', background: 'linear-gradient(135deg,#7c3aed,#2563eb)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700, color: '#fff', flexShrink: 0 }}>
+                        <div style={{ width: 30, height: 30, borderRadius: '50%', background: 'var(--accent)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700, color: 'var(--text-on-accent)', flexShrink: 0 }}>
                           {comment.user?.name?.[0]?.toUpperCase() || '?'}
                         </div>
-                        <span style={{ fontSize: 13, fontWeight: 500, color: 'rgba(255,255,255,0.7)' }}>
+                        <span style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-secondary)' }}>
                           {comment.user?.name || 'Unknown'}
                         </span>
                       </div>
-                      <p style={{ fontSize: 14, color: 'rgba(255,255,255,0.5)', lineHeight: 1.6, fontWeight: 300, paddingLeft: 40 }}>
+                      <p style={{ fontSize: 14, color: 'var(--text-tertiary)', lineHeight: 1.6, fontWeight: 400, paddingLeft: 40 }}>
                         {comment.content}
                       </p>
                     </div>
@@ -177,15 +179,15 @@ export default function ManageComments() {
                     {/* Story */}
                     <div>
                       <Link to={`/blog/${comment.blogSlug}`}
-                        style={{ fontSize: 12, color: '#a78bfa', textDecoration: 'none', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', lineHeight: 1.5, transition: 'color 0.2s' }}
-                        onMouseEnter={e => e.currentTarget.style.color = '#c4b5fd'}
-                        onMouseLeave={e => e.currentTarget.style.color = '#a78bfa'}>
+                        style={{ fontSize: 12, color: 'var(--accent)', textDecoration: 'none', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', lineHeight: 1.5, transition: 'color 0.2s' }}
+                        onMouseEnter={e => e.currentTarget.style.color = 'var(--accent-strong)'}
+                        onMouseLeave={e => e.currentTarget.style.color = 'var(--accent)'}>
                         {comment.blogTitle}
                       </Link>
                     </div>
 
                     {/* Date */}
-                    <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.25)' }}>
+                    <div style={{ fontSize: 12, color: 'var(--text-tertiary)' }}>
                       {formatDistanceToNow(new Date(comment.createdAt), { addSuffix: true })}
                     </div>
 

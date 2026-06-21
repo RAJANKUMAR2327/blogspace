@@ -75,47 +75,49 @@ export default function EditBlog() {
   const readTime = Math.ceil(wordCount / 200) || 1
 
   if (isLoading) return (
-    <div style={{ background: '#080810', minHeight: '100vh', paddingTop: 64, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-      <div style={{ width: 40, height: 40, borderRadius: '50%', border: '2px solid rgba(255,255,255,0.06)', borderTop: '2px solid #7c3aed', animation: 'spin 0.8s linear infinite' }} />
+    <div style={{ background: 'var(--bg-page)', minHeight: '100vh', paddingTop: 64, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <div style={{ width: 40, height: 40, borderRadius: '50%', border: '2px solid var(--border-soft)', borderTop: '2px solid var(--accent)', animation: 'spin 0.8s linear infinite' }} />
       <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
     </div>
   )
 
   return (
-    <div style={{ background: '#080810', minHeight: '100vh', paddingTop: 64, fontFamily: "'Inter',sans-serif" }}>
+    <div style={{ background: 'var(--bg-page)', minHeight: '100vh', paddingTop: 64, fontFamily: 'var(--font-ui)' }}>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Inter:wght@300;400;500&display=swap');
-        .eb-input { width:100%;padding:12px 16px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);border-radius:10px;font-size:15px;color:#fff;outline:none;font-family:'Inter',sans-serif;transition:all 0.2s;box-sizing:border-box; }
-        .eb-input:focus { border-color:rgba(167,139,250,0.4);background:rgba(167,139,250,0.03); }
-        .eb-input::placeholder { color:rgba(255,255,255,0.18); }
-        .eb-textarea { width:100%;padding:16px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:12px;font-size:15px;color:rgba(255,255,255,0.8);outline:none;font-family:'Inter',sans-serif;transition:all 0.2s;box-sizing:border-box;resize:vertical;line-height:1.8;min-height:480px; }
-        .eb-textarea:focus { border-color:rgba(167,139,250,0.35);background:rgba(167,139,250,0.02); }
-        .eb-select { width:100%;padding:12px 16px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);border-radius:10px;font-size:14px;color:#fff;outline:none;font-family:'Inter',sans-serif;cursor:pointer;appearance:none; }
-        .eb-select option { background:#0d0d1a; }
-        .eb-upload-zone { border:2px dashed rgba(255,255,255,0.08);border-radius:10px;padding:20px;text-align:center;cursor:pointer;transition:all 0.2s;position:relative;overflow:hidden; }
-        .eb-upload-zone:hover { border-color:rgba(167,139,250,0.3);background:rgba(167,139,250,0.04); }
-        .btn-draft { display:inline-flex;align-items:center;gap:8px;padding:11px 22px;border-radius:10px;font-size:14px;font-weight:500;cursor:pointer;transition:all 0.2s;font-family:'Inter',sans-serif;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.05);color:rgba(255,255,255,0.6); }
-        .btn-draft:hover { border-color:rgba(255,255,255,0.2);color:#fff; }
+        .eb-input { width:100%;padding:12px 16px;background:var(--bg-surface-2);border:1px solid var(--border-soft);border-radius:10px;font-size:15px;color:var(--text-primary);outline:none;font-family:var(--font-ui);transition:all 0.2s;box-sizing:border-box; }
+        .eb-input:focus { border-color: var(--accent); }
+        .eb-input::placeholder { color: var(--text-tertiary); }
+        .eb-textarea { width:100%;padding:16px;background:var(--bg-surface-2);border:1px solid var(--border-soft);border-radius:12px;font-size:15px;color:var(--text-secondary);outline:none;font-family:var(--font-ui);transition:all 0.2s;box-sizing:border-box;resize:vertical;line-height:1.8;min-height:480px; }
+        .eb-textarea:focus { border-color: var(--accent); }
+        .eb-select { width:100%;padding:12px 16px;background:var(--bg-surface-2);border:1px solid var(--border-soft);border-radius:10px;font-size:14px;color:var(--text-primary);outline:none;font-family:var(--font-ui);cursor:pointer;appearance:none; }
+        .eb-select option { background: var(--bg-surface); }
+        .eb-upload-zone { border:2px dashed var(--border-strong);border-radius:10px;padding:20px;text-align:center;cursor:pointer;transition:all 0.2s;position:relative;overflow:hidden;display:block; }
+        .eb-upload-zone:hover { border-color: var(--accent); background: var(--accent-soft); }
+        .btn-draft { display:inline-flex;align-items:center;gap:8px;padding:11px 22px;border-radius:10px;font-size:14px;font-weight:500;cursor:pointer;transition:all 0.2s;font-family:var(--font-ui);border:1px solid var(--border-strong);background:var(--bg-surface-2);color:var(--text-secondary); }
+        .btn-draft:hover { border-color: var(--text-tertiary); color: var(--text-primary); }
         .btn-draft:disabled { opacity:0.5;cursor:not-allowed; }
-        .btn-publish { display:inline-flex;align-items:center;gap:8px;padding:11px 22px;border-radius:10px;font-size:14px;font-weight:500;cursor:pointer;transition:all 0.2s;font-family:'Inter',sans-serif;border:none;background:linear-gradient(135deg,#7c3aed,#2563eb);color:#fff;box-shadow:0 6px 20px rgba(124,58,237,0.3); }
-        .btn-publish:hover:not(:disabled) { transform:translateY(-1px);box-shadow:0 10px 28px rgba(124,58,237,0.5); }
+        .btn-publish { display:inline-flex;align-items:center;gap:8px;padding:11px 22px;border-radius:10px;font-size:14px;font-weight:500;cursor:pointer;transition:all 0.2s;font-family:var(--font-ui);border:none;background:var(--accent);color:var(--text-on-accent);box-shadow:var(--shadow-pop); }
+        .btn-publish:hover:not(:disabled) { background: var(--accent-strong); }
         .btn-publish:disabled { opacity:0.5;cursor:not-allowed; }
-        .status-pill { flex:1;padding:10px 16px;border-radius:10px;font-size:13px;font-weight:500;cursor:pointer;transition:all 0.2s;text-align:center;border:1px solid rgba(255,255,255,0.08);background:rgba(255,255,255,0.04);color:rgba(255,255,255,0.4);font-family:'Inter',sans-serif; }
-        .status-pill.active { background:linear-gradient(135deg,rgba(124,58,237,0.25),rgba(37,99,235,0.25));border-color:rgba(124,58,237,0.4);color:#fff; }
-        .sidebar-card { background:#0d0d1a;border:1px solid rgba(255,255,255,0.06);border-radius:14px;padding:20px; }
-        .sidebar-title { font-family:'Syne',sans-serif;font-size:13px;font-weight:700;color:rgba(255,255,255,0.5);text-transform:uppercase;letter-spacing:1px;margin-bottom:14px; }
+        .status-pill { flex:1;padding:10px 16px;border-radius:10px;font-size:13px;font-weight:500;cursor:pointer;transition:all 0.2s;text-align:center;border:1px solid var(--border-soft);background:var(--bg-surface-2);color:var(--text-tertiary);font-family:var(--font-ui); }
+        .status-pill.active { background: var(--accent-soft);border-color: var(--accent);color: var(--accent-strong); }
+        .sidebar-card { background:var(--bg-surface);border:1px solid var(--border-soft);border-radius:14px;padding:20px; }
+        .sidebar-title { font-family:var(--font-display);font-size:13px;font-weight:700;color:var(--text-tertiary);text-transform:uppercase;letter-spacing:1px;margin-bottom:14px; }
+        @media (max-width: 900px) {
+          .eb-grid { grid-template-columns: 1fr !important; }
+        }
       `}</style>
 
       <div style={{ maxWidth: 1200, margin: '0 auto', padding: '40px 48px' }}>
         {/* Header */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 36 }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 36, flexWrap: 'wrap', gap: 16 }}>
           <div>
-            <Link to="/admin" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 13, color: 'rgba(255,255,255,0.3)', textDecoration: 'none', marginBottom: 8, transition: 'color 0.2s' }}
-              onMouseEnter={e => e.currentTarget.style.color = '#a78bfa'}
-              onMouseLeave={e => e.currentTarget.style.color = 'rgba(255,255,255,0.3)'}>
+            <Link to="/admin" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 13, color: 'var(--text-tertiary)', textDecoration: 'none', marginBottom: 8, transition: 'color 0.2s' }}
+              onMouseEnter={e => e.currentTarget.style.color = 'var(--accent)'}
+              onMouseLeave={e => e.currentTarget.style.color = 'var(--text-tertiary)'}>
               <FiArrowLeft size={12} /> Back to dashboard
             </Link>
-            <h1 style={{ fontFamily: "'Syne',sans-serif", fontSize: 28, fontWeight: 800, color: '#fff', letterSpacing: '-0.5px' }}>
+            <h1 style={{ fontFamily: 'var(--font-display)', fontSize: 28, fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '-0.5px' }}>
               Edit Story
             </h1>
           </div>
@@ -132,22 +134,22 @@ export default function EditBlog() {
           </div>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 280px', gap: 24 }}>
+        <div className="eb-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 280px', gap: 24 }}>
           {/* Main Editor */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
             <input className="eb-input" type="text" value={formData.title}
               onChange={(e) => setFormData(p => ({ ...p, title: e.target.value }))}
               placeholder="Story title..."
-              style={{ fontSize: 22, fontFamily: "'Syne',sans-serif", fontWeight: 700, padding: '16px 20px', borderRadius: 12 }}
+              style={{ fontSize: 22, fontFamily: 'var(--font-display)', fontWeight: 700, padding: '16px 20px', borderRadius: 12 }}
             />
             <div style={{ display: 'flex', gap: 16, padding: '4px' }}>
-              <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.2)' }}>{wordCount} words</span>
-              <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.2)' }}>~{readTime} min read</span>
+              <span style={{ fontSize: 12, color: 'var(--text-tertiary)' }}>{wordCount} words</span>
+              <span style={{ fontSize: 12, color: 'var(--text-tertiary)' }}>~{readTime} min read</span>
             </div>
             {preview ? (
-              <div style={{ background: '#0d0d1a', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 12, padding: 32, minHeight: 480 }}>
-                <div style={{ color: 'rgba(255,255,255,0.65)', lineHeight: 1.85 }}
-                  dangerouslySetInnerHTML={{ __html: formData.content.replace(/\n/g, '<br/>') || '<p style="color:rgba(255,255,255,0.2)">Nothing to preview...</p>' }}
+              <div style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-soft)', borderRadius: 12, padding: 32, minHeight: 480 }}>
+                <div style={{ color: 'var(--text-secondary)', lineHeight: 1.85 }}
+                  dangerouslySetInnerHTML={{ __html: formData.content.replace(/\n/g, '<br/>') || '<p style="color:var(--text-tertiary)">Nothing to preview...</p>' }}
                 />
               </div>
             ) : (
@@ -179,7 +181,7 @@ export default function EditBlog() {
                   <option value="">Select category...</option>
                   {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
                 </select>
-                <span style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', color: 'rgba(255,255,255,0.3)', pointerEvents: 'none', fontSize: 12 }}>▼</span>
+                <span style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-tertiary)', pointerEvents: 'none', fontSize: 12 }}>▼</span>
               </div>
             </div>
 
@@ -188,22 +190,22 @@ export default function EditBlog() {
               <input className="eb-input" type="text" value={formData.tags}
                 onChange={(e) => setFormData(p => ({ ...p, tags: e.target.value }))}
                 placeholder="react, javascript, ai" />
-              <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.2)', marginTop: 6 }}>Separate with commas</p>
+              <p style={{ fontSize: 11, color: 'var(--text-tertiary)', marginTop: 6 }}>Separate with commas</p>
             </div>
 
             <div className="sidebar-card">
               <div className="sidebar-title"><FiImage size={12} style={{ display: 'inline', marginRight: 4 }} />Cover Image</div>
               <label className="eb-upload-zone">
                 <input type="file" accept="image/*" onChange={handleFileUpload} style={{ display: 'none' }} />
-                <FiUpload size={18} style={{ color: 'rgba(255,255,255,0.25)', marginBottom: 6 }} />
-                <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.3)', margin: 0 }}>
+                <FiUpload size={18} style={{ color: 'var(--text-tertiary)', marginBottom: 6 }} />
+                <p style={{ fontSize: 13, color: 'var(--text-tertiary)', margin: 0 }}>
                   {uploading ? 'Uploading...' : 'Upload new image'}
                 </p>
               </label>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, margin: '10px 0' }}>
-                <div style={{ flex: 1, height: 1, background: 'rgba(255,255,255,0.06)' }} />
-                <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.2)' }}>or URL</span>
-                <div style={{ flex: 1, height: 1, background: 'rgba(255,255,255,0.06)' }} />
+                <div style={{ flex: 1, height: 1, background: 'var(--border-soft)' }} />
+                <span style={{ fontSize: 11, color: 'var(--text-tertiary)' }}>or URL</span>
+                <div style={{ flex: 1, height: 1, background: 'var(--border-soft)' }} />
               </div>
               <input className="eb-input" type="url" placeholder="https://..."
                 value={formData.image}
@@ -215,7 +217,7 @@ export default function EditBlog() {
                     style={{ width: '100%', height: 110, objectFit: 'cover', borderRadius: 8, display: 'block' }}
                     onError={e => e.target.style.display = 'none'} />
                   <button onClick={() => setFormData(p => ({ ...p, image: '' }))}
-                    style={{ position: 'absolute', top: 6, right: 6, background: 'rgba(8,8,16,0.8)', border: 'none', borderRadius: '50%', width: 24, height: 24, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'rgba(255,255,255,0.7)', fontSize: 12 }}>
+                    style={{ position: 'absolute', top: 6, right: 6, background: 'color-mix(in srgb, var(--bg-page) 80%, transparent)', border: 'none', borderRadius: '50%', width: 24, height: 24, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'var(--text-primary)', fontSize: 12 }}>
                     <FiX size={12} />
                   </button>
                 </div>

@@ -56,101 +56,104 @@ export default function CreateBlog() {
   const readTime = Math.ceil(wordCount / 200) || 1
 
   return (
-    <div style={{ background: '#080810', minHeight: '100vh', paddingTop: 64, fontFamily: "'Inter',sans-serif" }}>
+    <div style={{ background: 'var(--bg-page)', minHeight: '100vh', paddingTop: 64, fontFamily: 'var(--font-ui)' }}>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Inter:wght@300;400;500&display=swap');
         .cb-input {
           width:100%; padding:12px 16px;
-          background:rgba(255,255,255,0.05);
-          border:1px solid rgba(255,255,255,0.08);
-          border-radius:10px; font-size:15px; color:#fff; outline:none;
-          font-family:'Inter',sans-serif; transition:all 0.2s; box-sizing:border-box;
+          background: var(--bg-surface-2);
+          border:1px solid var(--border-soft);
+          border-radius:10px; font-size:15px; color:var(--text-primary); outline:none;
+          font-family:var(--font-ui); transition:all 0.2s; box-sizing:border-box;
         }
-        .cb-input:focus { border-color:rgba(167,139,250,0.4); background:rgba(167,139,250,0.03); }
-        .cb-input::placeholder { color:rgba(255,255,255,0.18); }
+        .cb-input:focus { border-color: var(--accent); }
+        .cb-input::placeholder { color: var(--text-tertiary); }
         .cb-textarea {
           width:100%; padding:16px;
-          background:rgba(255,255,255,0.04);
-          border:1px solid rgba(255,255,255,0.08);
-          border-radius:12px; font-size:15px; color:rgba(255,255,255,0.8); outline:none;
-          font-family:'Inter',sans-serif; transition:all 0.2s; box-sizing:border-box;
+          background: var(--bg-surface-2);
+          border:1px solid var(--border-soft);
+          border-radius:12px; font-size:15px; color:var(--text-secondary); outline:none;
+          font-family:var(--font-ui); transition:all 0.2s; box-sizing:border-box;
           resize:vertical; line-height:1.8; min-height:480px;
         }
-        .cb-textarea:focus { border-color:rgba(167,139,250,0.35); background:rgba(167,139,250,0.02); }
-        .cb-textarea::placeholder { color:rgba(255,255,255,0.15); }
+        .cb-textarea:focus { border-color: var(--accent); }
+        .cb-textarea::placeholder { color: var(--text-tertiary); }
         .cb-select {
           width:100%; padding:12px 16px;
-          background:rgba(255,255,255,0.05);
-          border:1px solid rgba(255,255,255,0.08);
-          border-radius:10px; font-size:14px; color:#fff; outline:none;
-          font-family:'Inter',sans-serif; transition:all 0.2s;
+          background: var(--bg-surface-2);
+          border:1px solid var(--border-soft);
+          border-radius:10px; font-size:14px; color:var(--text-primary); outline:none;
+          font-family:var(--font-ui); transition:all 0.2s;
           cursor:pointer; appearance:none;
         }
-        .cb-select:focus { border-color:rgba(167,139,250,0.4); }
-        .cb-select option { background:#0d0d1a; color:#fff; }
+        .cb-select:focus { border-color: var(--accent); }
+        .cb-select option { background: var(--bg-surface); color: var(--text-primary); }
         .cb-upload-zone {
-          border:2px dashed rgba(255,255,255,0.08); border-radius:10px;
+          border:2px dashed var(--border-strong); border-radius:10px;
           padding:20px; text-align:center; cursor:pointer;
           transition:all 0.2s; position:relative; overflow:hidden;
+          display: block;
         }
-        .cb-upload-zone:hover { border-color:rgba(167,139,250,0.3); background:rgba(167,139,250,0.04); }
+        .cb-upload-zone:hover { border-color: var(--accent); background: var(--accent-soft); }
         .btn-draft {
           display:inline-flex; align-items:center; gap:8px;
           padding:11px 22px; border-radius:10px; font-size:14px; font-weight:500;
-          cursor:pointer; transition:all 0.2s; font-family:'Inter',sans-serif;
-          border:1px solid rgba(255,255,255,0.1); background:rgba(255,255,255,0.05); color:rgba(255,255,255,0.6);
+          cursor:pointer; transition:all 0.2s; font-family:var(--font-ui);
+          border:1px solid var(--border-strong); background:var(--bg-surface-2); color:var(--text-secondary);
         }
-        .btn-draft:hover { border-color:rgba(255,255,255,0.2); color:#fff; }
+        .btn-draft:hover { border-color: var(--text-tertiary); color: var(--text-primary); }
         .btn-draft:disabled { opacity:0.5; cursor:not-allowed; }
         .btn-publish {
           display:inline-flex; align-items:center; gap:8px;
           padding:11px 22px; border-radius:10px; font-size:14px; font-weight:500;
-          cursor:pointer; transition:all 0.2s; font-family:'Inter',sans-serif;
-          border:none; background:linear-gradient(135deg,#7c3aed,#2563eb); color:#fff;
-          box-shadow:0 6px 20px rgba(124,58,237,0.3);
+          cursor:pointer; transition:all 0.2s; font-family:var(--font-ui);
+          border:none; background: var(--accent); color:var(--text-on-accent);
+          box-shadow: var(--shadow-pop);
         }
-        .btn-publish:hover:not(:disabled) { transform:translateY(-1px); box-shadow:0 10px 28px rgba(124,58,237,0.5); }
+        .btn-publish:hover:not(:disabled) { background: var(--accent-strong); }
         .btn-publish:disabled { opacity:0.5; cursor:not-allowed; }
         .status-pill {
           flex:1; padding:10px 16px; border-radius:10px; font-size:13px;
           font-weight:500; cursor:pointer; transition:all 0.2s; text-align:center;
-          border:1px solid rgba(255,255,255,0.08); background:rgba(255,255,255,0.04);
-          color:rgba(255,255,255,0.4); font-family:'Inter',sans-serif;
+          border:1px solid var(--border-soft); background:var(--bg-surface-2);
+          color:var(--text-tertiary); font-family:var(--font-ui);
         }
         .status-pill.active {
-          background:linear-gradient(135deg,rgba(124,58,237,0.25),rgba(37,99,235,0.25));
-          border-color:rgba(124,58,237,0.4); color:#fff;
+          background: var(--accent-soft);
+          border-color: var(--accent); color: var(--accent-strong);
         }
         .sidebar-card {
-          background:#0d0d1a; border:1px solid rgba(255,255,255,0.06);
+          background: var(--bg-surface); border:1px solid var(--border-soft);
           border-radius:14px; padding:20px;
         }
         .sidebar-title {
-          font-family:'Syne',sans-serif; font-size:13px; font-weight:700;
-          color:rgba(255,255,255,0.5); text-transform:uppercase;
+          font-family:var(--font-display); font-size:13px; font-weight:700;
+          color:var(--text-tertiary); text-transform:uppercase;
           letter-spacing:1px; margin-bottom:14px;
         }
-        .preview-content h1,.preview-content h2,.preview-content h3{font-family:'Syne',sans-serif;font-weight:700;color:#fff;margin:1rem 0 0.5rem}
+        .preview-content h1,.preview-content h2,.preview-content h3{font-family:var(--font-display);font-weight:700;color:var(--text-primary);margin:1rem 0 0.5rem}
         .preview-content h1{font-size:1.8rem;letter-spacing:-0.5px}
         .preview-content h2{font-size:1.4rem}
         .preview-content h3{font-size:1.2rem}
-        .preview-content p{color:rgba(255,255,255,0.65);line-height:1.8;margin:0.75rem 0}
-        .preview-content ul,.preview-content ol{color:rgba(255,255,255,0.65);line-height:1.8;padding-left:1.5rem;margin:0.75rem 0}
-        .preview-content code{background:rgba(124,58,237,0.15);color:#a78bfa;padding:2px 6px;border-radius:4px;font-size:0.875rem}
-        .preview-content blockquote{border-left:3px solid #7c3aed;padding-left:1rem;color:rgba(255,255,255,0.45);font-style:italic;margin:1rem 0}
+        .preview-content p{color:var(--text-secondary);line-height:1.8;margin:0.75rem 0}
+        .preview-content ul,.preview-content ol{color:var(--text-secondary);line-height:1.8;padding-left:1.5rem;margin:0.75rem 0}
+        .preview-content code{background:var(--accent-soft);color:var(--accent-strong);padding:2px 6px;border-radius:4px;font-size:0.875rem}
+        .preview-content blockquote{border-left:3px solid var(--accent);padding-left:1rem;color:var(--text-tertiary);font-style:italic;margin:1rem 0}
+        @media (max-width: 900px) {
+          .cb-grid { grid-template-columns: 1fr !important; }
+        }
       `}</style>
 
       <div style={{ maxWidth: 1200, margin: '0 auto', padding: '40px 48px' }}>
 
         {/* Header */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 36 }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 36, flexWrap: 'wrap', gap: 16 }}>
           <div>
-            <Link to="/admin" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 13, color: 'rgba(255,255,255,0.3)', textDecoration: 'none', marginBottom: 8, transition: 'color 0.2s' }}
-              onMouseEnter={e => e.currentTarget.style.color = '#a78bfa'}
-              onMouseLeave={e => e.currentTarget.style.color = 'rgba(255,255,255,0.3)'}>
+            <Link to="/admin" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 13, color: 'var(--text-tertiary)', textDecoration: 'none', marginBottom: 8, transition: 'color 0.2s' }}
+              onMouseEnter={e => e.currentTarget.style.color = 'var(--accent)'}
+              onMouseLeave={e => e.currentTarget.style.color = 'var(--text-tertiary)'}>
               <FiArrowLeft size={12} /> Back to dashboard
             </Link>
-            <h1 style={{ fontFamily: "'Syne',sans-serif", fontSize: 28, fontWeight: 800, color: '#fff', letterSpacing: '-0.5px' }}>
+            <h1 style={{ fontFamily: 'var(--font-display)', fontSize: 28, fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '-0.5px' }}>
               Write a Story
             </h1>
           </div>
@@ -167,7 +170,7 @@ export default function CreateBlog() {
           </div>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 280px', gap: 24 }}>
+        <div className="cb-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 280px', gap: 24 }}>
 
           {/* Main Editor */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
@@ -180,21 +183,21 @@ export default function CreateBlog() {
               value={formData.title}
               onChange={handleChange}
               placeholder="Your story title..."
-              style={{ fontSize: 22, fontFamily: "'Syne',sans-serif", fontWeight: 700, padding: '16px 20px', borderRadius: 12 }}
+              style={{ fontSize: 22, fontFamily: 'var(--font-display)', fontWeight: 700, padding: '16px 20px', borderRadius: 12 }}
             />
 
             {/* Word count bar */}
             <div style={{ display: 'flex', alignItems: 'center', gap: 16, padding: '8px 4px' }}>
-              <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.2)' }}>{wordCount} words</span>
-              <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.2)' }}>~{readTime} min read</span>
-              <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.2)' }}>{formData.content.length} characters</span>
+              <span style={{ fontSize: 12, color: 'var(--text-tertiary)' }}>{wordCount} words</span>
+              <span style={{ fontSize: 12, color: 'var(--text-tertiary)' }}>~{readTime} min read</span>
+              <span style={{ fontSize: 12, color: 'var(--text-tertiary)' }}>{formData.content.length} characters</span>
             </div>
 
             {/* Content */}
             {preview ? (
-              <div style={{ background: '#0d0d1a', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 12, padding: 32, minHeight: 480 }}>
-                <div className="preview-content" style={{ color: 'rgba(255,255,255,0.65)' }}
-                  dangerouslySetInnerHTML={{ __html: formData.content.replace(/\n/g, '<br/>').replace(/# (.*)/g, '<h1>$1</h1>').replace(/## (.*)/g, '<h2>$1</h2>').replace(/### (.*)/g, '<h3>$1</h3>').replace(/\*\*(.*?)\*\*/g, '<strong style="color:#fff">$1</strong>').replace(/\*(.*?)\*/g, '<em>$1</em>').replace(/`(.*?)`/g, '<code>$1</code>') || '<p style="color:rgba(255,255,255,0.2)">Nothing to preview yet...</p>' }}
+              <div style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-soft)', borderRadius: 12, padding: 32, minHeight: 480 }}>
+                <div className="preview-content" style={{ color: 'var(--text-secondary)' }}
+                  dangerouslySetInnerHTML={{ __html: formData.content.replace(/\n/g, '<br/>').replace(/# (.*)/g, '<h1>$1</h1>').replace(/## (.*)/g, '<h2>$1</h2>').replace(/### (.*)/g, '<h3>$1</h3>').replace(/\*\*(.*?)\*\*/g, '<strong style="color:var(--text-primary)">$1</strong>').replace(/\*(.*?)\*/g, '<em>$1</em>').replace(/`(.*?)`/g, '<code>$1</code>') || '<p style="color:var(--text-tertiary)">Nothing to preview yet...</p>' }}
                 />
               </div>
             ) : (
@@ -234,7 +237,7 @@ export default function CreateBlog() {
                   <option value="">Select category...</option>
                   {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
                 </select>
-                <span style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', color: 'rgba(255,255,255,0.3)', pointerEvents: 'none', fontSize: 12 }}>▼</span>
+                <span style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-tertiary)', pointerEvents: 'none', fontSize: 12 }}>▼</span>
               </div>
             </div>
 
@@ -243,11 +246,11 @@ export default function CreateBlog() {
               <div className="sidebar-title">Tags</div>
               <input className="cb-input" type="text" name="tags" value={formData.tags}
                 onChange={handleChange} placeholder="react, javascript, ai" />
-              <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.2)', marginTop: 6 }}>Separate with commas</p>
+              <p style={{ fontSize: 11, color: 'var(--text-tertiary)', marginTop: 6 }}>Separate with commas</p>
               {formData.tags && (
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 10 }}>
                   {formData.tags.split(',').map(t => t.trim()).filter(Boolean).map(tag => (
-                    <span key={tag} style={{ fontSize: 11, padding: '3px 8px', background: 'rgba(167,139,250,0.1)', border: '1px solid rgba(167,139,250,0.2)', borderRadius: 6, color: '#a78bfa' }}>#{tag}</span>
+                    <span key={tag} style={{ fontSize: 11, padding: '3px 8px', background: 'var(--accent-soft)', border: '1px solid color-mix(in srgb, var(--accent) 25%, transparent)', borderRadius: 6, color: 'var(--accent-strong)' }}>#{tag}</span>
                   ))}
                 </div>
               )}
@@ -260,17 +263,17 @@ export default function CreateBlog() {
               {/* Upload */}
               <label className="cb-upload-zone">
                 <input type="file" accept="image/*" onChange={handleFileUpload} style={{ display: 'none' }} />
-                <FiUpload size={20} style={{ color: 'rgba(255,255,255,0.25)', marginBottom: 6 }} />
-                <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.3)', margin: 0 }}>
+                <FiUpload size={20} style={{ color: 'var(--text-tertiary)', marginBottom: 6 }} />
+                <p style={{ fontSize: 13, color: 'var(--text-tertiary)', margin: 0 }}>
                   {uploading ? 'Uploading...' : 'Click to upload image'}
                 </p>
-                <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.15)', margin: '4px 0 0' }}>PNG, JPG up to 5MB</p>
+                <p style={{ fontSize: 11, color: 'var(--text-tertiary)', margin: '4px 0 0' }}>PNG, JPG up to 5MB</p>
               </label>
 
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, margin: '10px 0' }}>
-                <div style={{ flex: 1, height: 1, background: 'rgba(255,255,255,0.06)' }} />
-                <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.2)' }}>or URL</span>
-                <div style={{ flex: 1, height: 1, background: 'rgba(255,255,255,0.06)' }} />
+                <div style={{ flex: 1, height: 1, background: 'var(--border-soft)' }} />
+                <span style={{ fontSize: 11, color: 'var(--text-tertiary)' }}>or URL</span>
+                <div style={{ flex: 1, height: 1, background: 'var(--border-soft)' }} />
               </div>
 
               <input className="cb-input" type="url" placeholder="https://images.unsplash.com/..."
@@ -284,7 +287,7 @@ export default function CreateBlog() {
                   <img src={formData.image} alt="Preview" style={{ width: '100%', height: 120, objectFit: 'cover', borderRadius: 8, display: 'block' }}
                     onError={(e) => e.target.style.display = 'none'} />
                   <button onClick={() => setFormData(p => ({ ...p, image: '' }))}
-                    style={{ position: 'absolute', top: 6, right: 6, background: 'rgba(8,8,16,0.8)', border: 'none', borderRadius: '50%', width: 24, height: 24, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'rgba(255,255,255,0.7)', fontSize: 12 }}>
+                    style={{ position: 'absolute', top: 6, right: 6, background: 'color-mix(in srgb, var(--bg-page) 80%, transparent)', border: 'none', borderRadius: '50%', width: 24, height: 24, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'var(--text-primary)', fontSize: 12 }}>
                     <FiX size={12} />
                   </button>
                 </div>
@@ -292,11 +295,11 @@ export default function CreateBlog() {
             </div>
 
             {/* Markdown Tips */}
-            <div style={{ background: 'rgba(124,58,237,0.08)', border: '1px solid rgba(124,58,237,0.15)', borderRadius: 14, padding: 16 }}>
-              <div style={{ fontSize: 12, fontWeight: 600, color: '#a78bfa', marginBottom: 10, letterSpacing: '0.5px' }}>✦ MARKDOWN TIPS</div>
+            <div style={{ background: 'var(--accent-soft)', border: '1px solid color-mix(in srgb, var(--accent) 20%, transparent)', borderRadius: 14, padding: 16 }}>
+              <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--accent-strong)', marginBottom: 10, letterSpacing: '0.5px' }}>✦ MARKDOWN TIPS</div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
                 {[['# H1', '## H2', '### H3'], ['**bold**', '*italic*'], ['- list', '> quote', '`code`']].flat().map(tip => (
-                  <code key={tip} style={{ fontSize: 11, background: 'rgba(167,139,250,0.1)', color: 'rgba(167,139,250,0.7)', padding: '2px 6px', borderRadius: 4, display: 'inline-block', width: 'fit-content' }}>{tip}</code>
+                  <code key={tip} style={{ fontSize: 11, background: 'color-mix(in srgb, var(--accent) 12%, transparent)', color: 'var(--accent-strong)', padding: '2px 6px', borderRadius: 4, display: 'inline-block', width: 'fit-content' }}>{tip}</code>
                 ))}
               </div>
             </div>
