@@ -80,17 +80,32 @@ export default function SingleBlog() {
           background:var(--accent-soft); color:var(--accent-strong);
           border:1px solid color-mix(in srgb, var(--accent) 25%, transparent);
         }
+        .sb-author-row {
+          display: flex; align-items: center; justify-content: space-between;
+          flex-wrap: wrap; gap: 16px; margin-bottom: 32px; padding-bottom: 32px;
+          border-bottom: 1px solid var(--border-soft);
+        }
+        .sb-author-left { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+        .sb-meta-right { display: flex; align-items: center; gap: 16px; font-size: 13px; color: var(--text-tertiary); }
+        .sb-content-wrap { max-width: 760px; margin: 0 auto; position: relative; }
+        .sb-hero-img { width: 100%; height: 420px; position: relative; overflow: hidden; }
+        @media (max-width: 600px) {
+          .sb-hero-img { height: 240px; }
+          .sb-author-row { flex-direction: column; align-items: flex-start; gap: 14px; }
+          .sb-meta-right { font-size: 12px; gap: 12px; }
+          .sb-content-wrap { padding-left: 16px !important; padding-right: 16px !important; }
+        }
       `}</style>
 
       {/* Hero Image */}
       {blog.image && (
-        <div style={{ width: '100%', height: '420px', position: 'relative', overflow: 'hidden' }}>
+        <div className="sb-hero-img">
           <img src={blog.image} alt={blog.title} style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: 0.5 }} />
           <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, transparent 30%, var(--bg-page) 100%)' }} />
         </div>
       )}
 
-      <div style={{ maxWidth: 760, margin: '0 auto', padding: blog.image ? '0 24px 80px' : '60px 24px 80px', marginTop: blog.image ? -120 : 0, position: 'relative' }}>
+      <div className="sb-content-wrap" style={{ padding: blog.image ? '0 24px 80px' : '60px 24px 80px', marginTop: blog.image ? -120 : 0 }}>
 
         {/* Back */}
         <Link to="/blogs" style={{ display: 'inline-flex', alignItems: 'center', gap: 8, fontSize: 13, color: 'var(--text-tertiary)', textDecoration: 'none', marginBottom: 32, transition: 'color 0.2s' }}
@@ -108,13 +123,13 @@ export default function SingleBlog() {
         </div>
 
         {/* Title */}
-        <h1 style={{ fontFamily: 'var(--font-display)', fontSize: 'clamp(28px,5vw,48px)', fontWeight: 700, color: 'var(--text-primary)', lineHeight: 1.1, letterSpacing: '-1px', marginBottom: 24 }}>
+        <h1 style={{ fontFamily: 'var(--font-display)', fontSize: 'clamp(26px,6vw,48px)', fontWeight: 700, color: 'var(--text-primary)', lineHeight: 1.15, letterSpacing: '-1px', marginBottom: 24 }}>
           {blog.title}
         </h1>
 
         {/* Author & Meta */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 16, marginBottom: 32, paddingBottom: 32, borderBottom: '1px solid var(--border-soft)' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+        <div className="sb-author-row">
+          <div className="sb-author-left">
             <Link to={`/profile/${blog.author?._id}`} style={{ width: 44, height: 44, borderRadius: '50%', background: 'var(--accent)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 16, color: 'var(--text-on-accent)', flexShrink: 0, textDecoration: 'none' }}>
               {blog.author?.name?.[0] || 'A'}
             </Link>
@@ -128,7 +143,7 @@ export default function SingleBlog() {
               <FollowButton userId={blog.author._id} isFollowing={isFollowing} />
             )}
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 16, fontSize: 13, color: 'var(--text-tertiary)' }}>
+          <div className="sb-meta-right">
             <span style={{ display: 'flex', alignItems: 'center', gap: 5 }}><FiEye size={13} /> {blog.views || 0}</span>
             <span style={{ display: 'flex', alignItems: 'center', gap: 5 }}><FiClock size={13} /> {blog.readTime || 5} min read</span>
             <span style={{ display: 'flex', alignItems: 'center', gap: 5 }}><FiMessageSquare size={13} /> {comments?.length || 0}</span>

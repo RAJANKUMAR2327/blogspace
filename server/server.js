@@ -3,7 +3,7 @@ const cors    = require('cors')
 const helmet  = require('helmet')
 const morgan  = require('morgan')
 const rateLimit = require('express-rate-limit')
-require('dotenv').config()
+require('dotenv').config({ path: require('path').join(__dirname, '../.env') })
 const dns = require('dns')
 dns.setServers(['8.8.8.8', '8.8.4.4'])
 

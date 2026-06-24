@@ -138,26 +138,38 @@ export default function CreateBlog() {
         .preview-content ul,.preview-content ol{color:var(--text-secondary);line-height:1.8;padding-left:1.5rem;margin:0.75rem 0}
         .preview-content code{background:var(--accent-soft);color:var(--accent-strong);padding:2px 6px;border-radius:4px;font-size:0.875rem}
         .preview-content blockquote{border-left:3px solid var(--accent);padding-left:1rem;color:var(--text-tertiary);font-style:italic;margin:1rem 0}
+
+        .cb-page-pad { padding: 40px 48px; }
+        .cb-header-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 36px; flex-wrap: wrap; gap: 16px; }
+        .cb-header-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+
         @media (max-width: 900px) {
           .cb-grid { grid-template-columns: 1fr !important; }
+          .cb-page-pad { padding: 28px 24px; }
+        }
+        @media (max-width: 480px) {
+          .cb-page-pad { padding: 20px 16px; }
+          .cb-header-actions { width: 100%; }
+          .cb-header-actions button { flex: 1; justify-content: center; padding: 11px 12px !important; }
+          .cb-textarea { min-height: 320px !important; }
         }
       `}</style>
 
-      <div style={{ maxWidth: 1200, margin: '0 auto', padding: '40px 48px' }}>
+      <div className="cb-page-pad" style={{ maxWidth: 1200, margin: '0 auto' }}>
 
         {/* Header */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 36, flexWrap: 'wrap', gap: 16 }}>
+        <div className="cb-header-row">
           <div>
             <Link to="/admin" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 13, color: 'var(--text-tertiary)', textDecoration: 'none', marginBottom: 8, transition: 'color 0.2s' }}
               onMouseEnter={e => e.currentTarget.style.color = 'var(--accent)'}
               onMouseLeave={e => e.currentTarget.style.color = 'var(--text-tertiary)'}>
               <FiArrowLeft size={12} /> Back to dashboard
             </Link>
-            <h1 style={{ fontFamily: 'var(--font-display)', fontSize: 28, fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '-0.5px' }}>
+            <h1 style={{ fontFamily: 'var(--font-display)', fontSize: 'clamp(22px,4vw,28px)', fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '-0.5px' }}>
               Write a Story
             </h1>
           </div>
-          <div style={{ display: 'flex', gap: 10 }}>
+          <div className="cb-header-actions">
             <button onClick={() => setPreview(!preview)} className="btn-draft">
               <FiEye size={14} /> {preview ? 'Edit' : 'Preview'}
             </button>
@@ -187,7 +199,7 @@ export default function CreateBlog() {
             />
 
             {/* Word count bar */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: 16, padding: '8px 4px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 16, padding: '8px 4px', flexWrap: 'wrap' }}>
               <span style={{ fontSize: 12, color: 'var(--text-tertiary)' }}>{wordCount} words</span>
               <span style={{ fontSize: 12, color: 'var(--text-tertiary)' }}>~{readTime} min read</span>
               <span style={{ fontSize: 12, color: 'var(--text-tertiary)' }}>{formData.content.length} characters</span>

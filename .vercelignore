@@ -1,8 +1,5 @@
-server.js
-controllers/
-models/
-routes/
-middleware/
-config/
-utils/
+server/
+client/node_modules/
+client/dist/
+node_modules/
 *.env

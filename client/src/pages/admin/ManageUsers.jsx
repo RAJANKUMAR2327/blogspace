@@ -57,9 +57,20 @@ export default function ManageUsers() {
         .row-hover { transition:background 0.2s; }
         .row-hover:hover { background: var(--bg-surface-2); }
         @keyframes pulse { 0%,100%{opacity:0.5} 50%{opacity:1} }
+
+        .mu-page-pad { padding: 48px; }
+        .mu-stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 28px; }
+        @media (max-width: 900px) {
+          .mu-page-pad { padding: 32px 24px; }
+          .mu-stats-grid { grid-template-columns: repeat(2, 1fr) !important; }
+          .mu-search { width: 100% !important; }
+        }
+        @media (max-width: 480px) {
+          .mu-page-pad { padding: 24px 16px; }
+        }
       `}</style>
 
-      <div style={{ padding: '48px' }}>
+      <div className="mu-page-pad">
         {/* Header */}
         <div style={{ marginBottom: 32 }}>
           <Link to="/admin" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 13, color: 'var(--text-tertiary)', textDecoration: 'none', marginBottom: 8, transition: 'color 0.2s' }}
@@ -67,7 +78,7 @@ export default function ManageUsers() {
             onMouseLeave={e => e.currentTarget.style.color = 'var(--text-tertiary)'}>
             ← Back to dashboard
           </Link>
-          <h1 style={{ fontFamily: 'var(--font-display)', fontSize: 32, fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '-0.5px' }}>
+          <h1 style={{ fontFamily: 'var(--font-display)', fontSize: 'clamp(24px,5vw,32px)', fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '-0.5px' }}>
             Manage Users
           </h1>
           <p style={{ fontSize: 14, color: 'var(--text-tertiary)', marginTop: 4 }}>
@@ -76,7 +87,7 @@ export default function ManageUsers() {
         </div>
 
         {/* Stats */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 12, marginBottom: 28 }}>
+        <div className="mu-stats-grid">
           {[
             { label: 'Total Users', value: data?.length || 0, colorVar: '--accent' },
             { label: 'Admins', value: data?.filter(u => u.role === 'admin').length || 0, colorVar: '--cat-programming' },
@@ -92,12 +103,12 @@ export default function ManageUsers() {
 
         {/* Search & Filter */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 20, flexWrap: 'wrap' }}>
-          <div style={{ position: 'relative' }}>
+          <div style={{ position: 'relative', width: '100%', maxWidth: 260 }}>
             <FiSearch style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-tertiary)', fontSize: 14 }} />
             <input className="mu-search" type="text" value={search}
               onChange={(e) => setSearch(e.target.value)} placeholder="Search by name or email..." />
           </div>
-          <div style={{ display: 'flex', gap: 6 }}>
+          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
             {['all', 'admin', 'active', 'banned'].map(f => (
               <button key={f} onClick={() => setFilter(f)} className={`filter-pill ${filter === f ? 'active' : ''}`}>
                 {f.charAt(0).toUpperCase() + f.slice(1)}
@@ -120,7 +131,7 @@ export default function ManageUsers() {
                 <thead>
                   <tr style={{ borderBottom: '1px solid var(--border-soft)' }}>
                     {['User', 'Role', 'Joined', 'Status', 'Actions'].map(h => (
-                      <th key={h} style={{ padding: '12px 20px', textAlign: 'left', fontSize: 11, fontWeight: 500, color: 'var(--text-tertiary)', letterSpacing: '1px', textTransform: 'uppercase' }}>{h}</th>
+                      <th key={h} style={{ padding: '12px 20px', textAlign: 'left', fontSize: 11, fontWeight: 500, color: 'var(--text-tertiary)', letterSpacing: '1px', textTransform: 'uppercase', whiteSpace: 'nowrap' }}>{h}</th>
                     ))}
                   </tr>
                 </thead>
@@ -137,25 +148,25 @@ export default function ManageUsers() {
                             }
                           </div>
                           <div>
-                            <p style={{ fontSize: 14, fontWeight: 500, color: 'var(--text-primary)', marginBottom: 2 }}>{user.name}</p>
-                            <p style={{ fontSize: 12, color: 'var(--text-tertiary)' }}>{user.email}</p>
+                            <p style={{ fontSize: 14, fontWeight: 500, color: 'var(--text-primary)', marginBottom: 2, whiteSpace: 'nowrap' }}>{user.name}</p>
+                            <p style={{ fontSize: 12, color: 'var(--text-tertiary)', whiteSpace: 'nowrap' }}>{user.email}</p>
                           </div>
                         </div>
                       </td>
                       {/* Role */}
                       <td style={{ padding: '14px 20px' }}>
-                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 11, padding: '4px 10px', borderRadius: 6, background: user.role === 'admin' ? 'var(--accent-soft)' : 'var(--bg-surface-2)', color: user.role === 'admin' ? 'var(--accent-strong)' : 'var(--text-tertiary)', border: `1px solid ${user.role === 'admin' ? 'color-mix(in srgb, var(--accent) 25%, transparent)' : 'var(--border-soft)'}`, letterSpacing: '0.5px', textTransform: 'uppercase' }}>
+                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 11, padding: '4px 10px', borderRadius: 6, background: user.role === 'admin' ? 'var(--accent-soft)' : 'var(--bg-surface-2)', color: user.role === 'admin' ? 'var(--accent-strong)' : 'var(--text-tertiary)', border: `1px solid ${user.role === 'admin' ? 'color-mix(in srgb, var(--accent) 25%, transparent)' : 'var(--border-soft)'}`, letterSpacing: '0.5px', textTransform: 'uppercase', whiteSpace: 'nowrap' }}>
                           {user.role === 'admin' ? <FiShield size={10} /> : <FiUser size={10} />}
                           {user.role}
                         </span>
                       </td>
                       {/* Joined */}
-                      <td style={{ padding: '14px 20px', fontSize: 13, color: 'var(--text-tertiary)' }}>
+                      <td style={{ padding: '14px 20px', fontSize: 13, color: 'var(--text-tertiary)', whiteSpace: 'nowrap' }}>
                         {formatDistanceToNow(new Date(user.createdAt), { addSuffix: true })}
                       </td>
                       {/* Status */}
                       <td style={{ padding: '14px 20px' }}>
-                        <span style={{ fontSize: 11, padding: '4px 10px', borderRadius: 6, background: user.isBanned ? 'color-mix(in srgb, var(--danger) 12%, transparent)' : 'color-mix(in srgb, var(--success) 12%, transparent)', color: user.isBanned ? 'var(--danger)' : 'var(--success)', border: `1px solid ${user.isBanned ? 'color-mix(in srgb, var(--danger) 25%, transparent)' : 'color-mix(in srgb, var(--success) 25%, transparent)'}`, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                        <span style={{ fontSize: 11, padding: '4px 10px', borderRadius: 6, background: user.isBanned ? 'color-mix(in srgb, var(--danger) 12%, transparent)' : 'color-mix(in srgb, var(--success) 12%, transparent)', color: user.isBanned ? 'var(--danger)' : 'var(--success)', border: `1px solid ${user.isBanned ? 'color-mix(in srgb, var(--danger) 25%, transparent)' : 'color-mix(in srgb, var(--success) 25%, transparent)'}`, textTransform: 'uppercase', letterSpacing: '0.5px', whiteSpace: 'nowrap' }}>
                           {user.isBanned ? 'Banned' : 'Active'}
                         </span>
                       </td>

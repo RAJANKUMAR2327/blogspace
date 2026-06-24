@@ -55,9 +55,22 @@ export default function Dashboard() {
         .dash-action-btn.edit:hover { background: var(--accent-soft); }
         .dash-action-btn.del { color: var(--danger); opacity: 0.6; }
         .dash-action-btn.del:hover { opacity: 1; background: color-mix(in srgb, var(--danger) 12%, transparent); }
+
+        .dash-page-pad { padding: 48px; }
+        .dash-stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 40px; }
+        .dash-links-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 40px; }
+        @media (max-width: 900px) {
+          .dash-page-pad { padding: 32px 24px; }
+          .dash-stats-grid { grid-template-columns: repeat(2, 1fr) !important; }
+          .dash-links-grid { grid-template-columns: 1fr !important; }
+        }
+        @media (max-width: 480px) {
+          .dash-page-pad { padding: 24px 16px; }
+          .dash-stats-grid { grid-template-columns: 1fr !important; }
+        }
       `}</style>
 
-      <div style={{ padding: '48px' }}>
+      <div className="dash-page-pad">
         {/* Header */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 40, flexWrap: 'wrap', gap: 16 }}>
           <div>
@@ -65,7 +78,7 @@ export default function Dashboard() {
               <span style={{ width: 16, height: 1, background: 'var(--accent)', display: 'inline-block' }} />
               Admin Panel
             </div>
-            <h1 style={{ fontFamily: 'var(--font-display)', fontSize: 36, fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '-0.5px' }}>
+            <h1 style={{ fontFamily: 'var(--font-display)', fontSize: 'clamp(26px,5vw,36px)', fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '-0.5px' }}>
               Dashboard
             </h1>
           </div>
@@ -77,7 +90,7 @@ export default function Dashboard() {
         </div>
 
         {/* Stats Grid */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 16, marginBottom: 40 }}>
+        <div className="dash-stats-grid">
           {STATS.map(({ label, value, icon: Icon, colorVar }) => (
             <div key={label} style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-soft)', borderRadius: 'var(--radius-lg)', padding: 24, transition: 'border-color 0.2s', boxShadow: 'var(--shadow-card)' }}>
               <div style={{ display: 'inline-flex', padding: 12, borderRadius: 12, background: `color-mix(in srgb, var(${colorVar}) 15%, transparent)`, marginBottom: 16 }}>
@@ -92,7 +105,7 @@ export default function Dashboard() {
         </div>
 
         {/* Quick Links */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 12, marginBottom: 40 }}>
+        <div className="dash-links-grid">
           {[
             { to: '/admin/users',    label: 'Manage Users',    icon: FiUsers,      colorVar: '--cat-programming' },
             { to: '/admin/comments', label: 'Manage Comments', icon: FiTrendingUp, colorVar: '--success' },
@@ -118,7 +131,7 @@ export default function Dashboard() {
               <thead>
                 <tr style={{ borderBottom: '1px solid var(--border-soft)' }}>
                   {['Title', 'Category', 'Status', 'Views', 'Likes', 'Actions'].map(h => (
-                    <th key={h} style={{ padding: '12px 20px', textAlign: 'left', fontSize: 11, fontWeight: 500, color: 'var(--text-tertiary)', letterSpacing: '1px', textTransform: 'uppercase' }}>{h}</th>
+                    <th key={h} style={{ padding: '12px 20px', textAlign: 'left', fontSize: 11, fontWeight: 500, color: 'var(--text-tertiary)', letterSpacing: '1px', textTransform: 'uppercase', whiteSpace: 'nowrap' }}>{h}</th>
                   ))}
                 </tr>
               </thead>
@@ -130,12 +143,12 @@ export default function Dashboard() {
                       <p style={{ fontSize: 11, color: 'var(--text-tertiary)', marginTop: 2 }}>{blog.author?.name}</p>
                     </td>
                     <td style={{ padding: '14px 20px' }}>
-                      <span style={{ fontSize: 11, letterSpacing: '1px', textTransform: 'uppercase', padding: '4px 10px', borderRadius: 6, background: 'var(--accent-soft)', color: 'var(--accent-strong)', border: '1px solid color-mix(in srgb, var(--accent) 25%, transparent)' }}>
+                      <span style={{ fontSize: 11, letterSpacing: '1px', textTransform: 'uppercase', padding: '4px 10px', borderRadius: 6, background: 'var(--accent-soft)', color: 'var(--accent-strong)', border: '1px solid color-mix(in srgb, var(--accent) 25%, transparent)', whiteSpace: 'nowrap' }}>
                         {blog.category}
                       </span>
                     </td>
                     <td style={{ padding: '14px 20px' }}>
-                      <span style={{ fontSize: 11, letterSpacing: '1px', textTransform: 'uppercase', padding: '4px 10px', borderRadius: 6, background: blog.status === 'published' ? 'color-mix(in srgb, var(--success) 15%, transparent)' : 'color-mix(in srgb, var(--cat-travel) 15%, transparent)', color: blog.status === 'published' ? 'var(--success)' : 'var(--cat-travel)', border: `1px solid ${blog.status === 'published' ? 'color-mix(in srgb, var(--success) 30%, transparent)' : 'color-mix(in srgb, var(--cat-travel) 30%, transparent)'}` }}>
+                      <span style={{ fontSize: 11, letterSpacing: '1px', textTransform: 'uppercase', padding: '4px 10px', borderRadius: 6, background: blog.status === 'published' ? 'color-mix(in srgb, var(--success) 15%, transparent)' : 'color-mix(in srgb, var(--cat-travel) 15%, transparent)', color: blog.status === 'published' ? 'var(--success)' : 'var(--cat-travel)', border: `1px solid ${blog.status === 'published' ? 'color-mix(in srgb, var(--success) 30%, transparent)' : 'color-mix(in srgb, var(--cat-travel) 30%, transparent)'}`, whiteSpace: 'nowrap' }}>
                         {blog.status}
                       </span>
                     </td>

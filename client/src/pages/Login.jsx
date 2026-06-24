@@ -63,6 +63,10 @@ export default function Login() {
           .login-left-panel { display: none !important; }
           .login-right-panel { max-width: 100% !important; border-left: none !important; }
         }
+        @media (max-width: 480px) {
+          .login-right-panel { padding: 40px 24px !important; }
+        }  
+
       `}</style>
 
       {/* Left Panel — Decorative */}

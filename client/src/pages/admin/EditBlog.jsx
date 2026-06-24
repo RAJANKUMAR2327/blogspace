@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { useQuery, useMutation } from '@tanstack/react-query'
 import { blogAPI, uploadAPI } from '../../services/api'
@@ -7,14 +7,15 @@ import { FiSave, FiSend, FiArrowLeft, FiImage, FiX, FiUpload, FiEye } from 'reac
 
 const CATEGORIES = ['Technology','Programming','Design','Business','Science','Health','Travel','Food','Lifestyle','Other']
 
+const emptyForm = { title: '', content: '', category: '', tags: '', image: '', status: 'draft' }
+
 export default function EditBlog() {
   const { id } = useParams()
   const navigate = useNavigate()
   const [uploading, setUploading] = useState(false)
   const [preview, setPreview] = useState(false)
-  const [formData, setFormData] = useState({
-    title: '', content: '', category: '', tags: '', image: '', status: 'draft'
-  })
+  const [formData, setFormData] = useState(emptyForm)
+  const [initialized, setInitialized] = useState(false)
 
   const { data: blog, isLoading } = useQuery({
     queryKey: ['editBlog', id],
@@ -24,18 +25,20 @@ export default function EditBlog() {
     }
   })
 
-  useEffect(() => {
-    if (blog) {
-      setFormData({
-        title: blog.title || '',
-        content: blog.content || '',
-        category: blog.category || '',
-        tags: blog.tags?.join(', ') || '',
-        image: blog.image || '',
-        status: blog.status || 'draft'
-      })
-    }
-  }, [blog])
+  // Populate the form once, the first time blog data becomes available.
+  // Using a render-time check instead of useEffect avoids an extra
+  // cascading render after the data loads.
+  if (blog && !initialized) {
+    setFormData({
+      title: blog.title || '',
+      content: blog.content || '',
+      category: blog.category || '',
+      tags: blog.tags?.join(', ') || '',
+      image: blog.image || '',
+      status: blog.status || 'draft'
+    })
+    setInitialized(true)
+  }
 
   const updateMutation = useMutation({
     mutationFn: (data) => blogAPI.update(id, data),
@@ -103,25 +106,37 @@ export default function EditBlog() {
         .status-pill.active { background: var(--accent-soft);border-color: var(--accent);color: var(--accent-strong); }
         .sidebar-card { background:var(--bg-surface);border:1px solid var(--border-soft);border-radius:14px;padding:20px; }
         .sidebar-title { font-family:var(--font-display);font-size:13px;font-weight:700;color:var(--text-tertiary);text-transform:uppercase;letter-spacing:1px;margin-bottom:14px; }
+
+        .eb-page-pad { padding: 40px 48px; }
+        .eb-header-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 36px; flex-wrap: wrap; gap: 16px; }
+        .eb-header-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+
         @media (max-width: 900px) {
           .eb-grid { grid-template-columns: 1fr !important; }
+          .eb-page-pad { padding: 28px 24px; }
+        }
+        @media (max-width: 480px) {
+          .eb-page-pad { padding: 20px 16px; }
+          .eb-header-actions { width: 100%; }
+          .eb-header-actions button { flex: 1; justify-content: center; padding: 11px 12px !important; }
+          .eb-textarea { min-height: 320px !important; }
         }
       `}</style>
 
-      <div style={{ maxWidth: 1200, margin: '0 auto', padding: '40px 48px' }}>
+      <div className="eb-page-pad" style={{ maxWidth: 1200, margin: '0 auto' }}>
         {/* Header */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 36, flexWrap: 'wrap', gap: 16 }}>
+        <div className="eb-header-row">
           <div>
             <Link to="/admin" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 13, color: 'var(--text-tertiary)', textDecoration: 'none', marginBottom: 8, transition: 'color 0.2s' }}
               onMouseEnter={e => e.currentTarget.style.color = 'var(--accent)'}
               onMouseLeave={e => e.currentTarget.style.color = 'var(--text-tertiary)'}>
               <FiArrowLeft size={12} /> Back to dashboard
             </Link>
-            <h1 style={{ fontFamily: 'var(--font-display)', fontSize: 28, fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '-0.5px' }}>
+            <h1 style={{ fontFamily: 'var(--font-display)', fontSize: 'clamp(22px,4vw,28px)', fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '-0.5px' }}>
               Edit Story
             </h1>
           </div>
-          <div style={{ display: 'flex', gap: 10 }}>
+          <div className="eb-header-actions">
             <button onClick={() => setPreview(!preview)} className="btn-draft">
               <FiEye size={14} /> {preview ? 'Edit' : 'Preview'}
             </button>
@@ -142,7 +157,7 @@ export default function EditBlog() {
               placeholder="Story title..."
               style={{ fontSize: 22, fontFamily: 'var(--font-display)', fontWeight: 700, padding: '16px 20px', borderRadius: 12 }}
             />
-            <div style={{ display: 'flex', gap: 16, padding: '4px' }}>
+            <div style={{ display: 'flex', gap: 16, padding: '4px', flexWrap: 'wrap' }}>
               <span style={{ fontSize: 12, color: 'var(--text-tertiary)' }}>{wordCount} words</span>
               <span style={{ fontSize: 12, color: 'var(--text-tertiary)' }}>~{readTime} min read</span>
             </div>

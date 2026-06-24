@@ -87,10 +87,29 @@ export default function BlogList() {
           background-size:200% 100%;animation:shimmer 1.5s infinite;border-radius:var(--radius-lg);
         }
         @keyframes shimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
+
+        .bl-header-pad { padding: 60px 48px 0; }
+        .bl-cat-pad { padding: 0 48px 32px; }
+        .bl-results-pad { padding: 0 48px 80px; }
+        .bl-grid {
+          display: grid;
+          grid-template-columns: repeat(3, 1fr);
+          gap: 20px;
+        }
+        .bl-grid.list-view { grid-template-columns: 1fr; }
+        .bl-search-form { display: flex; gap: 10px; max-width: 560px; margin-bottom: 32px; }
+        @media (max-width: 900px) {
+          .bl-header-pad, .bl-cat-pad, .bl-results-pad { padding-left: 24px !important; padding-right: 24px !important; }
+          .bl-grid { grid-template-columns: repeat(2, 1fr) !important; }
+        }
+        @media (max-width: 600px) {
+          .bl-grid { grid-template-columns: 1fr !important; }
+          .bl-search-form { flex-direction: column; }
+        }
       `}</style>
 
       {/* Header */}
-      <div style={{ padding: '60px 48px 0', position: 'relative', overflow: 'hidden' }}>
+      <div className="bl-header-pad" style={{ position: 'relative', overflow: 'hidden' }}>
         <div style={{ position: 'absolute', inset: 0, backgroundImage: 'radial-gradient(color-mix(in srgb, var(--text-primary) 4%, transparent) 1px, transparent 1px)', backgroundSize: '28px 28px' }} />
         <div style={{ position: 'absolute', top: 0, left: '50%', transform: 'translateX(-50%)', width: '600px', height: '200px', background: 'radial-gradient(ellipse, color-mix(in srgb, var(--accent) 14%, transparent), transparent 70%)', pointerEvents: 'none' }} />
         <div style={{ position: 'relative' }}>
@@ -106,7 +125,7 @@ export default function BlogList() {
           </p>
 
           {/* Search */}
-          <form onSubmit={handleSearch} style={{ display: 'flex', gap: 10, maxWidth: 560, marginBottom: 32 }}>
+          <form onSubmit={handleSearch} className="bl-search-form">
             <div style={{ position: 'relative', flex: 1 }}>
               <FiSearch style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-tertiary)', fontSize: 16 }} />
               <input className="bl-search-input" type="text" value={search}
@@ -118,7 +137,7 @@ export default function BlogList() {
       </div>
 
       {/* Category Filter */}
-      <div style={{ padding: '0 48px 32px', overflowX: 'auto' }}>
+      <div className="bl-cat-pad" style={{ overflowX: 'auto' }}>
         <div style={{ display: 'flex', gap: 8, width: 'max-content', paddingBottom: 4 }}>
           {CATEGORIES.map(cat => (
             <button key={cat} onClick={() => handleCategory(cat)}
@@ -135,7 +154,7 @@ export default function BlogList() {
       </div>
 
       {/* Results */}
-      <div style={{ padding: '0 48px 80px' }}>
+      <div className="bl-results-pad">
         {/* Toolbar */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}>
           <p style={{ fontSize: 14, color: 'var(--text-tertiary)' }}>
@@ -153,7 +172,7 @@ export default function BlogList() {
 
         {/* Grid */}
         {isLoading ? (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 20 }}>
+          <div className="bl-grid">
             {[...Array(9)].map((_, i) => <div key={i} className="skeleton" style={{ height: 360 }} />)}
           </div>
         ) : data?.blogs?.length === 0 ? (
@@ -167,14 +186,14 @@ export default function BlogList() {
             </button>
           </div>
         ) : (
-          <div style={{ display: 'grid', gridTemplateColumns: view === 'grid' ? 'repeat(3,1fr)' : '1fr', gap: 20 }}>
+          <div className={`bl-grid ${view === 'list' ? 'list-view' : ''}`}>
             {data.blogs.map(blog => <BlogCard key={blog._id} blog={blog} />)}
           </div>
         )}
 
         {/* Pagination */}
         {data?.pagination?.pages > 1 && (
-          <div style={{ display: 'flex', justifyContent: 'center', gap: 8, marginTop: 48 }}>
+          <div style={{ display: 'flex', justifyContent: 'center', gap: 8, marginTop: 48, flexWrap: 'wrap' }}>
             <button className="page-btn" onClick={() => handlePage(page - 1)} disabled={page === 1}>← Prev</button>
             {[...Array(data.pagination.pages)].map((_, i) => (
               <button key={i} className={`page-btn ${page === i + 1 ? 'active' : ''}`} onClick={() => handlePage(i + 1)}>
