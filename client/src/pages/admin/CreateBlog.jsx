@@ -2,10 +2,10 @@ import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { blogAPI, uploadAPI } from '../../services/api'
 import toast from 'react-hot-toast'
+import SEO from '../common/SEO'
 import { FiSave, FiSend, FiImage, FiX, FiUpload, FiArrowLeft, FiEye } from 'react-icons/fi'
 
 const CATEGORIES = ['Technology','Programming','Design','Business','Science','Health','Travel','Food','Lifestyle','Other']
-
 
 export default function CreateBlog() {
   const navigate = useNavigate()
@@ -17,6 +17,7 @@ export default function CreateBlog() {
   })
 
   const handleChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value })
+  
   const handleFileUpload = async (e) => {
     const file = e.target.files[0]
     if (!file) return
@@ -57,6 +58,8 @@ export default function CreateBlog() {
 
   return (
     <div style={{ background: 'var(--bg-page)', minHeight: '100vh', paddingTop: 64, fontFamily: 'var(--font-ui)' }}>
+      <SEO title="Write a New Story" description="Draft or publish a new article on the platform." />
+      
       <style>{`
         .cb-input {
           width:100%; padding:12px 16px;
@@ -156,7 +159,6 @@ export default function CreateBlog() {
       `}</style>
 
       <div className="cb-page-pad" style={{ maxWidth: 1200, margin: '0 auto' }}>
-
         {/* Header */}
         <div className="cb-header-row">
           <div>
@@ -183,10 +185,8 @@ export default function CreateBlog() {
         </div>
 
         <div className="cb-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 280px', gap: 24 }}>
-
           {/* Main Editor */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-
             {/* Title */}
             <input
               className="cb-input"
@@ -227,7 +227,6 @@ export default function CreateBlog() {
 
           {/* Sidebar */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-
             {/* Status */}
             <div className="sidebar-card">
               <div className="sidebar-title">Publish Status</div>
@@ -240,27 +239,26 @@ export default function CreateBlog() {
                 ))}
               </div>
             </div>
+
             {/* Featured Toggle */}
             <div className="sidebar-card">
               <div className="sidebar-title">Featured Article</div>
               <button 
-               onClick={() => setFormData(p => ({ ...p, featured: !p.featured }))}
-               style={{
-                width: '100%', padding: '10px 16px', borderRadius: 10,
-                fontSize: 13, fontWeight: 500, cursor: 'pointer',
-                transition: 'all 0.2s', fontFamily: "'Inter',sans-serif",
-                border: formData.featured ? '1px solid rgba(251,191,36,0.4)' : '1px solid rgba(255,255,255,0.08)',
-                background: formData.featured ? 'rgba(251,191,36,0.15)' : 'rgba(255,255,255,0.04)',
-                color: formData.featured ? '#fbbf24' : 'rgba(255,255,255,0.4)',
+                onClick={() => setFormData(p => ({ ...p, featured: !p.featured }))}
+                style={{
+                  width: '100%', padding: '10px 16px', borderRadius: 10,
+                  fontSize: 13, fontWeight: 500, cursor: 'pointer',
+                  transition: 'all 0.2s', fontFamily: "'Inter',sans-serif",
+                  border: formData.featured ? '1px solid rgba(251,191,36,0.4)' : '1px solid rgba(255,255,255,0.08)',
+                  background: formData.featured ? 'rgba(251,191,36,0.15)' : 'rgba(255,255,255,0.04)',
+                  color: formData.featured ? '#fbbf24' : 'rgba(255,255,255,0.4)',
                 }}>
                 {formData.featured ? '⭐ Featured' : '☆ Mark as Featured'}
               </button>
               <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.2)', marginTop: 8 }}>
                 Featured articles appear in the homepage hero section
-              
-                </p>  
+              </p>  
             </div>
-            
 
             {/* Category */}
             <div className="sidebar-card">
@@ -318,7 +316,7 @@ export default function CreateBlog() {
               {formData.image && (
                 <div style={{ position: 'relative', marginTop: 10 }}>
                   <img src={formData.image} alt="Preview" style={{ width: '100%', height: 120, objectFit: 'cover', borderRadius: 8, display: 'block' }}
-                    onError={(e) => e.target.style.display = 'none'} />
+                    onError={(e) => { e.target.style.display = 'none' }} />
                   <button onClick={() => setFormData(p => ({ ...p, image: '' }))}
                     style={{ position: 'absolute', top: 6, right: 6, background: 'color-mix(in srgb, var(--bg-page) 80%, transparent)', border: 'none', borderRadius: '50%', width: 24, height: 24, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'var(--text-primary)', fontSize: 12 }}>
                     <FiX size={12} />
@@ -330,9 +328,9 @@ export default function CreateBlog() {
             {/* Markdown Tips */}
             <div style={{ background: 'var(--accent-soft)', border: '1px solid color-mix(in srgb, var(--accent) 20%, transparent)', borderRadius: 14, padding: 16 }}>
               <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--accent-strong)', marginBottom: 10, letterSpacing: '0.5px' }}>✦ MARKDOWN TIPS</div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
-                {[['# H1', '## H2', '### H3'], ['**bold**', '*italic*'], ['- list', '> quote', '`code`']].flat().map(tip => (
-                  <code key={tip} style={{ fontSize: 11, background: 'color-mix(in srgb, var(--accent) 12%, transparent)', color: 'var(--accent-strong)', padding: '2px 6px', borderRadius: 4, display: 'inline-block', width: 'fit-content' }}>{tip}</code>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                {['# H1', '## H2', '### H3', '**bold**', '*italic*', '- list', '> quote', '`code`'].map(tip => (
+                  <code key={tip} style={{ fontSize: 11, background: 'color-mix(in srgb, var(--accent) 12%, transparent)', color: 'var(--accent-strong)', padding: '2px 6px', borderRadius: 4 }}>{tip}</code>
                 ))}
               </div>
             </div>

@@ -1,5 +1,7 @@
 {
   "rewrites": [
-    { "source": "/(.*)", "destination": "/" }
+    { "source": "/sitemap.xml", "destination": "https://blogspace-s8i2.onrender.com/sitemap.xml" },
+    { "source": "/robots.txt",  "destination": "https://blogspace-s8i2.onrender.com/robots.txt" },
+    { "source": "/(.*)",        "destination": "/" }
   ]
 }

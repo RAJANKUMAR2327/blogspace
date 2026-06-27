@@ -8,6 +8,7 @@ import { AuthProvider } from './context/AuthContext'
 import './index.css'
 import App from './App.jsx'
 import './styles/print.css'
+import { HelmetProvider } from 'react-helmet-async'
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -26,7 +27,8 @@ if ('serviceWorker' in navigator) {
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
-    <BrowserRouter>
+    <HelmetProvider>
+      <BrowserRouter>
       <QueryClientProvider client={queryClient}>
         <ThemeProvider>
           <AuthProvider>
@@ -49,5 +51,6 @@ createRoot(document.getElementById('root')).render(
         </ThemeProvider>
       </QueryClientProvider>
     </BrowserRouter>
+    </HelmetProvider>
   </StrictMode>
 )

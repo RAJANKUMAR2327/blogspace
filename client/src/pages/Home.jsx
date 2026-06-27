@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { blogAPI } from '../services/api'
 import RecommendedArticles from '../components/blog/RecommendedArticles'
+import SEO from '../components/common/SEO'
 
 const CATEGORIES = [
   { name: 'Technology',  emoji: '💻', var: '--cat-technology' },
@@ -36,6 +37,11 @@ export default function Home() {
 
   return (
     <div style={{ fontFamily: 'var(--font-ui)', background: 'var(--bg-page)', minHeight: '100vh', paddingTop: '64px' }}>
+      <SEO
+        title="Home"
+        description="Discover stories, thinking, and expertise from writers on any topic that matters to you."
+      />
+      
       <style>{`
         @keyframes marquee { from{transform:translateX(0)} to{transform:translateX(-50%)} }
         @keyframes fadeUp { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
@@ -504,9 +510,8 @@ export default function Home() {
           </div>
         </div>
       </section>
-      <RecommendedArticles />
-
       
+      <RecommendedArticles />
     </div>
   )
 }

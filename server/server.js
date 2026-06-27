@@ -18,6 +18,7 @@ const newsletterRoutes = require('./routes/newsletterRoutes')
 const uploadRoutes     = require('./routes/uploadRoutes')
 const notificationRoutes = require('./routes/notificationRoutes')
 const { logActivity } = require('./middleware/analytics')
+const { generateSitemap, generateRobotsTxt } = require('./controllers/sitemapController')
 const app = express()
 
 // Connect Database
@@ -33,6 +34,8 @@ app.use(express.json({ limit: '10mb' }))
 app.use(express.urlencoded({ extended: true }))
 app.use(logActivity)
 app.use('/api/notifications', notificationRoutes)
+app.get('/sitemap.xml', generateSitemap)
+app.get('/robots.txt', generateRobotsTxt)
 
 // Rate Limiting
 app.use('/api', rateLimit({

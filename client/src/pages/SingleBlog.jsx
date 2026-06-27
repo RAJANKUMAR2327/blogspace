@@ -4,6 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import toast from 'react-hot-toast'
 import { formatDistanceToNow } from 'date-fns'
 import { FiHeart, FiEye, FiClock, FiShare2, FiArrowLeft, FiMessageSquare } from 'react-icons/fi'
+import SEO from '../components/common/SEO'
 
 // Services & Context
 import { blogAPI, commentAPI, userAPI } from '../services/api'
@@ -107,6 +108,23 @@ export default function SingleBlog() {
 
   return (
     <div style={{ background: 'var(--bg-page)', minHeight: '100vh', paddingTop: 64, fontFamily: 'var(--font-ui)' }}>
+      {/* Dynamic SEO Injector */}
+      {blog && (
+        <SEO
+          title={blog.title}
+          description={blog.excerpt || blog.content?.replace(/<[^>]*>/g, '').substring(0, 160)}
+          image={blog.image}
+          type="article"
+          article={{
+            author: blog.author?.name,
+            publishedTime: blog.createdAt,
+            modifiedTime: blog.updatedAt,
+            category: blog.category,
+            tags: blog.tags
+          }}
+        />
+      )}
+
       <ReadingProgressBar />
 
       <style>{`
@@ -223,8 +241,8 @@ export default function SingleBlog() {
                 .join('\n')    
                 .replace(/\n/g, '<br/>')  
               return (    
-                <div      
-                  className="prose"      
+                <div    
+                  className="prose"    
                   style={{ marginBottom: 48, lineHeight: 1.85, fontSize: fontSize, color: 'rgba(255,255,255,0.7)', fontWeight: 300, transition: 'font-size 0.2s' }}      
                   dangerouslySetInnerHTML={{ __html: processedContent }}    
                 />  

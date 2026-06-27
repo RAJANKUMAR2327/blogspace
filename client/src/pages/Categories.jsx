@@ -1,18 +1,19 @@
 import { Link } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { blogAPI } from '../services/api'
+import SEO from '../components/common/SEO'
 
 const CATEGORIES = [
-  { name:'Technology',  emoji:'💻', color:'#a78bfa', desc:'AI, gadgets, software & the future of tech' },
-  { name:'Programming', emoji:'🧑‍💻', color:'#60a5fa', desc:'Code, tutorials, tools & developer insights' },
-  { name:'Design',      emoji:'🎨', color:'#34d399', desc:'UI/UX, branding, graphics & visual arts' },
-  { name:'Business',    emoji:'💼', color:'#f472b6', desc:'Startups, strategy, finance & entrepreneurship' },
-  { name:'Science',     emoji:'🔬', color:'#fb923c', desc:'Research, discoveries & scientific breakthroughs' },
-  { name:'Health',      emoji:'🏥', color:'#4ade80', desc:'Wellness, fitness, nutrition & mental health' },
-  { name:'Travel',      emoji:'✈️', color:'#facc15', desc:'Adventures, destinations, tips & culture' },
-  { name:'Food',        emoji:'🍳', color:'#f87171', desc:'Recipes, restaurants, cuisines & food culture' },
-  { name:'Lifestyle',   emoji:'🌟', color:'#c084fc', desc:'Fashion, home, habits & personal growth' },
-  { name:'Other',       emoji:'📌', color:'#94a3b8', desc:'Everything else worth reading and sharing' },
+  { name: 'Technology',  emoji: '💻', color: '#a78bfa', desc: 'AI, gadgets, software & the future of tech' },
+  { name: 'Programming', emoji: '🧑‍💻', color: '#60a5fa', desc: 'Code, tutorials, tools & developer insights' },
+  { name: 'Design',      emoji: '🎨', color: '#34d399', desc: 'UI/UX, branding, graphics & visual arts' },
+  { name: 'Business',    emoji: '💼', color: '#f472b6', desc: 'Startups, strategy, finance & entrepreneurship' },
+  { name: 'Science',     emoji: '🔬', color: '#fb923c', desc: 'Research, discoveries & scientific breakthroughs' },
+  { name: 'Health',      emoji: '🏥', color: '#4ade80', desc: 'Wellness, fitness, nutrition & mental health' },
+  { name: 'Travel',      emoji: '✈️', color: '#facc15', desc: 'Adventures, destinations, tips & culture' },
+  { name: 'Food',        emoji: '🍳', color: '#f87171', desc: 'Recipes, restaurants, cuisines & food culture' },
+  { name: 'Lifestyle',   emoji: '🌟', color: '#c084fc', desc: 'Fashion, home, habits & personal growth' },
+  { name: 'Other',       emoji: '📌', color: '#94a3b8', desc: 'Everything else worth reading and sharing' },
 ]
 
 export default function Categories() {
@@ -29,6 +30,8 @@ export default function Categories() {
 
   return (
     <div style={{ background: '#080810', minHeight: '100vh', paddingTop: 64, fontFamily: "'Inter',sans-serif" }}>
+      <SEO title="Browse Topics" description="Explore articles by category on BlogSpace." />
+
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Inter:wght@300;400;500&display=swap');
         @keyframes fadeUp { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:translateY(0)} }
@@ -68,7 +71,7 @@ export default function Categories() {
       <div style={{ padding: '0 48px 80px', display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(280px,1fr))', gap: 16 }}>
         {CATEGORIES.map(({ name, emoji, color, desc }, i) => (
           <Link key={name} to={`/blogs?category=${name}`} className="cat-grid-card"
-            style={{ animationDelay: `${i * 0.05}s`, animation: 'fadeUp 0.5s ease both' }}
+            style={{ animation: 'fadeUp 0.5s ease both', animationDelay: `${i * 0.05}s` }}
             onMouseEnter={e => {
               e.currentTarget.style.borderColor = color + '40'
               e.currentTarget.style.boxShadow = `0 16px 40px ${color}15`

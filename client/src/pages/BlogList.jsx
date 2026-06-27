@@ -3,14 +3,15 @@ import { useQuery } from '@tanstack/react-query'
 import { useSearchParams } from 'react-router-dom'
 import { blogAPI } from '../services/api'
 import BlogCard from '../components/blog/BlogCard'
+import SEO from '../components/common/SEO'
 import { FiSearch, FiGrid, FiList } from 'react-icons/fi'
 
-const CATEGORIES = ['All','Technology','Programming','Design','Business','Science','Health','Travel','Food','Lifestyle','Other']
+const CATEGORIES = ['All', 'Technology', 'Programming', 'Design', 'Business', 'Science', 'Health', 'Travel', 'Food', 'Lifestyle', 'Other']
 
 const CAT_VAR = {
-  Technology:'--cat-technology', Programming:'--cat-programming', Design:'--cat-design',
-  Business:'--cat-business', Science:'--cat-science', Health:'--cat-health',
-  Travel:'--cat-travel', Food:'--cat-food', Lifestyle:'--cat-lifestyle', Other:'--cat-other'
+  Technology: '--cat-technology', Programming: '--cat-programming', Design: '--cat-design',
+  Business: '--cat-business', Science: '--cat-science', Health: '--cat-health',
+  Travel: '--cat-travel', Food: '--cat-food', Lifestyle: '--cat-lifestyle', Other: '--cat-other'
 }
 
 export default function BlogList() {
@@ -44,6 +45,8 @@ export default function BlogList() {
 
   return (
     <div style={{ background: 'var(--bg-page)', minHeight: '100vh', paddingTop: 64, fontFamily: 'var(--font-ui)' }}>
+      <SEO title="All Stories" description="Browse all published articles on BlogSpace." />
+      
       <style>{`
         .bl-search-input {
           flex:1; padding:13px 16px 13px 44px;
@@ -187,7 +190,7 @@ export default function BlogList() {
           </div>
         ) : (
           <div className={`bl-grid ${view === 'list' ? 'list-view' : ''}`}>
-            {data.blogs.map(blog => <BlogCard key={blog._id} blog={blog} />)}
+            {data.blogs.map(blog => <BlogCard key={blog._id} blog={blog} view={view} />)}
           </div>
         )}
 
