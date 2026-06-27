@@ -15,11 +15,25 @@ const blogSchema = new mongoose.Schema({
   tags:     [{ type: String, lowercase: true, trim: true }],
   views:    { type: Number, default: 0 },
   likes:    [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
-  status:   { type: String, enum: ['draft', 'published'], default: 'draft' },
-  readTime: { type: Number, default: 1 },
-  featured: { type: Boolean, default: false }
+
+  // ── Phase 7: Article Status ──────────────────────────
+  status: {
+    type: String,
+    enum: ['draft', 'published', 'archived'],
+    default: 'draft'
+  },
+
+  // ── Phase 7: Featured Articles ───────────────────────
+  featured: { type: Boolean, default: false },
+
+  // ── Phase 7: Soft Delete ─────────────────────────────
+  isDeleted: { type: Boolean, default: false },
+  deletedAt: { type: Date, default: null },
+
+  readTime: { type: Number, default: 1 }
 }, { timestamps: true })
 
+// Auto-generate excerpt and readTime
 blogSchema.pre('save', function(next) {
   if (this.content && !this.excerpt) {
     this.excerpt = this.content.replace(/<[^>]*>/g, '').substring(0, 200) + '...'
@@ -27,6 +41,17 @@ blogSchema.pre('save', function(next) {
   if (this.content) {
     const wordCount = this.content.replace(/<[^>]*>/g, '').split(/\s+/).filter(Boolean).length
     this.readTime = Math.ceil(wordCount / 200) || 1
+  }
+  next()
+})
+
+// Exclude soft-deleted blogs from normal queries by default
+blogSchema.pre(/^find/, function(next) {
+  if (this.getFilter().includeDeleted !== true) {
+    this.where({ isDeleted: { $ne: true } })
+  } else {
+    // Remove the flag so Mongo doesn't try to filter on it
+    delete this.getFilter().includeDeleted
   }
   next()
 })

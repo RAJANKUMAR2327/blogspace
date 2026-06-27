@@ -6,17 +6,17 @@ import { FiSave, FiSend, FiImage, FiX, FiUpload, FiArrowLeft, FiEye } from 'reac
 
 const CATEGORIES = ['Technology','Programming','Design','Business','Science','Health','Travel','Food','Lifestyle','Other']
 
+
 export default function CreateBlog() {
   const navigate = useNavigate()
   const [loading, setLoading] = useState(false)
   const [uploading, setUploading] = useState(false)
   const [preview, setPreview] = useState(false)
   const [formData, setFormData] = useState({
-    title: '', content: '', category: '', tags: '', image: '', status: 'draft'
+    title: '', content: '', category: '', tags: '', image: '', status: 'draft', featured: false
   })
 
   const handleChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value })
-
   const handleFileUpload = async (e) => {
     const file = e.target.files[0]
     if (!file) return
@@ -232,14 +232,35 @@ export default function CreateBlog() {
             <div className="sidebar-card">
               <div className="sidebar-title">Publish Status</div>
               <div style={{ display: 'flex', gap: 8 }}>
-                {['draft', 'published'].map(s => (
+                {['draft', 'published', 'archived'].map(s => (
                   <button key={s} onClick={() => setFormData(p => ({ ...p, status: s }))}
                     className={`status-pill ${formData.status === s ? 'active' : ''}`}>
-                    {s === 'draft' ? '📝 Draft' : '🚀 Publish'}
+                    {s === 'draft' ? '📝 Draft' : s === 'published' ? '🚀 Publish' : '📦 Archive'}
                   </button>
                 ))}
               </div>
             </div>
+            {/* Featured Toggle */}
+            <div className="sidebar-card">
+              <div className="sidebar-title">Featured Article</div>
+              <button 
+               onClick={() => setFormData(p => ({ ...p, featured: !p.featured }))}
+               style={{
+                width: '100%', padding: '10px 16px', borderRadius: 10,
+                fontSize: 13, fontWeight: 500, cursor: 'pointer',
+                transition: 'all 0.2s', fontFamily: "'Inter',sans-serif",
+                border: formData.featured ? '1px solid rgba(251,191,36,0.4)' : '1px solid rgba(255,255,255,0.08)',
+                background: formData.featured ? 'rgba(251,191,36,0.15)' : 'rgba(255,255,255,0.04)',
+                color: formData.featured ? '#fbbf24' : 'rgba(255,255,255,0.4)',
+                }}>
+                {formData.featured ? '⭐ Featured' : '☆ Mark as Featured'}
+              </button>
+              <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.2)', marginTop: 8 }}>
+                Featured articles appear in the homepage hero section
+              
+                </p>  
+            </div>
+            
 
             {/* Category */}
             <div className="sidebar-card">
