@@ -1,6 +1,7 @@
-import { useState } from 'react'
-import { useQuery } from '@tanstack/react-query'
+import { useState, useEffect } from 'react'
+import { useInfiniteQuery } from '@tanstack/react-query'
 import { useSearchParams } from 'react-router-dom'
+import { useInView } from 'react-intersection-observer'
 import { blogAPI } from '../services/api'
 import BlogCard from '../components/blog/BlogCard'
 import SEO from '../components/common/SEO'
@@ -18,15 +19,42 @@ export default function BlogList() {
   const [searchParams, setSearchParams] = useSearchParams()
   const [search, setSearch] = useState(searchParams.get('search') || '')
   const [view, setView] = useState('grid')
-  const page = parseInt(searchParams.get('page') || '1')
   const category = searchParams.get('category') || ''
 
-  const { data, isLoading } = useQuery({
-    queryKey: ['blogs', page, category, search],
-    queryFn: async () => {
-      const res = await blogAPI.getAll({ page, limit: 9, ...(category && { category }), ...(search && { search }) })
+  // useInfiniteQuery hook setup
+  const {
+    data, isLoading, fetchNextPage, hasNextPage, isFetchingNextPage
+  } = useInfiniteQuery({
+    queryKey: ['blogsInfinite', category, search, searchParams.toString()],
+    queryFn: async ({ pageParam = 1 }) => {
+      const params = { page: pageParam, limit: 9 }
+      if (category) params.category = category
+      if (search)   params.search   = search
+      if (searchParams.get('sortBy'))      params.sortBy      = searchParams.get('sortBy')
+      if (searchParams.get('minReadTime')) params.minReadTime = searchParams.get('minReadTime')
+      if (searchParams.get('maxReadTime')) params.maxReadTime = searchParams.get('maxReadTime')
+      if (searchParams.get('tag'))         params.tag         = searchParams.get('tag')
+      const res = await blogAPI.getAll(params)
       return res.data
-    }
+    },
+    getNextPageParam: (lastPage) => {
+      return lastPage.pagination.page < lastPage.pagination.pages
+        ? lastPage.pagination.page + 1
+        : undefined
+    },
+    initialPageParam: 1
+  })
+
+  // Flatten infinite query pages into a cohesive array
+  const allBlogs = data?.pages.flatMap(page => page.blogs) || []
+  const totalCount = data?.pages[0]?.pagination?.total || 0
+
+  // Infinite Scroll Sentinel Hook
+  const { ref: loadMoreRef } = useInView({
+    onChange: (inView) => {
+      if (inView && hasNextPage && !isFetchingNextPage) fetchNextPage()
+    },
+    rootMargin: '300px 0px'
   })
 
   const handleSearch = (e) => {
@@ -36,11 +64,6 @@ export default function BlogList() {
 
   const handleCategory = (cat) => {
     setSearchParams({ category: cat === 'All' ? '' : cat, page: 1 })
-  }
-
-  const handlePage = (newPage) => {
-    setSearchParams({ page: newPage, ...(category && { category }) })
-    window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
   return (
@@ -76,20 +99,12 @@ export default function BlogList() {
           background: var(--accent-soft);
           border-color: var(--accent); color: var(--accent-strong);
         }
-        .page-btn {
-          padding:8px 16px; border-radius:var(--radius-sm); font-size:13px; cursor:pointer;
-          transition:all 0.2s; border:1px solid var(--border-soft);
-          background:var(--bg-surface-2); color:var(--text-tertiary);
-          font-family:var(--font-ui);
-        }
-        .page-btn:hover:not(:disabled) { border-color: var(--accent); color: var(--text-primary); }
-        .page-btn.active { background: var(--accent); border-color: transparent; color: var(--text-on-accent); }
-        .page-btn:disabled { opacity:0.3; cursor:not-allowed; }
         .skeleton {
           background:linear-gradient(90deg, var(--bg-surface-2) 25%, var(--bg-surface) 50%, var(--bg-surface-2) 75%);
           background-size:200% 100%;animation:shimmer 1.5s infinite;border-radius:var(--radius-lg);
         }
         @keyframes shimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
+        @keyframes spin { to { transform: rotate(360deg) } }
 
         .bl-header-pad { padding: 60px 48px 0; }
         .bl-cat-pad { padding: 0 48px 32px; }
@@ -124,7 +139,7 @@ export default function BlogList() {
             All Stories
           </h1>
           <p style={{ fontSize: 16, color: 'var(--text-tertiary)', fontFamily: 'var(--font-body)', marginBottom: 40 }}>
-            {data?.pagination?.total || 0} articles across {CATEGORIES.length - 1} topics
+            {totalCount} articles across {CATEGORIES.length - 1} topics
           </p>
 
           {/* Search */}
@@ -161,7 +176,7 @@ export default function BlogList() {
         {/* Toolbar */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}>
           <p style={{ fontSize: 14, color: 'var(--text-tertiary)' }}>
-            {isLoading ? 'Loading...' : `${data?.blogs?.length || 0} of ${data?.pagination?.total || 0} stories`}
+            {isLoading ? 'Loading...' : `${allBlogs.length} of ${totalCount} stories`}
           </p>
           <div style={{ display: 'flex', gap: 6 }}>
             <button onClick={() => setView('grid')} style={{ padding: '7px 10px', background: view === 'grid' ? 'var(--accent-soft)' : 'var(--bg-surface-2)', border: '1px solid', borderColor: view === 'grid' ? 'var(--accent)' : 'var(--border-soft)', borderRadius: 8, color: view === 'grid' ? 'var(--accent-strong)' : 'var(--text-tertiary)', cursor: 'pointer', fontSize: 16, display: 'flex', alignItems: 'center' }}>
@@ -173,12 +188,12 @@ export default function BlogList() {
           </div>
         </div>
 
-        {/* Grid */}
+        {/* Content Layout */}
         {isLoading ? (
-          <div className="bl-grid">
+          <div className="bl-grid" style={{ gridTemplateColumns: view === 'grid' ? undefined : '1fr' }}>
             {[...Array(9)].map((_, i) => <div key={i} className="skeleton" style={{ height: 360 }} />)}
           </div>
-        ) : data?.blogs?.length === 0 ? (
+        ) : allBlogs.length === 0 ? (
           <div style={{ textAlign: 'center', padding: '80px 20px' }}>
             <div style={{ fontSize: 56, marginBottom: 16 }}>🔍</div>
             <h3 style={{ fontFamily: 'var(--font-display)', fontSize: 24, fontWeight: 700, color: 'var(--text-primary)', marginBottom: 8 }}>No stories found</h3>
@@ -189,22 +204,21 @@ export default function BlogList() {
             </button>
           </div>
         ) : (
-          <div className={`bl-grid ${view === 'list' ? 'list-view' : ''}`}>
-            {data.blogs.map(blog => <BlogCard key={blog._id} blog={blog} view={view} />)}
-          </div>
-        )}
+          <>
+            <div className={`bl-grid ${view === 'list' ? 'list-view' : ''}`}>
+              {allBlogs.map(blog => <BlogCard key={blog._id} blog={blog} view={view} />)}
+            </div>
 
-        {/* Pagination */}
-        {data?.pagination?.pages > 1 && (
-          <div style={{ display: 'flex', justifyContent: 'center', gap: 8, marginTop: 48, flexWrap: 'wrap' }}>
-            <button className="page-btn" onClick={() => handlePage(page - 1)} disabled={page === 1}>← Prev</button>
-            {[...Array(data.pagination.pages)].map((_, i) => (
-              <button key={i} className={`page-btn ${page === i + 1 ? 'active' : ''}`} onClick={() => handlePage(i + 1)}>
-                {i + 1}
-              </button>
-            ))}
-            <button className="page-btn" onClick={() => handlePage(page + 1)} disabled={page === data.pagination.pages}>Next →</button>
-          </div>
+            {/* Sentinel element + loading indicator */}
+            <div ref={loadMoreRef} style={{ display: 'flex', justifyContent: 'center', padding: '40px 0' }}>
+              {isFetchingNextPage && (
+                <div style={{ width: 28, height: 28, borderRadius: '50%', border: '2px solid var(--border-soft)', borderTop: '2px solid var(--accent)', animation: 'spin 0.8s linear infinite' }} />
+              )}
+              {!hasNextPage && allBlogs.length > 0 && (
+                <p style={{ fontSize: 13, color: 'var(--text-tertiary)', opacity: 0.7 }}>You've reached the end — {totalCount} stories total</p>
+              )}
+            </div>
+          </>
         )}
       </div>
     </div>

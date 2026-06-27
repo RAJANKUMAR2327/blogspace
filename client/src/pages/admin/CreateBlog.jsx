@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { blogAPI, uploadAPI } from '../../services/api'
+import { compressImage } from '../../utils/compressImage' // Added compression utility
 import toast from 'react-hot-toast'
 import SEO from '../common/SEO'
 import { FiSave, FiSend, FiImage, FiX, FiUpload, FiArrowLeft, FiEye } from 'react-icons/fi'
@@ -18,14 +19,18 @@ export default function CreateBlog() {
 
   const handleChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value })
   
+  // Updated to include image compression and 10MB limit
   const handleFileUpload = async (e) => {
     const file = e.target.files[0]
     if (!file) return
-    if (file.size > 5 * 1024 * 1024) return toast.error('Image must be under 5MB')
+    if (file.size > 10 * 1024 * 1024) return toast.error('Image must be under 10MB')
+
     setUploading(true)
     try {
+      const compressed = await compressImage(file)
       const fd = new FormData()
-      fd.append('image', file)
+      fd.append('image', compressed, file.name)
+      
       const res = await uploadAPI.blogImage(fd)
       setFormData(prev => ({ ...prev, image: res.data.url }))
       toast.success('Image uploaded!')
@@ -298,7 +303,7 @@ export default function CreateBlog() {
                 <p style={{ fontSize: 13, color: 'var(--text-tertiary)', margin: 0 }}>
                   {uploading ? 'Uploading...' : 'Click to upload image'}
                 </p>
-                <p style={{ fontSize: 11, color: 'var(--text-tertiary)', margin: '4px 0 0' }}>PNG, JPG up to 5MB</p>
+                <p style={{ fontSize: 11, color: 'var(--text-tertiary)', margin: '4px 0 0' }}>PNG, JPG up to 10MB</p>
               </label>
 
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, margin: '10px 0' }}>

@@ -5,6 +5,7 @@ import { AuthContext } from '../../context/AuthContext'
 import { userAPI } from '../../services/api'
 import { FiBookmark, FiEye, FiHeart, FiClock } from 'react-icons/fi'
 import toast from 'react-hot-toast'
+import LazyImage from '../common/LazyImage' // Imported LazyImage component
 
 const CAT_VAR = {
   Technology:  '--cat-technology',
@@ -48,14 +49,23 @@ export default function BlogCard({ blog }) {
           transform: translateY(-5px); border-color: var(--accent);
           box-shadow: var(--shadow-pop);
         }
-        .blog-card:hover .bc-img { transform: scale(1.07); opacity: 0.9; }
+        /* Target both the old class and the new inner wrapper class for the hover zoom effect */
+        .blog-card:hover .bc-img, 
+        .blog-card:hover .bc-img-wrap-inner { 
+          transform: scale(1.07); 
+          opacity: 0.9; 
+        }
         .bc-img-wrap { height: 190px; overflow: hidden; background: var(--bg-surface-2); position: relative; }
-        .bc-img { width:100%;height:100%;object-fit:cover;transition:transform 0.5s ease,opacity 0.3s;opacity:0.85; }
+        
+        /* Retained styles for smooth transitioning on the inner lazy image element */
+        .bc-img, .bc-img-wrap-inner { 
+          width:100%; height:100%; object-fit:cover; transition:transform 0.5s ease, opacity 0.3s; opacity:0.85; 
+        }
         .bc-cat-badge {
           position:absolute;top:12px;left:12px;
           font-size:10px;letter-spacing:1.5px;text-transform:uppercase;
           padding:4px 10px;border-radius:100px;font-weight:500;
-          backdrop-filter:blur(8px);
+          backdrop-filter:blur(8px);z-index: 2;
         }
         .bc-save-btn {
           position:absolute;top:10px;right:10px;
@@ -63,7 +73,7 @@ export default function BlogCard({ blog }) {
           border:1px solid var(--border-soft);
           border-radius:var(--radius-sm);padding:6px;cursor:pointer;
           display:flex;align-items:center;color:var(--text-tertiary);
-          transition:all 0.2s;backdrop-filter:blur(8px);
+          transition:all 0.2s;backdrop-filter:blur(8px);z-index: 2;
         }
         .bc-save-btn:hover { color: var(--accent); border-color: var(--accent); }
         .bc-body { padding: 18px; flex: 1; display: flex; flex-direction: column; }
@@ -104,11 +114,12 @@ export default function BlogCard({ blog }) {
       <article className="blog-card">
         <div className="bc-img-wrap">
           <Link to={`/blog/${blog.slug}`}>
-            <img
-              className="bc-img"
+            {/* Replaced standard <img> with LazyImage */}
+            <LazyImage
               src={blog.image || FALLBACK}
               alt={blog.title}
-              loading="lazy"
+              className="bc-img-wrap-inner"
+              style={{ height: '100%' }}
             />
           </Link>
           <span
@@ -154,7 +165,6 @@ export default function BlogCard({ blog }) {
               <div className="bc-avatar">
                 {blog.author?.name?.[0] || 'A'}
               </div>
-              {/* Wrapped Author Name in Link Component below */}
               <Link to={`/author/${blog.author?._id}`} style={{ textDecoration: 'none' }}>
                 <span className="bc-author-name">{blog.author?.name}</span>
               </Link>

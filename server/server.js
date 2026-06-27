@@ -44,7 +44,17 @@ app.use('/api', rateLimit({
   validate: { xForwardedForHeader: false },
   message: { success: false, message: 'Too many requests, try again later' }
 }))
-
+// Cache public GET endpoints at the CDN/browser level for a short time
+app.use((req, res, next) => {
+  if (req.method === 'GET' && (
+    req.path.startsWith('/api/blogs') ||
+    req.path.startsWith('/api/blogs/trending') ||
+    req.path.startsWith('/api/blogs/featured')
+  ) && !req.headers.authorization) {
+    res.set('Cache-Control', 'public, max-age=60, stale-while-revalidate=300')
+  }
+  next()
+})
 // Routes
 app.use('/api/auth',       authRoutes)
 app.use('/api/blogs',      blogRoutes)
