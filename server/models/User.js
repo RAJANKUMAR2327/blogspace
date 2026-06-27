@@ -39,6 +39,12 @@ const userSchema = new mongoose.Schema({
   verificationExpire:   { type: Date },
   isBanned:     { type: Boolean, default: false },
   resetPasswordToken:  { type: String },
+  refreshTokens: [{
+  token:     { type: String },
+  createdAt: { type: Date, default: Date.now },
+  userAgent: { type: String },
+  ip:        { type: String }
+}],
   resetPasswordExpire: { type: Date }
 }, { timestamps: true })
 

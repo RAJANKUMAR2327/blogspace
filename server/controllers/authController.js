@@ -1,8 +1,27 @@
+const jwt = require('jsonwebtoken')
+const LoginActivity = require('../models/LoginActivity')
 const crypto = require('crypto')
 const { OAuth2Client } = require('google-auth-library')
 const User = require('../models/User')
 const generateToken = require('../utils/generateToken')
 const axios = require('axios')
+
+const generateAccessToken = (id) => {
+  return jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: '15m' })
+}
+
+const generateRefreshToken = (id) => {
+  return jwt.sign({ id }, process.env.JWT_REFRESH_SECRET || process.env.JWT_SECRET, { expiresIn: '30d' })
+}
+
+const setRefreshCookie = (res, token) => {
+  res.cookie('refreshToken', token, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'none',
+    maxAge: 30 * 24 * 60 * 60 * 1000 // 30 days
+  })
+}
 
 const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID)
 
@@ -24,20 +43,102 @@ exports.register = async (req, res, next) => {
   } catch (error) { next(error) }
 }
 
+// @POST /api/auth/refresh
+exports.refreshAccessToken = async (req, res, next) => {
+  try {
+    const refreshToken = req.cookies?.refreshToken
+    if (!refreshToken) return res.status(401).json({ message: 'No refresh token' })
+
+    let decoded
+    try {
+      decoded = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET || process.env.JWT_SECRET)
+    } catch {
+      return res.status(401).json({ message: 'Invalid or expired refresh token' })
+    }
+
+    const user = await User.findById(decoded.id)
+    if (!user) return res.status(401).json({ message: 'User not found' })
+
+    const tokenExists = user.refreshTokens?.some(t => t.token === refreshToken)
+    if (!tokenExists) return res.status(401).json({ message: 'Refresh token revoked' })
+
+    if (user.isBanned) return res.status(403).json({ message: 'Account banned' })
+
+    const newAccessToken = generateAccessToken(user._id)
+    res.json({
+      success: true,
+      token: newAccessToken,
+      user: { _id: user._id, name: user.name, email: user.email, role: user.role, profileImage: user.profileImage }
+    })
+  } catch (error) { next(error) }
+}
+
+// @POST /api/auth/logout — revoke the current refresh token
+exports.logout = async (req, res, next) => {
+  try {
+    const refreshToken = req.cookies?.refreshToken
+    if (refreshToken && req.user) {
+      await User.findByIdAndUpdate(req.user._id, {
+        $pull: { refreshTokens: { token: refreshToken } }
+      })
+    }
+    res.clearCookie('refreshToken')
+    res.json({ success: true, message: 'Logged out' })
+  } catch (error) { next(error) }
+}
 exports.login = async (req, res, next) => {
   try {
     const { email, password } = req.body
     if (!email || !password) return res.status(400).json({ message: 'Email and password required' })
 
     const user = await User.findOne({ email }).select('+password')
+
     if (!user || !(await user.comparePassword(password))) {
+      // Log failed attempt (only if user exists, so we don't leak account existence via timing later)
+      if (user) {
+        LoginActivity.create({
+          user: user._id, ip: req.ip, userAgent: req.headers['user-agent'],
+          success: false, reason: 'wrong_password'
+        }).catch(() => {})
+      }
       return res.status(401).json({ message: 'Invalid email or password' })
     }
-    if (user.isBanned) return res.status(403).json({ message: 'Your account has been banned' })
 
-    const token = generateToken(user._id)
+    if (user.isBanned) {
+      LoginActivity.create({
+        user: user._id, ip: req.ip, userAgent: req.headers['user-agent'],
+        success: false, reason: 'banned'
+      }).catch(() => {})
+      return res.status(403).json({ message: 'Your account has been banned' })
+    }
+
+    const accessToken  = generateAccessToken(user._id)
+    const refreshToken = generateRefreshToken(user._id)
+    user.refreshTokens = [{ token: refreshToken, userAgent: req.headers['user-agent'], ip: req.ip }]
+    await user.save({ validateBeforeSave: false })
+    setRefreshCookie(res, refreshToken)
+
+    res.status(201).json({
+      success: true,
+      token: accessToken,
+      user: { _id: user._id, name: user.name, email: user.email, role: user.role, profileImage: user.profileImage }
+})
+
+    // Store refresh token, keep max 5 sessions per user
+    user.refreshTokens = user.refreshTokens || []
+    user.refreshTokens.push({ token: refreshToken, userAgent: req.headers['user-agent'], ip: req.ip })
+    if (user.refreshTokens.length > 5) user.refreshTokens = user.refreshTokens.slice(-5)
+    await user.save({ validateBeforeSave: false })
+
+    setRefreshCookie(res, refreshToken)
+
+    LoginActivity.create({
+      user: user._id, ip: req.ip, userAgent: req.headers['user-agent'], success: true
+    }).catch(() => {})
+
     res.json({
-      success: true, token,
+      success: true,
+      token: accessToken,
       user: { _id: user._id, name: user.name, email: user.email, role: user.role, profileImage: user.profileImage }
     })
   } catch (error) { next(error) }

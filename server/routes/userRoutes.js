@@ -14,6 +14,7 @@ const {
 // add this line among your named routes (before any /:id routes):
 router.get('/author-stats', protect, getAuthorStats)
 const { protect, adminOnly } = require('../middleware/auth')
+const { getAuditLogs, getLoginActivity } = require('../controllers/userController')
 
 // IMPORTANT: specific named routes BEFORE /:id routes
 router.get('/profile',          protect, getProfile)
@@ -32,6 +33,9 @@ router.delete('/:id',    protect, adminOnly, deleteUser)
 
 // Public profile + follow (after named routes)
 router.get('/:id/profile',  getPublicProfile)
+router.get('/audit-logs',     protect, adminOnly, getAuditLogs)
+router.get('/login-activity', protect, getLoginActivity)
+
 router.post('/:id/follow',  protect, followToggle)
 
 module.exports = router

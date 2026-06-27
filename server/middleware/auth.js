@@ -47,3 +47,12 @@ exports.optionalAuth = async (req, res, next) => {
     next() // invalid token — just proceed without a user
   }
 }
+// Generic role-based access control — usage: requireRole('admin', 'moderator')
+exports.requireRole = (...allowedRoles) => {
+  return (req, res, next) => {
+    if (!req.user || !allowedRoles.includes(req.user.role)) {
+      return res.status(403).json({ message: 'Insufficient permissions' })
+    }
+    next()
+  }
+}

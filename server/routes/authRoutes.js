@@ -4,12 +4,16 @@ const {
   register, login, getMe,
   forgotPassword, resetPassword,
   githubRedirect, githubCallback,
-  sendVerificationEmail, verifyEmail
+  sendVerificationEmail, verifyEmail,
+  refreshAccessToken, logout
 } = require('../controllers/authController')
+
 const { protect } = require('../middleware/auth')
 
 router.post('/register',               register)
 router.post('/login',                  login)
+router.post('/refresh', refreshAccessToken)
+router.post('/logout',  protect, logout)
 router.get ('/me',         protect,    getMe)
 router.post('/forgot-password',        forgotPassword)
 router.put ('/reset-password/:token',  resetPassword)

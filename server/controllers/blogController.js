@@ -1,6 +1,7 @@
 const { parseReferrerSource } = require('../middleware/analytics')
 const Blog = require('../models/Blog')
 const slugify = require('slugify')
+const { logAction } = require('../utils/auditLog') // Added audit log import
 
 // @GET /api/blogs
 exports.getBlogs = async (req, res, next) => {
@@ -81,7 +82,6 @@ exports.getFeatured = async (req, res, next) => {
 }
 
 // @GET /api/blogs/:slug
-// @GET /api/blogs/:slug
 exports.getBlogBySlug = async (req, res, next) => {
   try {
     const filter = { slug: req.params.slug }
@@ -132,6 +132,7 @@ exports.createBlog = async (req, res, next) => {
     res.status(201).json({ success: true, blog })
   } catch (error) { next(error) }
 }
+
 // @POST /api/blogs/:id/complete — mark a read-completion event
 exports.trackReadCompletion = async (req, res, next) => {
   try {
@@ -170,6 +171,7 @@ exports.getArticleAnalytics = async (req, res, next) => {
     })
   } catch (error) { next(error) }
 }
+
 // @PUT /api/blogs/:id
 exports.updateBlog = async (req, res, next) => {
   try {
@@ -244,6 +246,17 @@ exports.permanentDeleteBlog = async (req, res, next) => {
   try {
     const blog = await Blog.findOneAndDelete({ _id: req.params.id, includeDeleted: true })
     if (!blog) return res.status(404).json({ message: 'Blog not found' })
+
+    // Log the irreversible deletion event
+    await logAction({
+      actor: req.user._id,
+      action: 'permanent_delete_blog',
+      targetType: 'Blog',
+      targetId: blog._id,
+      details: `Permanently deleted "${blog.title}"`,
+      req
+    })
+
     res.json({ success: true, message: 'Blog permanently deleted' })
   } catch (error) { next(error) }
 }
@@ -270,13 +283,13 @@ exports.toggleLike = async (req, res, next) => {
     res.json({ success: true, likes: blog.likes.length, isLiked: !isLiked })
   } catch (error) { next(error) }
 }
+
 // @GET /api/blogs/:id/related
 exports.getRelatedBlogs = async (req, res, next) => {
   try {
     const currentBlog = await Blog.findById(req.params.id)
     if (!currentBlog) return res.status(404).json({ message: 'Blog not found' })
 
-    // Find articles sharing category or tags, excluding the current one
     const related = await Blog.find({
       _id: { $ne: currentBlog._id },
       status: 'published',
@@ -289,7 +302,6 @@ exports.getRelatedBlogs = async (req, res, next) => {
       .sort({ views: -1 })
       .limit(4)
 
-    // If not enough related articles found, pad with recent articles from same category
     if (related.length < 4) {
       const existingIds = related.map(b => b._id.toString())
       existingIds.push(currentBlog._id.toString())
@@ -316,7 +328,6 @@ exports.getRecommended = async (req, res, next) => {
     let excludeIds = []
 
     if (req.user) {
-      // Base recommendations on user's liked/saved articles' categories
       const User = require('../models/User')
       const user = await User.findById(req.user._id).populate('savedBlogs', 'category')
       const likedBlogs = await Blog.find({ likes: req.user._id }).select('category')
@@ -340,7 +351,6 @@ exports.getRecommended = async (req, res, next) => {
       .sort({ views: -1, createdAt: -1 })
       .limit(6)
 
-    // Fallback to trending if no personalization data yet
     if (blogs.length === 0) {
       blogs = await Blog.find({ status: 'published' })
         .populate('author', 'name profileImage')

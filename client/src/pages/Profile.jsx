@@ -59,6 +59,16 @@ export default function Profile() {
     }
   })
 
+  // Recent Login Activity Query
+  const { data: loginActivity } = useQuery({
+    queryKey: ['loginActivity'],
+    queryFn: async () => {
+      const res = await userAPI.getLoginActivity()
+      return res.data.activity
+    },
+    enabled: activeTab === 'settings'
+  })
+
   // Update profile mutation
   const updateMutation = useMutation({
     mutationFn: (data) => userAPI.updateProfile(data),
@@ -513,6 +523,26 @@ export default function Profile() {
                       <span style={{ fontSize: 14, color: 'rgba(255,255,255,0.7)', fontWeight: 500 }}>{value}</span>
                     </div>
                   ))}
+                </div>
+              </div>
+
+              {/* Recent Login Activity */}
+              <div style={{ background: '#0d0d1a', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 14, padding: 24 }}>
+                <h3 style={{ fontSize: 15, fontWeight: 600, color: '#fff', marginBottom: 16 }}>Recent Login Activity</h3>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  {loginActivity?.slice(0, 5).map(log => (
+                    <div key={log._id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 0', borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
+                      <span style={{ fontSize: 12, color: log.success ? 'rgba(255,255,255,0.5)' : '#f87171' }}>
+                        {log.success ? '✓ Successful login' : `✗ Failed (${log.reason})`}
+                      </span>
+                      <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.25)' }}>
+                        {new Date(log.createdAt).toLocaleString()}
+                      </span>
+                    </div>
+                  ))}
+                  {(!loginActivity || loginActivity.length === 0) && (
+                    <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.2)' }}>No login activity recorded yet</p>
+                  )}
                 </div>
               </div>
 

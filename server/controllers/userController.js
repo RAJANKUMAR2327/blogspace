@@ -1,5 +1,6 @@
 const User = require('../models/User')
 const Blog = require('../models/Blog')
+const { logAction } = require('../utils/auditLog')
 
 // @GET /api/users/profile
 exports.getProfile = async (req, res) => {
@@ -137,7 +138,6 @@ exports.getAllUsers = async (req, res, next) => {
   } catch (error) { next(error) }
 }
 
-// @GET /api/users/stats
 // @GET /api/users/stats — full platform analytics (admin)
 exports.getStats = async (req, res, next) => {
   try {
@@ -310,6 +310,16 @@ exports.toggleBan = async (req, res, next) => {
     if (!user) return res.status(404).json({ message: 'User not found' })
     user.isBanned = !user.isBanned
     await user.save()
+
+    logAction({
+      actor: req.user._id,
+      action: user.isBanned ? 'ban_user' : 'unban_user',
+      targetType: 'User',
+      targetId: user._id,
+      details: `${user.isBanned ? 'Banned' : 'Unbanned'} user ${user.email}`,
+      req
+    })
+
     res.json({ success: true, isBanned: user.isBanned })
   } catch (error) { next(error) }
 }
@@ -317,11 +327,44 @@ exports.toggleBan = async (req, res, next) => {
 // @DELETE /api/users/:id
 exports.deleteUser = async (req, res, next) => {
   try {
+    const user = await User.findById(req.params.id)
+    if (!user) return res.status(404).json({ message: 'User not found' })
+
+    logAction({
+      actor: req.user._id,
+      action: 'delete_user',
+      targetType: 'User',
+      targetId: user._id,
+      details: `Deleted user ${user.email}`,
+      req
+    })
+
     await User.findByIdAndDelete(req.params.id)
     res.json({ success: true, message: 'User deleted' })
   } catch (error) { next(error) }
 }
+// @GET /api/users/audit-logs (admin)
+exports.getAuditLogs = async (req, res, next) => {
+  try {
+    const AuditLog = require('../models/AuditLog')
+    const logs = await AuditLog.find()
+      .populate('actor', 'name email')
+      .sort({ createdAt: -1 })
+      .limit(100)
+    res.json({ success: true, logs })
+  } catch (error) { next(error) }
+}
 
+// @GET /api/users/login-activity — own login history
+exports.getLoginActivity = async (req, res, next) => {
+  try {
+    const LoginActivity = require('../models/LoginActivity')
+    const activity = await LoginActivity.find({ user: req.user._id })
+      .sort({ createdAt: -1 })
+      .limit(20)
+    res.json({ success: true, activity })
+  } catch (error) { next(error) }
+}
 // @GET /api/users/author-stats — stats for the logged-in author
 exports.getAuthorStats = async (req, res, next) => {
   try {

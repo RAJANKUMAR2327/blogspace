@@ -2,6 +2,7 @@ const express = require('express')
 const cors    = require('cors')
 const helmet  = require('helmet')
 const morgan  = require('morgan')
+const cookieParser = require('cookie-parser')
 const rateLimit = require('express-rate-limit')
 require('dotenv').config({ path: require('path').join(__dirname, '../.env') })
 const dns = require('dns')
@@ -19,19 +20,29 @@ const uploadRoutes     = require('./routes/uploadRoutes')
 const notificationRoutes = require('./routes/notificationRoutes')
 const { logActivity } = require('./middleware/analytics')
 const { generateSitemap, generateRobotsTxt } = require('./controllers/sitemapController')
+const { sanitizeBody } = require('./middleware/sanitize')
 const app = express()
 
 // Connect Database
 connectDB()
 
 // CORS — allow all origins (update for production)
-app.use(cors({ origin: true, credentials: true }))
+app.use(cors({
+  origin: [
+    'http://localhost:5173',
+    'http://localhost:5174',
+    process.env.CLIENT_URL
+  ].filter(Boolean),
+  credentials: true
+}))
 
 // Security & Logging
 app.use(helmet({ crossOriginResourcePolicy: false }))
 app.use(morgan('dev'))
 app.use(express.json({ limit: '10mb' }))
 app.use(express.urlencoded({ extended: true }))
+app.use(cookieParser())
+app.use(sanitizeBody)
 app.use(logActivity)
 app.use('/api/notifications', notificationRoutes)
 app.get('/sitemap.xml', generateSitemap)
