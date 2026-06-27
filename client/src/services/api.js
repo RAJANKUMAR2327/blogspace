@@ -52,6 +52,8 @@ export const blogAPI = {
   permanentDelete:(id)     => API.delete(`/blogs/${id}/permanent`),
   delete:         (id)     => API.delete(`/blogs/${id}`),
   toggleLike:     (id)     => API.post(`/blogs/${id}/like`),
+  trackCompletion: (id) => API.post(`/blogs/${id}/complete`),
+  getAnalytics:    (id) => API.get(`/blogs/${id}/analytics`),
 }
 
 // ── Comments ──────────────────────────────────────────
@@ -75,6 +77,7 @@ export const userAPI = {
   deleteUser:       (id)   => API.delete(`/users/${id}`),
   addToHistory: (blogId) => API.post(`/users/history/${blogId}`),
   getHistory:   ()       => API.get('/users/history'),
+  getPlatformAnalytics: () => API.get('/users/platform-analytics'),
 }
 
 // ── Notifications ───────────────────────────────────────

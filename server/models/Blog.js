@@ -29,6 +29,13 @@ const blogSchema = new mongoose.Schema({
   // ── Phase 7: Soft Delete ─────────────────────────────
   isDeleted: { type: Boolean, default: false },
   deletedAt: { type: Date, default: null },
+  // ── Phase 15: Analytics ──────────────────────────
+  readCompletions: { type: Number, default: 0 }, // how many times someone scrolled to the end
+  totalReadEvents:  { type: Number, default: 0 }, // how many times someone opened it and we tracked a session
+  referrers: [{
+  source: { type: String },  // 'google', 'twitter', 'direct', 'facebook', etc.
+  count:  { type: Number, default: 1 }
+}],
 
   readTime: { type: Number, default: 1 }
 }, { timestamps: true })

@@ -1,3 +1,4 @@
+const { parseReferrerSource } = require('../middleware/analytics')
 const Blog = require('../models/Blog')
 const slugify = require('slugify')
 
@@ -28,6 +29,15 @@ exports.getBlogs = async (req, res, next) => {
         { excerpt: { $regex: search, $options: 'i' } }
       ]
     }
+    if (search && search.trim()) {
+      try {
+        const SearchLog = require('../models/SearchLog')
+        SearchLog.create({
+          query: search.trim(),
+          user: req.user?._id,
+        }).catch(() => {})  
+      } catch { /* non-critical */ }
+    }  
 
     const sortOptions = {
       latest:  { createdAt: -1 },
@@ -71,19 +81,38 @@ exports.getFeatured = async (req, res, next) => {
 }
 
 // @GET /api/blogs/:slug
+// @GET /api/blogs/:slug
 exports.getBlogBySlug = async (req, res, next) => {
   try {
     const filter = { slug: req.params.slug }
-    // Admins can preview drafts/archived by slug; public only sees published
     if (req.user?.role !== 'admin') filter.status = 'published'
+
+    const source = parseReferrerSource(req)
 
     const blog = await Blog.findOneAndUpdate(
       filter,
-      { $inc: { views: 1 } },
+      {
+        $inc: { views: 1, totalReadEvents: 1 },
+      },
       { new: true }
     ).populate('author', 'name profileImage bio')
 
     if (!blog) return res.status(404).json({ message: 'Blog not found' })
+
+    // Update referrer count (separate operation since it needs array logic)
+    const existingReferrer = blog.referrers.find(r => r.source === source)
+    if (existingReferrer) {
+      await Blog.updateOne(
+        { _id: blog._id, 'referrers.source': source },
+        { $inc: { 'referrers.$.count': 1 } }
+      )
+    } else {
+      await Blog.updateOne(
+        { _id: blog._id },
+        { $push: { referrers: { source, count: 1 } } }
+      )
+    }
+
     res.json({ success: true, blog })
   } catch (error) { next(error) }
 }
@@ -103,7 +132,44 @@ exports.createBlog = async (req, res, next) => {
     res.status(201).json({ success: true, blog })
   } catch (error) { next(error) }
 }
+// @POST /api/blogs/:id/complete — mark a read-completion event
+exports.trackReadCompletion = async (req, res, next) => {
+  try {
+    await Blog.findByIdAndUpdate(req.params.id, { $inc: { readCompletions: 1 } })
+    res.json({ success: true })
+  } catch (error) { next(error) }
+}
 
+// @GET /api/blogs/:id/analytics — detailed stats for one article (author or admin)
+exports.getArticleAnalytics = async (req, res, next) => {
+  try {
+    const blog = await Blog.findById(req.params.id)
+    if (!blog) return res.status(404).json({ message: 'Blog not found' })
+    if (blog.author.toString() !== req.user._id.toString() && req.user.role !== 'admin') {
+      return res.status(403).json({ message: 'Not authorized' })
+    }
+
+    const completionRate = blog.totalReadEvents > 0
+      ? Math.round((blog.readCompletions / blog.totalReadEvents) * 100)
+      : 0
+
+    const topReferrers = [...blog.referrers]
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 5)
+
+    res.json({
+      success: true,
+      analytics: {
+        views: blog.views,
+        likes: blog.likes.length,
+        readCompletions: blog.readCompletions,
+        totalReadEvents: blog.totalReadEvents,
+        completionRate,
+        topReferrers
+      }
+    })
+  } catch (error) { next(error) }
+}
 // @PUT /api/blogs/:id
 exports.updateBlog = async (req, res, next) => {
   try {

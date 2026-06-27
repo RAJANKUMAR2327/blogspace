@@ -15,7 +15,7 @@ import TableOfContents from '../components/blog/TableOfContents'
 import ReadingControls from '../components/blog/ReadingControls'
 import NestedComments from '../components/blog/NestedComments'
 import FollowButton from '../components/common/FollowButton'
-import RelatedArticles from '../components/blog/RelatedArticles' // Un-commented and imported
+import RelatedArticles from '../components/blog/RelatedArticles'
 
 export default function SingleBlog() {
   const { slug } = useParams()
@@ -43,12 +43,33 @@ export default function SingleBlog() {
     enabled: !!blog?._id
   })
 
-  // Track Reading History (Moved correctly inside the component body)
+  // Track Reading History
   useEffect(() => {
     if (blog?._id && user) {
       userAPI.addToHistory(blog._id).catch(() => {}) // silent fail, non-critical
     }
   }, [blog?._id, user])
+
+  // Track Blog Reading Completion (Triggered at 90% scroll)
+  useEffect(() => {
+    if (!blog?._id) return
+    let hasTracked = false
+
+    const handleScroll = () => {
+      if (hasTracked) return
+      const scrollTop  = window.scrollY
+      const docHeight  = document.documentElement.scrollHeight - window.innerHeight
+      const scrolled   = docHeight > 0 ? (scrollTop / docHeight) * 100 : 0
+      
+      if (scrolled >= 90) {
+        hasTracked = true
+        blogAPI.trackCompletion(blog._id).catch(() => {}) // silent fail, non-critical
+      }
+    }
+
+    window.addEventListener('scroll', handleScroll, { passive: true })
+    return () => window.removeEventListener('scroll', handleScroll)
+  }, [blog?._id])
 
   // Like Mutation
   const likeMutation = useMutation({

@@ -68,6 +68,9 @@ function App() {
           <Route path="/author-dashboard" element={
             <ProtectedRoute><AuthorDashboard /></ProtectedRoute>
           } />
+          <Route path="/admin/analytics" element={
+            <ProtectedRoute adminOnly><PlatformAnalytics /></ProtectedRoute>
+          } />
           <Route path="/author/:id" element={<AuthorPage />} />
           <Route path="/auth/callback" element={<AuthCallback />} />
           <Route path="/verify-email/:token" element={<VerifyEmail />} />  

@@ -7,7 +7,8 @@ const {
   followToggle, getPublicProfile,
   getAuthorStats,
   getAllUsers, getStats,
-  toggleBan, deleteUser
+  toggleBan, deleteUser,
+  getPlatformAnalytics
 } = require('../controllers/userController')
 
 // add this line among your named routes (before any /:id routes):
@@ -22,6 +23,7 @@ router.get('/saved',            protect, getSavedBlogs)
 router.get('/history',          protect, getHistory)
 router.post('/history/:blogId', protect, addToHistory)
 router.get('/stats',            protect, adminOnly, getStats)
+router.get('/platform-analytics', protect, adminOnly, getPlatformAnalytics)
 
 // Admin routes
 router.get('/',          protect, adminOnly, getAllUsers)

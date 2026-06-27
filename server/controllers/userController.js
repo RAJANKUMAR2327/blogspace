@@ -233,6 +233,76 @@ exports.getStats = async (req, res, next) => {
   } catch (error) { next(error) }
 }
 
+// @GET /api/users/platform-analytics — DAU, top tags, top authors (admin)
+exports.getPlatformAnalytics = async (req, res, next) => {
+  try {
+    const Blog = require('../models/Blog')
+    const ActivityLog = require('../models/ActivityLog')
+    const SearchLog = require('../models/SearchLog')
+
+    // ── Daily Active Users — last 14 days ──────────────
+    const fourteenDaysAgo = new Date()
+    fourteenDaysAgo.setDate(fourteenDaysAgo.getDate() - 14)
+
+    const dauRaw = await ActivityLog.aggregate([
+      { $match: { createdAt: { $gte: fourteenDaysAgo } } },
+      { $group: { _id: '$date', count: { $sum: 1 } } },
+      { $sort: { _id: 1 } }
+    ])
+
+    const dauSeries = []
+    for (let i = 13; i >= 0; i--) {
+      const date = new Date()
+      date.setDate(date.getDate() - i)
+      const key = date.toISOString().split('T')[0]
+      const found = dauRaw.find(d => d._id === key)
+      dauSeries.push({ date: key.slice(5), count: found?.count || 0 })
+    }
+
+    // ── Top Searched Tags/Queries — last 30 days ───────
+    const thirtyDaysAgo = new Date()
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
+
+    const topSearches = await SearchLog.aggregate([
+      { $match: { createdAt: { $gte: thirtyDaysAgo } } },
+      { $group: { _id: '$query', count: { $sum: 1 } } },
+      { $sort: { count: -1 } },
+      { $limit: 10 }
+    ])
+
+    // ── Top Authors by total views ──────────────────────
+    const topAuthors = await Blog.aggregate([
+      { $match: { status: 'published' } },
+      { $group: {
+          _id: '$author',
+          totalViews: { $sum: '$views' },
+          articleCount: { $sum: 1 }
+        }
+      },
+      { $sort: { totalViews: -1 } },
+      { $limit: 5 },
+      { $lookup: {
+          from: 'users', localField: '_id', foreignField: '_id', as: 'authorInfo'
+        }
+      },
+      { $unwind: '$authorInfo' },
+      { $project: {
+          name: '$authorInfo.name',
+          profileImage: '$authorInfo.profileImage',
+          totalViews: 1, articleCount: 1
+        }
+      }
+    ])
+
+    res.json({
+      success: true,
+      dau: dauSeries,
+      topSearches: topSearches.map(s => ({ query: s._id, count: s.count })),
+      topAuthors
+    })
+  } catch (error) { next(error) }
+}
+
 // @PUT /api/users/:id/ban
 exports.toggleBan = async (req, res, next) => {
   try {

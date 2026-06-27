@@ -42,7 +42,7 @@ export default function Dashboard() {
   const categoryDist = platformData?.categoryDistribution || []
 
   const STAT_CARDS = [
-    { label: 'Total Users',    value: stats?.totalUsers || 0,    icon: FiUsers,         color: '#a78bfa', bg: 'rgba(167,139,250,0.1)' },
+    { label: 'Total Users',     value: stats?.totalUsers || 0,    icon: FiUsers,         color: '#a78bfa', bg: 'rgba(167,139,250,0.1)' },
     { label: 'Total Articles', value: stats?.totalBlogs || 0,    icon: FiFileText,      color: '#60a5fa', bg: 'rgba(96,165,250,0.1)' },
     { label: 'Total Views',    value: stats?.totalViews || 0,    icon: FiEye,           color: '#34d399', bg: 'rgba(52,211,153,0.1)' },
     { label: 'Total Likes',    value: stats?.totalLikes || 0,    icon: FiHeart,         color: '#f472b6', bg: 'rgba(244,114,182,0.1)' },
@@ -183,11 +183,12 @@ export default function Dashboard() {
         </div>
 
         {/* Quick Links */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 12, marginBottom: 32 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12, marginBottom: 32 }}>
           {[
-            { to: '/admin/users',    label: 'Manage Users',    icon: FiUsers,         color: '#60a5fa' },
-            { to: '/admin/comments', label: 'Manage Comments', icon: FiMessageSquare, color: '#34d399' },
-            { to: '/admin/create',   label: 'Write New Story',  icon: FiPlus,          color: '#a78bfa' },
+            { to: '/admin/users',     label: 'Manage Users',      icon: FiUsers,         color: '#60a5fa' },
+            { to: '/admin/comments',  label: 'Manage Comments',   icon: FiMessageSquare, color: '#34d399' },
+            { to: '/admin/analytics', label: 'Platform Analytics', icon: FiTrendingUp,    color: '#fbbf24' },
+            { to: '/admin/create',    label: 'Write New Story',   icon: FiPlus,          color: '#a78bfa' },
           ].map(({ to, label, icon: Icon, color }) => (
             <Link key={to} to={to} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '16px 20px', background: '#0d0d1a', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 12, textDecoration: 'none', color: 'rgba(255,255,255,0.5)', fontSize: 14, fontWeight: 500, transition: 'all 0.2s' }}
               onMouseEnter={e => { e.currentTarget.style.borderColor = color + '40'; e.currentTarget.style.color = '#fff' }}

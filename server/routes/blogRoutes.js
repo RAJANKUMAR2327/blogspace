@@ -4,7 +4,7 @@ const {
   getBlogs, getTrending, getFeatured, getRecommended, getBlogBySlug, getRelatedBlogs,
   createBlog, updateBlog, updateStatus, toggleFeatured,
   deleteBlog, restoreBlog, permanentDeleteBlog, getTrash,
-  toggleLike
+  toggleLike, trackReadCompletion, getArticleAnalytics
 } = require('../controllers/blogController')
 const { protect, adminOnly, optionalAuth } = require('../middleware/auth')
 
@@ -16,8 +16,10 @@ router.get('/trash',         protect, adminOnly, getTrash)
 router.get('/',              getBlogs)
 router.get('/:id/related',   getRelatedBlogs)
 router.get('/:slug',         getBlogBySlug)
+router.get('/:id/analytics',    protect, getArticleAnalytics)
 
 router.post('/',                     protect, adminOnly, createBlog)
+router.post('/:id/complete',    protect, trackReadCompletion)
 router.put('/:id',                   protect, updateBlog)
 router.put('/:id/status',            protect, updateStatus)
 router.put('/:id/featured',          protect, adminOnly, toggleFeatured)
