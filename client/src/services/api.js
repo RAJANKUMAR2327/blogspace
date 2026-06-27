@@ -146,9 +146,11 @@ export const uploadAPI = {
 
 // ── Newsletter ────────────────────────────────────────
 export const newsletterAPI = {
-  subscribe:   (email)   => API.post('/newsletter/subscribe', { email }),
-  unsubscribe: (email)   => API.post('/newsletter/unsubscribe', { email }),
-  send:        (data)    => API.post('/newsletter/send', data),
+  subscribe:       (email, categories) => API.post('/newsletter/subscribe', { email, categories }),
+  unsubscribe:     (email) => API.post('/newsletter/unsubscribe', { email }),
+  getSubscribers:  ()      => API.get('/newsletter/subscribers'),
+  send:            (data)  => API.post('/newsletter/send', data),
+  sendDigestNow:   ()      => API.post('/newsletter/send-digest'),
 }
 
 export default API

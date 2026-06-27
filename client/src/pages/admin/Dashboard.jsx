@@ -1,7 +1,10 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Link } from 'react-router-dom'
-import { blogAPI, userAPI } from '../../services/api'
-import { FiUsers, FiFileText, FiEye, FiHeart, FiPlus, FiEdit2, FiTrash2, FiMessageSquare, FiUserX, FiTrendingUp } from 'react-icons/fi'
+import { blogAPI, userAPI, newsletterAPI } from '../../services/api'
+import { 
+  FiUsers, FiFileText, FiEye, FiHeart, FiPlus, FiEdit2, 
+  FiTrash2, FiMessageSquare, FiUserX, FiTrendingUp, FiMail 
+} from 'react-icons/fi'
 import toast from 'react-hot-toast'
 import {
   LineChart, Line, AreaChart, Area, PieChart, Pie, Cell,
@@ -37,6 +40,12 @@ export default function Dashboard() {
     }
   })
 
+  const sendDigestMutation = useMutation({
+    mutationFn: () => newsletterAPI.sendDigestNow(),
+    onSuccess: (res) => toast.success(res.data.message || 'Digest sent successfully!'),
+    onError: () => toast.error('Failed to send digest')
+  })
+
   const stats = platformData?.stats
   const growth = platformData?.growth
   const categoryDist = platformData?.categoryDistribution || []
@@ -68,6 +77,7 @@ export default function Dashboard() {
         .dash-action.edit:hover { color:#60a5fa;background:rgba(96,165,250,0.1); }
         .dash-action.del { color:rgba(248,113,113,0.5); }
         .dash-action.del:hover { color:#f87171;background:rgba(248,113,113,0.1); }
+        .quick-btn { transition: all 0.2s; }
       `}</style>
 
       <div style={{ padding: '48px' }}>
@@ -183,7 +193,7 @@ export default function Dashboard() {
         </div>
 
         {/* Quick Links */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12, marginBottom: 32 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 12, marginBottom: 32 }}>
           {[
             { to: '/admin/users',     label: 'Manage Users',      icon: FiUsers,         color: '#60a5fa' },
             { to: '/admin/comments',  label: 'Manage Comments',   icon: FiMessageSquare, color: '#34d399' },
@@ -196,6 +206,19 @@ export default function Dashboard() {
               <Icon size={18} style={{ color }} /> {label}
             </Link>
           ))}
+
+          {/* Send Digest Button */}
+          <button 
+            className="quick-btn"
+            onClick={() => { if (window.confirm('Send the weekly digest to all subscribers right now?')) sendDigestMutation.mutate() }}  
+            disabled={sendDigestMutation.isPending}  
+            onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(52,211,153,0.4)'; e.currentTarget.style.color = '#fff' }}
+            onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.06)'; e.currentTarget.style.color = 'rgba(255,255,255,0.5)' }}
+            style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '16px 20px', background: '#0d0d1a', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 12, color: 'rgba(255,255,255,0.5)', fontSize: 14, fontWeight: 500, cursor: sendDigestMutation.isPending ? 'not-allowed' : 'pointer', fontFamily: "'Inter',sans-serif", opacity: sendDigestMutation.isPending ? 0.6 : 1 }}
+          >  
+            <FiMail size={18} style={{ color: '#34d399' }} /> 
+            {sendDigestMutation.isPending ? 'Sending...' : 'Send Digest Now'}
+          </button>
         </div>
 
         {/* Blog Table */}

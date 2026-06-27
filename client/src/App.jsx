@@ -28,6 +28,7 @@ const VerifyEmail      = lazy(() => import('./pages/VerifyEmail'))
 const AuthorDashboard  = lazy(() => import('./pages/AuthorDashboard'))
 const AuthorPage       = lazy(() => import('./pages/AuthorPage'))
 const AuditLogs        = lazy(() => import('./pages/admin/AuditLogs'))
+const UnsubscribeConfirm = lazy(() => import('./pages/UnsubscribeConfirm'))
 
 // Admin pages (lazy-loaded — zero bundle cost for regular users)
 const Dashboard        = lazy(() => import('./pages/admin/Dashboard'))
@@ -91,6 +92,7 @@ function App() {
             <Route path="/admin/audit-logs" element={
               <ProtectedRoute adminOnly><AuditLogs /></ProtectedRoute>
             } />  
+            <Route path="/newsletter/unsubscribe/:token" element={<UnsubscribeConfirm />} />
 
             {/* 404 Fallback */}
             <Route path="*" element={<NotFound />} />

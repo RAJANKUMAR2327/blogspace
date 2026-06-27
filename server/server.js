@@ -21,6 +21,7 @@ const notificationRoutes = require('./routes/notificationRoutes')
 const { logActivity } = require('./middleware/analytics')
 const { generateSitemap, generateRobotsTxt } = require('./controllers/sitemapController')
 const { sanitizeBody } = require('./middleware/sanitize')
+const { startScheduler } = require('./utils/scheduler')
 const app = express()
 
 // Connect Database
@@ -95,3 +96,8 @@ app.use(errorHandler)
 
 const PORT = process.env.PORT || 5000
 app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`))
+const PORT = process.env.PORT || 5000
+app.listen(PORT, () => {
+  console.log(`🚀 Server running on port ${PORT}`)
+  startScheduler()
+})
