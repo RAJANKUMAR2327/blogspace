@@ -27,12 +27,12 @@ API.interceptors.response.use(
 
 // ── Auth ──────────────────────────────────────────────
 export const authAPI = {
-  register: (data) => API.post('/auth/register', data),
-  login:    (data) => API.post('/auth/login', data),
-  googleAuth: (credential) => API.post('/auth/google', { credential }),
-  getMe:    ()     => API.get('/auth/me'),
-  forgotPassword: (email) => API.post('/auth/forgot-password', { email }),
-  resetPassword:  (token, password) => API.put(`/auth/reset-password/${token}`, { password }),
+  register:           (data)  => API.post('/auth/register', data),
+  login:              (data)  => API.post('/auth/login', data),
+  getMe:              ()      => API.get('/auth/me'),
+  forgotPassword:     (email) => API.post('/auth/forgot-password', { email }),
+  resetPassword:      (token, password) => API.put(`/auth/reset-password/${token}`, { password }),
+  sendVerification:   ()      => API.post('/auth/send-verification'),
 }
 
 // ── Blogs ─────────────────────────────────────────────
@@ -98,5 +98,6 @@ export const newsletterAPI = {
   unsubscribe: (email)   => API.post('/newsletter/unsubscribe', { email }),
   send:        (data)    => API.post('/newsletter/send', data),
 }
+
 
 export default API

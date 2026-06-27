@@ -27,7 +27,10 @@ const userSchema = new mongoose.Schema({
   following:    [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
   followers:    [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
   isVerified:   { type: Boolean, default: false },
-  googleId:     { type: String },
+  googleId: { type: String },
+  githubId: { type: String },
+  verificationToken:    { type: String },
+  verificationExpire:   { type: Date },
   isBanned:     { type: Boolean, default: false },
   resetPasswordToken:  { type: String },
   resetPasswordExpire: { type: Date }

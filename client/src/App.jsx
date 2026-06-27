@@ -12,6 +12,8 @@ import Profile        from './pages/Profile'
 import Categories     from './pages/Categories'
 import SearchResults  from './pages/SearchResults'
 import NotFound       from './pages/NotFound'
+import AuthCallback from './pages/AuthCallback'
+import VerifyEmail from './pages/VerifyEmail'
 
 // Admin Pages
 import Dashboard      from './pages/admin/Dashboard'
@@ -66,6 +68,8 @@ function App() {
 
           {/* 404 */}
           <Route path="*" element={<NotFound />} />
+          <Route path="/auth/callback" element={<AuthCallback />} />
+          <Route path="/verify-email/:token" element={<VerifyEmail />} />
         </Routes>
       </main>
       <Footer />

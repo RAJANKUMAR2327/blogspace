@@ -5,6 +5,7 @@ import { authAPI } from '../services/api'
 import toast from 'react-hot-toast'
 import { FiMail, FiLock, FiEye, FiEyeOff, FiArrowRight } from 'react-icons/fi'
 import GoogleSignInButton from '../components/common/GoogleSignInButton'
+import GitHubSignInButton from '../components/common/GitHubSignInButton'
 
 export default function Login() {
   const { login } = useContext(AuthContext)
@@ -66,7 +67,6 @@ export default function Login() {
         @media (max-width: 480px) {
           .login-right-panel { padding: 40px 24px !important; }
         }  
-
       `}</style>
 
       {/* Left Panel — Decorative */}
@@ -156,6 +156,10 @@ export default function Login() {
           </div>
 
           <GoogleSignInButton />
+          
+          <div style={{ marginTop: 10 }}>
+            <GitHubSignInButton />
+          </div>
         </div>
       </div>
     </div>

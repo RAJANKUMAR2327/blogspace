@@ -2,13 +2,13 @@ import { useState, useContext } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Link } from 'react-router-dom'
 import { AuthContext } from '../context/AuthContext'
-import { userAPI, uploadAPI } from '../services/api'
+import { userAPI, uploadAPI, authAPI } from '../services/api'
 import BlogCard from '../components/blog/BlogCard'
 import toast from 'react-hot-toast'
 import {
   FiEdit2, FiSave, FiX, FiBookmark, FiHeart,
   FiUsers, FiFileText, FiCamera, FiUser, FiMail,
-  FiCalendar, FiShield
+  FiCalendar, FiShield, FiAlertCircle
 } from 'react-icons/fi'
 
 const TABS = [
@@ -78,6 +78,13 @@ export default function Profile() {
       setUploading(false)
     }
   }
+
+  // Send Email Verification mutation
+  const sendVerificationMutation = useMutation({
+    mutationFn: () => authAPI.sendVerification(),
+    onSuccess: () => toast.success('Verification email sent! Check your inbox.'),
+    onError: () => toast.error('Failed to send verification email')
+  })
 
   const joinDate = user?.createdAt
     ? new Date(user.createdAt).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
@@ -244,6 +251,34 @@ export default function Profile() {
               </div>
             ))}
           </div>
+
+          {/* Verification Banner */}
+          {!user?.isVerified && (
+            <div style={{
+              background: 'rgba(251,191,36,0.08)', border: '1px solid rgba(251,191,36,0.2)',
+              borderRadius: 14, padding: '16px 20px', marginBottom: 24,
+              display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16, flexWrap: 'wrap'
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                <FiAlertCircle size={20} style={{ color: '#fbbf24', flexShrink: 0 }} />
+                <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.6)' }}>
+                  Your email isn't verified yet. Verify it to unlock all features.
+                </p>
+              </div>
+              <button
+                onClick={() => sendVerificationMutation.mutate()}
+                disabled={sendVerificationMutation.isPending}
+                style={{
+                  padding: '8px 18px', background: 'rgba(251,191,36,0.15)',
+                  border: '1px solid rgba(251,191,36,0.3)', borderRadius: 8,
+                  color: '#fbbf24', fontSize: 13, fontWeight: 500, cursor: 'pointer',
+                  fontFamily: "'Inter',sans-serif", whiteSpace: 'nowrap'
+                }}>
+                <FiMail size={13} style={{ display: 'inline', marginRight: 6 }} />
+                {sendVerificationMutation.isPending ? 'Sending...' : 'Send verification email'}
+              </button>
+            </div>
+          )}
 
           {/* Tabs */}
           <div style={{ display: 'flex', gap: 4, borderBottom: '1px solid rgba(255,255,255,0.06)', marginBottom: 32 }}>
