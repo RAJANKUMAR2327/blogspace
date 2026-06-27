@@ -3,6 +3,9 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+@media (max-width: 768px) {
+  body { padding-bottom: 70px; }
+}
 
 /* ============================================================
    DESIGN TOKENS

@@ -163,6 +163,16 @@ export default function SingleBlog() {
           .sb-meta-right { font-size: 12px; gap: 12px; }
           .sb-content-wrap { padding-left: 16px !important; padding-right: 16px !important; }
         }
+          @media (max-width: 900px) {
+          .single-blog-grid { grid-template-columns: 1fr !important; }
+          @media (max-width: 900px) {
+  .single-blog-sidebar {
+    position: static !important;
+    order: -1;
+    margin-bottom: 24px;
+  }
+}
+}
       `}</style>
 
       {/* Hero Image */}

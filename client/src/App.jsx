@@ -1,5 +1,10 @@
 import { Routes, Route } from 'react-router-dom'
 import { Suspense, lazy } from 'react'
+import BottomNav from './components/common/BottomNav'
+import OfflineBanner from './components/common/OfflineBanner'
+import InstallPrompt from './components/common/InstallPrompt'
+
+
 
 // Components (keep these eager — needed immediately on every page)
 import Navbar from './components/common/Navbar'
@@ -22,7 +27,7 @@ const AuthCallback     = lazy(() => import('./pages/AuthCallback'))
 const VerifyEmail      = lazy(() => import('./pages/VerifyEmail'))
 const AuthorDashboard  = lazy(() => import('./pages/AuthorDashboard'))
 const AuthorPage       = lazy(() => import('./pages/AuthorPage'))
-const AuditLogs = lazy(() => import('./pages/admin/AuditLogs'))
+const AuditLogs        = lazy(() => import('./pages/admin/AuditLogs'))
 
 // Admin pages (lazy-loaded — zero bundle cost for regular users)
 const Dashboard        = lazy(() => import('./pages/admin/Dashboard'))
@@ -36,6 +41,9 @@ function App() {
   return (
     <div style={{ background: '#080810', minHeight: '100vh' }}>
       <Navbar />
+      <BottomNav />
+      <OfflineBanner />
+      <InstallPrompt />
       <main>
         <Suspense fallback={<PageLoader />}>
           <Routes>
