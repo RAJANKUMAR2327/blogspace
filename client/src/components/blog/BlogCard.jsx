@@ -96,6 +96,7 @@ export default function BlogCard({ blog }) {
           font-size:10px;font-weight:700;color:var(--text-on-accent);flex-shrink:0;
         }
         .bc-author-name { font-size:12px;color:var(--text-tertiary); }
+        .bc-author-name:hover { color: var(--accent); }
         .bc-stats { display:flex;align-items:center;gap:10px; }
         .bc-stat { display:flex;align-items:center;gap:3px;font-size:11px;color:var(--text-tertiary); }
       `}</style>
@@ -153,7 +154,10 @@ export default function BlogCard({ blog }) {
               <div className="bc-avatar">
                 {blog.author?.name?.[0] || 'A'}
               </div>
-              <span className="bc-author-name">{blog.author?.name}</span>
+              {/* Wrapped Author Name in Link Component below */}
+              <Link to={`/author/${blog.author?._id}`} style={{ textDecoration: 'none' }}>
+                <span className="bc-author-name">{blog.author?.name}</span>
+              </Link>
             </div>
             <div className="bc-stats">
               <span className="bc-stat"><FiEye size={11} /> {blog.views || 0}</span>

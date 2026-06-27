@@ -5,9 +5,13 @@ const {
   toggleSaveBlog, getSavedBlogs,
   getHistory, addToHistory,
   followToggle, getPublicProfile,
+  getAuthorStats,
   getAllUsers, getStats,
   toggleBan, deleteUser
 } = require('../controllers/userController')
+
+// add this line among your named routes (before any /:id routes):
+router.get('/author-stats', protect, getAuthorStats)
 const { protect, adminOnly } = require('../middleware/auth')
 
 // IMPORTANT: specific named routes BEFORE /:id routes

@@ -65,11 +65,16 @@ function App() {
           <Route path="/admin/comments" element={
             <ProtectedRoute adminOnly><ManageComments /></ProtectedRoute>
           } />
+          <Route path="/author-dashboard" element={
+            <ProtectedRoute><AuthorDashboard /></ProtectedRoute>
+          } />
+          <Route path="/author/:id" element={<AuthorPage />} />
+          <Route path="/auth/callback" element={<AuthCallback />} />
+          <Route path="/verify-email/:token" element={<VerifyEmail />} />  
 
           {/* 404 */}
           <Route path="*" element={<NotFound />} />
-          <Route path="/auth/callback" element={<AuthCallback />} />
-          <Route path="/verify-email/:token" element={<VerifyEmail />} />
+          
         </Routes>
       </main>
       <Footer />

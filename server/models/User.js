@@ -26,6 +26,12 @@ const userSchema = new mongoose.Schema({
   savedBlogs:   [{ type: mongoose.Schema.Types.ObjectId, ref: 'Blog' }],
   following:    [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
   followers:    [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+  socialLinks: {
+    twitter:  { type: String, default: '' },
+    github:   { type: String, default: '' },
+    linkedin: { type: String, default: '' },
+    website:  { type: String, default: '' }
+  },
   isVerified:   { type: Boolean, default: false },
   googleId: { type: String },
   githubId: { type: String },

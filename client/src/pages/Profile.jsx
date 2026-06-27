@@ -23,11 +23,21 @@ export default function Profile() {
   const [activeTab, setActiveTab] = useState('saved')
   const [editing, setEditing] = useState(false)
   const [uploading, setUploading] = useState(false)
-  const [formData, setFormData] = useState({
+  
+  // Helper to generate the initial form state structure safely
+  const getInitialFormData = () => ({
     name: user?.name || '',
     bio: user?.bio || '',
-    profileImage: user?.profileImage || ''
+    profileImage: user?.profileImage || '',
+    socialLinks: {
+      twitter:  user?.socialLinks?.twitter  || '',
+      github:   user?.socialLinks?.github   || '',
+      linkedin: user?.socialLinks?.linkedin || '',
+      website:  user?.socialLinks?.website  || '',
+    }
   })
+
+  const [formData, setFormData] = useState(getInitialFormData())
 
   // Saved blogs
   const { data: savedBlogs, isLoading: savedLoading } = useQuery({
@@ -181,7 +191,7 @@ export default function Profile() {
                 </Link>
               )}
               {!editing ? (
-                <button onClick={() => { setEditing(true); setFormData({ name: user?.name || '', bio: user?.bio || '', profileImage: user?.profileImage || '' }) }}
+                <button onClick={() => { setEditing(true); setFormData(getInitialFormData()); }}
                   style={{ display: 'inline-flex', alignItems: 'center', gap: 7, padding: '9px 18px', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 10, color: 'rgba(255,255,255,0.6)', fontSize: 13, fontWeight: 500, cursor: 'pointer', fontFamily: "'Inter',sans-serif", transition: 'all 0.2s' }}>
                   <FiEdit2 size={13} /> Edit Profile
                 </button>
@@ -403,6 +413,29 @@ export default function Profile() {
                       placeholder="Tell the world about yourself..."
                       rows={3} style={{ resize: 'none' }} maxLength={200} />
                   </div>
+                  
+                  {/* Your New Added Social Links Block */}
+                  <div>
+                    <label style={{ fontSize: 12, color: 'rgba(255,255,255,0.35)', display: 'block', marginBottom: 6, letterSpacing: '0.5px' }}>
+                      Social Links
+                    </label>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                      {['twitter', 'github', 'linkedin', 'website'].map(platform => (
+                        <input
+                          key={platform}
+                          className="profile-input"
+                          type="url"
+                          placeholder={`${platform.charAt(0).toUpperCase() + platform.slice(1)} URL`}
+                          value={formData.socialLinks[platform]}
+                          onChange={(e) => setFormData(p => ({
+                            ...p,
+                            socialLinks: { ...p.socialLinks, [platform]: e.target.value }
+                          }))}
+                        />
+                      ))}
+                    </div>
+                  </div>
+
                   <div>
                     <label style={{ fontSize: 12, color: 'rgba(255,255,255,0.35)', display: 'block', marginBottom: 6, letterSpacing: '0.5px' }}>Profile Image URL</label>
                     <input className="profile-input" type="url" value={formData.profileImage}

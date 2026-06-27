@@ -63,15 +63,16 @@ export const commentAPI = {
 
 // ── Users ─────────────────────────────────────────────
 export const userAPI = {
-  getProfile:     ()     => API.get('/users/profile'),
-  updateProfile:  (data) => API.put('/users/profile', data),
-  toggleSave:     (blogId) => API.post(`/users/save/${blogId}`),
-  getSaved:       ()     => API.get('/users/saved'),
-  follow:         (id)   => API.post(`/users/${id}/follow`),
-  getPublicProfile: (id) => API.get(`/users/${id}/profile`),
-  getAllUsers:     ()     => API.get('/users'),
-  toggleBan:      (id)   => API.put(`/users/${id}/ban`),
-  deleteUser:     (id)   => API.delete(`/users/${id}`),
+  getProfile:       ()     => API.get('/users/profile'),
+  updateProfile:    (data) => API.put('/users/profile', data),
+  toggleSave:       (blogId) => API.post(`/users/save/${blogId}`),
+  getSaved:         ()     => API.get('/users/saved'),
+  follow:           (id)   => API.post(`/users/${id}/follow`),
+  getPublicProfile: (id)   => API.get(`/users/${id}/profile`),
+  getAuthorStats:   ()     => API.get('/users/author-stats'),
+  getAllUsers:      ()     => API.get('/users'),
+  toggleBan:        (id)   => API.put(`/users/${id}/ban`),
+  deleteUser:       (id)   => API.delete(`/users/${id}`),
 }
 
 // ── Notifications ───────────────────────────────────────

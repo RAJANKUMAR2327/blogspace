@@ -9,9 +9,12 @@ exports.getProfile = async (req, res) => {
 // @PUT /api/users/profile
 exports.updateProfile = async (req, res, next) => {
   try {
-    const { name, bio, profileImage } = req.body
+    const { name, bio, profileImage, socialLinks } = req.body
+    const updateData = { name, bio, profileImage }
+    if (socialLinks) updateData.socialLinks = socialLinks
+
     const user = await User.findByIdAndUpdate(
-      req.user._id, { name, bio, profileImage }, { new: true, runValidators: true }
+      req.user._id, updateData, { new: true, runValidators: true }
     )
     res.json({ success: true, user })
   } catch (error) { next(error) }
@@ -97,11 +100,30 @@ exports.followToggle = async (req, res, next) => {
 // @GET /api/users/:id/profile
 exports.getPublicProfile = async (req, res, next) => {
   try {
-    const user = await User.findById(req.params.id).select('-password')
+    const Blog = require('../models/Blog')
+    const user = await User.findById(req.params.id).select('-password -email')
     if (!user) return res.status(404).json({ message: 'User not found' })
+
     const blogs = await Blog.find({ author: req.params.id, status: 'published' })
-      .sort({ createdAt: -1 }).limit(10)
-    res.json({ success: true, user, blogs })
+      .sort({ createdAt: -1 })
+      .limit(12)
+
+    const totalViews = await Blog.aggregate([
+      { $match: { author: user._id, status: 'published' } },
+      { $group: { _id: null, total: { $sum: '$views' } } }
+    ])
+
+    res.json({
+      success: true,
+      user,
+      blogs,
+      stats: {
+        articleCount: blogs.length,
+        totalViews: totalViews[0]?.total || 0,
+        followersCount: user.followers?.length || 0,
+        followingCount: user.following?.length || 0
+      }
+    })
   } catch (error) { next(error) }
 }
 
@@ -160,5 +182,48 @@ exports.deleteUser = async (req, res, next) => {
   try {
     await User.findByIdAndDelete(req.params.id)
     res.json({ success: true, message: 'User deleted' })
+  } catch (error) { next(error) }
+}
+
+// @GET /api/users/author-stats — stats for the logged-in author
+exports.getAuthorStats = async (req, res, next) => {
+  try {
+    const Blog = require('../models/Blog')
+    const Comment = require('../models/Comment')
+
+    const blogs = await Blog.find({ author: req.user._id })
+
+    const totalViews     = blogs.reduce((sum, b) => sum + (b.views || 0), 0)
+    const totalLikes     = blogs.reduce((sum, b) => sum + (b.likes?.length || 0), 0)
+    const publishedCount = blogs.filter(b => b.status === 'published').length
+    const draftCount     = blogs.filter(b => b.status === 'draft').length
+
+    // Comment count across all this author's blogs
+    const blogIds = blogs.map(b => b._id)
+    const commentCount = await Comment.countDocuments({ blog: { $in: blogIds } })
+
+    // Top 5 performing articles by views
+    const topArticles = [...blogs]
+      .filter(b => b.status === 'published')
+      .sort((a, b) => b.views - a.views)
+      .slice(0, 5)
+      .map(b => ({
+        _id: b._id, title: b.title, slug: b.slug,
+        views: b.views, likes: b.likes?.length || 0, readTime: b.readTime
+      }))
+
+    res.json({
+      success: true,
+      stats: {
+        totalArticles: blogs.length,
+        publishedCount,
+        draftCount,
+        totalViews,
+        totalLikes,
+        commentCount,
+        followersCount: req.user.followers?.length || 0
+      },
+      topArticles
+    })
   } catch (error) { next(error) }
 }

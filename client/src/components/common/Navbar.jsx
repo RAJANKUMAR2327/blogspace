@@ -134,6 +134,9 @@ export default function Navbar() {
           {user?.role === 'admin' && (
             <Link to="/admin" className="bs-nav-link">Dashboard</Link>
           )}
+          {user && (
+            <Link to="/author-dashboard" className="bs-nav-link">My Stats</Link>
+          )}
         </div>
 
         <form onSubmit={handleSearch} className="bs-search-wrap">
@@ -198,6 +201,7 @@ export default function Navbar() {
           {user ? (
             <>
               <Link to="/profile" className="bs-mobile-link" onClick={() => setMenuOpen(false)}>Profile</Link>
+              <Link to="/author-dashboard" className="bs-mobile-link" onClick={() => setMenuOpen(false)}>My Stats</Link>
               {user.role === 'admin' && (
                 <Link to="/admin" className="bs-mobile-link" onClick={() => setMenuOpen(false)}>Dashboard</Link>
               )}
