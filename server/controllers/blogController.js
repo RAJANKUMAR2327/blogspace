@@ -204,3 +204,84 @@ exports.toggleLike = async (req, res, next) => {
     res.json({ success: true, likes: blog.likes.length, isLiked: !isLiked })
   } catch (error) { next(error) }
 }
+// @GET /api/blogs/:id/related
+exports.getRelatedBlogs = async (req, res, next) => {
+  try {
+    const currentBlog = await Blog.findById(req.params.id)
+    if (!currentBlog) return res.status(404).json({ message: 'Blog not found' })
+
+    // Find articles sharing category or tags, excluding the current one
+    const related = await Blog.find({
+      _id: { $ne: currentBlog._id },
+      status: 'published',
+      $or: [
+        { category: currentBlog.category },
+        { tags: { $in: currentBlog.tags } }
+      ]
+    })
+      .populate('author', 'name profileImage')
+      .sort({ views: -1 })
+      .limit(4)
+
+    // If not enough related articles found, pad with recent articles from same category
+    if (related.length < 4) {
+      const existingIds = related.map(b => b._id.toString())
+      existingIds.push(currentBlog._id.toString())
+
+      const fallback = await Blog.find({
+        _id: { $nin: existingIds },
+        status: 'published'
+      })
+        .populate('author', 'name profileImage')
+        .sort({ createdAt: -1 })
+        .limit(4 - related.length)
+
+      related.push(...fallback)
+    }
+
+    res.json({ success: true, blogs: related })
+  } catch (error) { next(error) }
+}
+
+// @GET /api/blogs/recommended — personalized for logged-in users
+exports.getRecommended = async (req, res, next) => {
+  try {
+    let categories = []
+    let excludeIds = []
+
+    if (req.user) {
+      // Base recommendations on user's liked/saved articles' categories
+      const User = require('../models/User')
+      const user = await User.findById(req.user._id).populate('savedBlogs', 'category')
+      const likedBlogs = await Blog.find({ likes: req.user._id }).select('category')
+
+      const categorySet = new Set()
+      user?.savedBlogs?.forEach(b => categorySet.add(b.category))
+      likedBlogs.forEach(b => categorySet.add(b.category))
+      categories = [...categorySet]
+
+      excludeIds = [
+        ...(user?.savedBlogs?.map(b => b._id.toString()) || []),
+        ...likedBlogs.map(b => b._id.toString())
+      ]
+    }
+
+    let query = { status: 'published', _id: { $nin: excludeIds } }
+    if (categories.length > 0) query.category = { $in: categories }
+
+    let blogs = await Blog.find(query)
+      .populate('author', 'name profileImage')
+      .sort({ views: -1, createdAt: -1 })
+      .limit(6)
+
+    // Fallback to trending if no personalization data yet
+    if (blogs.length === 0) {
+      blogs = await Blog.find({ status: 'published' })
+        .populate('author', 'name profileImage')
+        .sort({ views: -1 })
+        .limit(6)
+    }
+
+    res.json({ success: true, blogs })
+  } catch (error) { next(error) }
+}

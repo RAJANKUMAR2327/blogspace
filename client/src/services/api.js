@@ -37,19 +37,21 @@ export const authAPI = {
 
 // ── Blogs ─────────────────────────────────────────────
 export const blogAPI = {
-  getAll:        (params) => API.get('/blogs', { params }),
-  getBySlug:     (slug)   => API.get(`/blogs/${slug}`),
-  getTrending:   ()       => API.get('/blogs/trending'),
-  getFeatured:   ()       => API.get('/blogs/featured'),
-  getTrash:      ()       => API.get('/blogs/trash'),
-  create:        (data)   => API.post('/blogs', data),
-  update:        (id, data) => API.put(`/blogs/${id}`, data),
-  updateStatus:  (id, status) => API.put(`/blogs/${id}/status`, { status }),
-  toggleFeatured:(id)     => API.put(`/blogs/${id}/featured`),
-  restore:       (id)     => API.put(`/blogs/${id}/restore`),
-  permanentDelete:(id)    => API.delete(`/blogs/${id}/permanent`),
-  delete:        (id)     => API.delete(`/blogs/${id}`),
-  toggleLike:    (id)     => API.post(`/blogs/${id}/like`),
+  getAll:         (params) => API.get('/blogs', { params }),
+  getBySlug:      (slug)   => API.get(`/blogs/${slug}`),
+  getTrending:    ()       => API.get('/blogs/trending'),
+  getFeatured:    ()       => API.get('/blogs/featured'),
+  getRecommended: ()       => API.get('/blogs/recommended'),
+  getRelated:     (id)     => API.get(`/blogs/${id}/related`),
+  getTrash:       ()       => API.get('/blogs/trash'),
+  create:         (data)   => API.post('/blogs', data),
+  update:         (id, data) => API.put(`/blogs/${id}`, data),
+  updateStatus:   (id, status) => API.put(`/blogs/${id}/status`, { status }),
+  toggleFeatured: (id)     => API.put(`/blogs/${id}/featured`),
+  restore:        (id)     => API.put(`/blogs/${id}/restore`),
+  permanentDelete:(id)     => API.delete(`/blogs/${id}/permanent`),
+  delete:         (id)     => API.delete(`/blogs/${id}`),
+  toggleLike:     (id)     => API.post(`/blogs/${id}/like`),
 }
 
 // ── Comments ──────────────────────────────────────────

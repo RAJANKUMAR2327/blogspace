@@ -1,19 +1,21 @@
 const express = require('express')
 const router = express.Router()
 const {
-  getBlogs, getTrending, getFeatured, getBlogBySlug,
+  getBlogs, getTrending, getFeatured, getRecommended, getBlogBySlug, getRelatedBlogs,
   createBlog, updateBlog, updateStatus, toggleFeatured,
   deleteBlog, restoreBlog, permanentDeleteBlog, getTrash,
   toggleLike
 } = require('../controllers/blogController')
-const { protect, adminOnly } = require('../middleware/auth')
+const { protect, adminOnly, optionalAuth } = require('../middleware/auth')
 
 // IMPORTANT: specific named routes BEFORE /:slug
-router.get('/trending', getTrending)
-router.get('/featured', getFeatured)
-router.get('/trash',    protect, adminOnly, getTrash)
-router.get('/',         getBlogs)
-router.get('/:slug',    getBlogBySlug)
+router.get('/trending',      getTrending)
+router.get('/featured',      getFeatured)
+router.get('/recommended',   optionalAuth, getRecommended)
+router.get('/trash',         protect, adminOnly, getTrash)
+router.get('/',              getBlogs)
+router.get('/:id/related',   getRelatedBlogs)
+router.get('/:slug',         getBlogBySlug)
 
 router.post('/',                     protect, adminOnly, createBlog)
 router.put('/:id',                   protect, updateBlog)

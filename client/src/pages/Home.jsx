@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { blogAPI } from '../services/api'
+import RecommendedArticles from '../components/blog/RecommendedArticles'
 
 const CATEGORIES = [
   { name: 'Technology',  emoji: '💻', var: '--cat-technology' },
@@ -503,6 +504,7 @@ export default function Home() {
           </div>
         </div>
       </section>
+      <RecommendedArticles />
 
       
     </div>

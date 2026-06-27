@@ -7,6 +7,7 @@ import { ThemeProvider } from './context/ThemeContext'
 import { AuthProvider } from './context/AuthContext'
 import './index.css'
 import App from './App.jsx'
+import './styles/print.css'
 
 const queryClient = new QueryClient({
   defaultOptions: {

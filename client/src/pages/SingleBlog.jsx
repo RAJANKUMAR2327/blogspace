@@ -1,3 +1,7 @@
+import { useState } from 'react'
+import ReadingProgressBar from '../components/blog/ReadingProgressBar'
+import TableOfContents from '../components/blog/TableOfContents'
+import ReadingControls from '../components/blog/ReadingControls'
 import { useContext } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
@@ -8,11 +12,16 @@ import { FiHeart, FiEye, FiClock, FiShare2, FiArrowLeft, FiMessageSquare } from 
 import { formatDistanceToNow } from 'date-fns'
 import NestedComments from '../components/blog/NestedComments'
 import FollowButton from '../components/common/FollowButton'
+// Ensure you import RelatedArticles if it's external:
+// import RelatedArticles from '../components/blog/RelatedArticles'
+
 
 export default function SingleBlog() {
   const { slug } = useParams()
   const { user } = useContext(AuthContext)
   const queryClient = useQueryClient()
+
+  const [fontSize, setFontSize] = useState(17)
 
   const { data: blog, isLoading } = useQuery({
     queryKey: ['blog', slug],
@@ -40,9 +49,10 @@ export default function SingleBlog() {
     navigator.clipboard.writeText(window.location.href)
     toast.success('Link copied!')
   }
-
+  
   const isLiked = user && blog?.likes?.includes(user._id)
   const isFollowing = user && blog?.author?.followers?.includes(user._id)
+  
 
   if (isLoading) return (
     <div style={{ background: 'var(--bg-page)', minHeight: '100vh', paddingTop: 64 }}>
@@ -64,6 +74,8 @@ export default function SingleBlog() {
 
   return (
     <div style={{ background: 'var(--bg-page)', minHeight: '100vh', paddingTop: 64, fontFamily: 'var(--font-ui)' }}>
+      <ReadingProgressBar />
+
       <style>{`
         .action-btn {
           display:inline-flex; align-items:center; gap:8px;
@@ -87,8 +99,13 @@ export default function SingleBlog() {
         }
         .sb-author-left { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
         .sb-meta-right { display: flex; align-items: center; gap: 16px; font-size: 13px; color: var(--text-tertiary); }
-        .sb-content-wrap { max-width: 760px; margin: 0 auto; position: relative; }
+        .sb-content-wrap { max-width: 1100px; margin: 0 auto; position: relative; }
         .sb-hero-img { width: 100%; height: 420px; position: relative; overflow: hidden; }
+        
+        @media (max-width: 900px) {
+          .single-blog-grid { grid-template-columns: 1fr !important; }
+        }
+
         @media (max-width: 600px) {
           .sb-hero-img { height: 240px; }
           .sb-author-row { flex-direction: column; align-items: flex-start; gap: 14px; }
@@ -114,72 +131,114 @@ export default function SingleBlog() {
           <FiArrowLeft /> Back to stories
         </Link>
 
-        {/* Category */}
-        <div style={{ marginBottom: 16 }}>
-          <span style={{ fontSize: 11, letterSpacing: '2px', textTransform: 'uppercase', color: 'var(--accent)', display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-            <span style={{ width: 12, height: 1, background: 'var(--accent)', display: 'inline-block' }} />
-            {blog.category}
-          </span>
-        </div>
-
-        {/* Title */}
-        <h1 style={{ fontFamily: 'var(--font-display)', fontSize: 'clamp(26px,6vw,48px)', fontWeight: 700, color: 'var(--text-primary)', lineHeight: 1.15, letterSpacing: '-1px', marginBottom: 24 }}>
-          {blog.title}
-        </h1>
-
-        {/* Author & Meta */}
-        <div className="sb-author-row">
-          <div className="sb-author-left">
-            <Link to={`/profile/${blog.author?._id}`} style={{ width: 44, height: 44, borderRadius: '50%', background: 'var(--accent)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 16, color: 'var(--text-on-accent)', flexShrink: 0, textDecoration: 'none' }}>
-              {blog.author?.name?.[0] || 'A'}
-            </Link>
-            <div>
-              <p style={{ fontSize: 15, fontWeight: 500, color: 'var(--text-primary)', marginBottom: 2 }}>{blog.author?.name}</p>
-              <p style={{ fontSize: 12, color: 'var(--text-tertiary)' }}>
-                {formatDistanceToNow(new Date(blog.createdAt), { addSuffix: true })}
-              </p>
+        {/* Grid Layout Wrapper */}
+        <div className="single-blog-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 220px', gap: 40, alignItems: 'start' }}>
+          
+          {/* Main Column */}
+          <div>
+            {/* Category */}
+            <div style={{ marginBottom: 16 }}>
+              <span style={{ fontSize: 11, letterSpacing: '2px', textTransform: 'uppercase', color: 'var(--accent)', display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                <span style={{ width: 12, height: 1, background: 'var(--accent)', display: 'inline-block' }} />
+                {blog.category}
+              </span>
             </div>
-            {blog.author?._id && (
-              <FollowButton userId={blog.author._id} isFollowing={isFollowing} />
+
+            {/* Title */}
+            <h1 style={{ fontFamily: 'var(--font-display)', fontSize: 'clamp(26px,6vw,48px)', fontWeight: 700, color: 'var(--text-primary)', lineHeight: 1.15, letterSpacing: '-1px', marginBottom: 24 }}>
+              {blog.title}
+            </h1>
+
+            {/* Author & Meta */}
+            <div className="sb-author-row">
+              <div className="sb-author-left">
+                <Link to={`/profile/${blog.author?._id}`} style={{ width: 44, height: 44, borderRadius: '50%', background: 'var(--accent)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 16, color: 'var(--text-on-accent)', flexShrink: 0, textDecoration: 'none' }}>
+                  {blog.author?.name?.[0] || 'A'}
+                </Link>
+                <div>
+                  <p style={{ fontSize: 15, fontWeight: 500, color: 'var(--text-primary)', marginBottom: 2 }}>{blog.author?.name}</p>
+                  <p style={{ fontSize: 12, color: 'var(--text-tertiary)' }}>
+                    {formatDistanceToNow(new Date(blog.createdAt), { addSuffix: true })}
+                  </p>
+                </div>
+                {blog.author?._id && (
+                  <FollowButton userId={blog.author._id} isFollowing={isFollowing} />
+                )}
+              </div>
+              <div className="sb-meta-right">
+                <span style={{ display: 'flex', alignItems: 'center', gap: 5 }}><FiEye size={13} /> {blog.views || 0}</span>
+                <span style={{ display: 'flex', alignItems: 'center', gap: 5 }}><FiClock size={13} /> {blog.readTime || 5} min read</span>
+                <span style={{ display: 'flex', alignItems: 'center', gap: 5 }}><FiMessageSquare size={13} /> {comments?.length || 0}</span>
+              </div>
+            </div>
+
+            {/* Content Display (Heading-counter processing version) */}
+            {(() => {  
+              let headingCounter = 0  
+              const processedContent = blog.content    
+                ?.split('\n')    
+                .map(line => {      
+                  const mdMatch = line.match(/^(#{1,3})\s+(.+)/)      
+                  if (mdMatch) {        
+                    const id = `heading-${headingCounter}-${mdMatch[2].trim().toLowerCase().replace(/[^a-z0-9]+/g, '-')}`        
+                    headingCounter++        
+                    const level = mdMatch[1].length        
+                    return `<h${level} id="${id}">${mdMatch[2]}</h${level}>`      
+                  }      
+                  return line    
+                })    
+                .join('\n')    
+                .replace(/\n/g, '<br/>')  
+              return (    
+                <div      
+                  className="prose"      
+                  style={{ marginBottom: 48, lineHeight: 1.85, fontSize: fontSize, color: 'rgba(255,255,255,0.7)', fontWeight: 300, transition: 'font-size 0.2s' }}      
+                  dangerouslySetInnerHTML={{ __html: processedContent }}    
+                />  
+              )
+            })()}
+
+            {/* Tags */}
+            {blog.tags?.length > 0 && (
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 40 }}>
+                {blog.tags.map(tag => <span key={tag} className="tag-chip">#{tag}</span>)}
+              </div>
             )}
+
+            {/* Action Buttons */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '24px 0', borderTop: '1px solid var(--border-soft)', borderBottom: '1px solid var(--border-soft)', marginBottom: 48, flexWrap: 'wrap' }}>
+              <button onClick={() => user ? likeMutation.mutate() : toast.error('Sign in to like')}
+                className={`action-btn ${isLiked ? 'liked' : ''}`}>
+                <FiHeart style={{ fill: isLiked ? 'currentColor' : 'none' }} />
+                {blog.likes?.length || 0} {blog.likes?.length === 1 ? 'Like' : 'Likes'}
+              </button>
+              <button onClick={handleShare} className="action-btn">
+                <FiShare2 /> Share
+              </button>
+              {user?.role === 'admin' && (
+                <Link to={`/admin/edit/${blog._id}`} style={{ marginLeft: 'auto', display: 'inline-flex', alignItems: 'center', gap: 8, padding: '10px 20px', borderRadius: 'var(--radius-md)', fontSize: 14, fontWeight: 500, background: 'var(--accent-soft)', border: '1px solid var(--accent)', color: 'var(--accent-strong)', textDecoration: 'none', transition: 'all 0.2s' }}>
+                  Edit Story
+                </Link>
+              )}
+            </div>
+
+            {/* Comments Section */}
+            <NestedComments comments={comments} blogId={blog._id} user={user} />
+
+            {/* Related Articles — Added right here before the main content column closes */}
+            <div style={{ marginTop: 56, paddingTop: 40, borderTop: '1px solid rgba(255,255,255,0.06)' }}>  
+              <RelatedArticles blogId={blog._id} />
+            </div>
+
+          </div> {/* /Main Column */}
+
+          {/* Sidebar Column */}
+          <div style={{ position: 'sticky', top: 90, display: 'flex', flexDirection: 'column', gap: 16 }}>    
+            <ReadingControls fontSize={fontSize} setFontSize={setFontSize} />    
+            <TableOfContents content={blog.content} />  
           </div>
-          <div className="sb-meta-right">
-            <span style={{ display: 'flex', alignItems: 'center', gap: 5 }}><FiEye size={13} /> {blog.views || 0}</span>
-            <span style={{ display: 'flex', alignItems: 'center', gap: 5 }}><FiClock size={13} /> {blog.readTime || 5} min read</span>
-            <span style={{ display: 'flex', alignItems: 'center', gap: 5 }}><FiMessageSquare size={13} /> {comments?.length || 0}</span>
-          </div>
-        </div>
 
-        {/* Content */}
-        <div className="prose" style={{ marginBottom: 48, lineHeight: 1.85, fontSize: 17, color: 'var(--text-secondary)', fontWeight: 400 }}
-          dangerouslySetInnerHTML={{ __html: blog.content?.replace(/\n/g, '<br/>') }} />
-
-        {/* Tags */}
-        {blog.tags?.length > 0 && (
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 40 }}>
-            {blog.tags.map(tag => <span key={tag} className="tag-chip">#{tag}</span>)}
-          </div>
-        )}
-
-        {/* Action Buttons */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '24px 0', borderTop: '1px solid var(--border-soft)', borderBottom: '1px solid var(--border-soft)', marginBottom: 48, flexWrap: 'wrap' }}>
-          <button onClick={() => user ? likeMutation.mutate() : toast.error('Sign in to like')}
-            className={`action-btn ${isLiked ? 'liked' : ''}`}>
-            <FiHeart style={{ fill: isLiked ? 'currentColor' : 'none' }} />
-            {blog.likes?.length || 0} {blog.likes?.length === 1 ? 'Like' : 'Likes'}
-          </button>
-          <button onClick={handleShare} className="action-btn">
-            <FiShare2 /> Share
-          </button>
-          {user?.role === 'admin' && (
-            <Link to={`/admin/edit/${blog._id}`} style={{ marginLeft: 'auto', display: 'inline-flex', alignItems: 'center', gap: 8, padding: '10px 20px', borderRadius: 'var(--radius-md)', fontSize: 14, fontWeight: 500, background: 'var(--accent-soft)', border: '1px solid var(--accent)', color: 'var(--accent-strong)', textDecoration: 'none', transition: 'all 0.2s' }}>
-              Edit Story
-            </Link>
-          )}
-        </div>
-
-        {/* Comments Section */}
-        <NestedComments comments={comments} blogId={blog._id} user={user} />
+        </div> {/* /Grid layout wrapper */}
       </div>
     </div>
   )
