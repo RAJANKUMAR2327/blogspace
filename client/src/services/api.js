@@ -78,11 +78,16 @@ export const userAPI = {
 }
 
 // ── Notifications ───────────────────────────────────────
-export const notificationAPI = {
-  getAll:        ()  => API.get('/notifications'),
-  getUnreadCount: () => API.get('/notifications/unread'),
-  markAllRead:    () => API.put('/notifications/mark-read'),
-  delete:        (id) => API.delete(`/notifications/${id}`),
+export const commentAPI = {
+  getAll:        (blogId) => API.get(`/comments/${blogId}`),
+  add:           (blogId, data) => API.post(`/comments/${blogId}`, data),
+  edit:          (id, content) => API.put(`/comments/${id}`, { content }),
+  delete:        (id)     => API.delete(`/comments/${id}`),
+  toggleLike:    (id)     => API.post(`/comments/${id}/like`),
+  flag:          (id, reason) => API.post(`/comments/${id}/flag`, { reason }),
+  getAllAdmin:   (filter) => API.get('/comments/admin/all', { params: { filter } }),
+  approve:       (id)     => API.put(`/comments/${id}/approve`),
+  reject:        (id)     => API.put(`/comments/${id}/reject`),
 }
 
 // ── Upload ────────────────────────────────────────────
