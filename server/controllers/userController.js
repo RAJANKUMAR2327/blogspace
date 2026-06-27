@@ -138,16 +138,27 @@ exports.getAllUsers = async (req, res, next) => {
 }
 
 // @GET /api/users/stats
+// @GET /api/users/stats — full platform analytics (admin)
 exports.getStats = async (req, res, next) => {
   try {
+    const Blog = require('../models/Blog')
     const Comment = require('../models/Comment')
 
-    const [totalUsers, totalBlogs, totalComments, publishedBlogs, draftBlogs] = await Promise.all([
+    const [totalUsers, totalBlogs, totalComments, publishedBlogs, draftBlogs, bannedUsers] = await Promise.all([
       User.countDocuments(),
       Blog.countDocuments(),
       Comment.countDocuments(),
       Blog.countDocuments({ status: 'published' }),
       Blog.countDocuments({ status: 'draft' }),
+      User.countDocuments({ isBanned: true }),
+    ])
+
+    const totalViewsAgg = await Blog.aggregate([
+      { $group: { _id: null, total: { $sum: '$views' } } }
+    ])
+    const totalLikesAgg = await Blog.aggregate([
+      { $project: { likeCount: { $size: { $ifNull: ['$likes', []] } } } },
+      { $group: { _id: null, total: { $sum: '$likeCount' } } }
     ])
 
     const topBlogs = await Blog.find({ status: 'published' })
@@ -158,10 +169,66 @@ exports.getStats = async (req, res, next) => {
       .sort('-createdAt').limit(5)
       .select('name email role createdAt')
 
+    // ── Growth data — last 30 days, grouped by day ──────────
+    const thirtyDaysAgo = new Date()
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
+
+    const userGrowth = await User.aggregate([
+      { $match: { createdAt: { $gte: thirtyDaysAgo } } },
+      { $group: {
+          _id: { $dateToString: { format: '%Y-%m-%d', date: '$createdAt' } },
+          count: { $sum: 1 }
+        }
+      },
+      { $sort: { _id: 1 } }
+    ])
+
+    const articleGrowth = await Blog.aggregate([
+      { $match: { createdAt: { $gte: thirtyDaysAgo } } },
+      { $group: {
+          _id: { $dateToString: { format: '%Y-%m-%d', date: '$createdAt' } },
+          count: { $sum: 1 }
+        }
+      },
+      { $sort: { _id: 1 } }
+    ])
+
+    // Build a complete 30-day series (fill in zero days so the chart doesn't have gaps)
+    const buildSeries = (data) => {
+      const map = {}
+      data.forEach(d => { map[d._id] = d.count })
+      const series = []
+      for (let i = 29; i >= 0; i--) {
+        const date = new Date()
+        date.setDate(date.getDate() - i)
+        const key = date.toISOString().split('T')[0]
+        series.push({ date: key, count: map[key] || 0 })
+      }
+      return series
+    }
+
+    // Category distribution
+    const categoryDistribution = await Blog.aggregate([
+      { $match: { status: 'published' } },
+      { $group: { _id: '$category', count: { $sum: 1 } } },
+      { $sort: { count: -1 } }
+    ])
+
     res.json({
       success: true,
-      stats: { totalUsers, totalBlogs, totalComments, publishedBlogs, draftBlogs },
-      topBlogs, recentUsers
+      stats: {
+        totalUsers, totalBlogs, totalComments,
+        publishedBlogs, draftBlogs, bannedUsers,
+        totalViews: totalViewsAgg[0]?.total || 0,
+        totalLikes: totalLikesAgg[0]?.total || 0,
+      },
+      topBlogs,
+      recentUsers,
+      growth: {
+        users: buildSeries(userGrowth),
+        articles: buildSeries(articleGrowth)
+      },
+      categoryDistribution: categoryDistribution.map(c => ({ name: c._id, value: c.count }))
     })
   } catch (error) { next(error) }
 }

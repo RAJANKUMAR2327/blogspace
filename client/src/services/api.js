@@ -99,6 +99,10 @@ export const uploadAPI = {
     headers: { 'Content-Type': 'multipart/form-data' }
   }),
 }
+export const userAPI = {
+  // ...your existing methods
+  getStats: () => API.get('/users/stats'),
+}
 
 // ── Newsletter ────────────────────────────────────────
 export const newsletterAPI = {
