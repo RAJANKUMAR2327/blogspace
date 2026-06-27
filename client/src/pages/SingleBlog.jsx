@@ -1,20 +1,21 @@
-import { useState } from 'react'
+import { useState, useContext, useEffect } from 'react'
+import { useParams, Link } from 'react-router-dom'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import toast from 'react-hot-toast'
+import { formatDistanceToNow } from 'date-fns'
+import { FiHeart, FiEye, FiClock, FiShare2, FiArrowLeft, FiMessageSquare } from 'react-icons/fi'
+
+// Services & Context
+import { blogAPI, commentAPI, userAPI } from '../services/api'
+import { AuthContext } from '../context/AuthContext'
+
+// Components
 import ReadingProgressBar from '../components/blog/ReadingProgressBar'
 import TableOfContents from '../components/blog/TableOfContents'
 import ReadingControls from '../components/blog/ReadingControls'
-import { useContext } from 'react'
-import { useParams, Link } from 'react-router-dom'
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { blogAPI, commentAPI } from '../services/api'
-import { AuthContext } from '../context/AuthContext'
-import toast from 'react-hot-toast'
-import { FiHeart, FiEye, FiClock, FiShare2, FiArrowLeft, FiMessageSquare } from 'react-icons/fi'
-import { formatDistanceToNow } from 'date-fns'
 import NestedComments from '../components/blog/NestedComments'
 import FollowButton from '../components/common/FollowButton'
-// Ensure you import RelatedArticles if it's external:
-// import RelatedArticles from '../components/blog/RelatedArticles'
-
+import RelatedArticles from '../components/blog/RelatedArticles' // Un-commented and imported
 
 export default function SingleBlog() {
   const { slug } = useParams()
@@ -23,6 +24,7 @@ export default function SingleBlog() {
 
   const [fontSize, setFontSize] = useState(17)
 
+  // Fetch Blog Data
   const { data: blog, isLoading } = useQuery({
     queryKey: ['blog', slug],
     queryFn: async () => {
@@ -31,6 +33,7 @@ export default function SingleBlog() {
     }
   })
 
+  // Fetch Comments
   const { data: comments } = useQuery({
     queryKey: ['comments', blog?._id],
     queryFn: async () => {
@@ -40,6 +43,14 @@ export default function SingleBlog() {
     enabled: !!blog?._id
   })
 
+  // Track Reading History (Moved correctly inside the component body)
+  useEffect(() => {
+    if (blog?._id && user) {
+      userAPI.addToHistory(blog._id).catch(() => {}) // silent fail, non-critical
+    }
+  }, [blog?._id, user])
+
+  // Like Mutation
   const likeMutation = useMutation({
     mutationFn: () => blogAPI.toggleLike(blog._id),
     onSuccess: () => queryClient.invalidateQueries(['blog', slug])
@@ -52,8 +63,8 @@ export default function SingleBlog() {
   
   const isLiked = user && blog?.likes?.includes(user._id)
   const isFollowing = user && blog?.author?.followers?.includes(user._id)
-  
 
+  // Loading State
   if (isLoading) return (
     <div style={{ background: 'var(--bg-page)', minHeight: '100vh', paddingTop: 64 }}>
       <div style={{ maxWidth: 760, margin: '0 auto', padding: '60px 24px' }}>
@@ -64,6 +75,7 @@ export default function SingleBlog() {
     </div>
   )
 
+  // Not Found State
   if (!blog) return (
     <div style={{ background: 'var(--bg-page)', minHeight: '100vh', paddingTop: 64, display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: 16 }}>
       <div style={{ fontSize: 64 }}>📭</div>
@@ -124,7 +136,7 @@ export default function SingleBlog() {
 
       <div className="sb-content-wrap" style={{ padding: blog.image ? '0 24px 80px' : '60px 24px 80px', marginTop: blog.image ? -120 : 0 }}>
 
-        {/* Back */}
+        {/* Back Button */}
         <Link to="/blogs" style={{ display: 'inline-flex', alignItems: 'center', gap: 8, fontSize: 13, color: 'var(--text-tertiary)', textDecoration: 'none', marginBottom: 32, transition: 'color 0.2s' }}
           onMouseEnter={e => e.currentTarget.style.color = 'var(--accent)'}
           onMouseLeave={e => e.currentTarget.style.color = 'var(--text-tertiary)'}>
@@ -172,9 +184,9 @@ export default function SingleBlog() {
               </div>
             </div>
 
-            {/* Content Display (Heading-counter processing version) */}
+            {/* Content Display */}
             {(() => {  
-              let headingCounter = 0  
+              let headingCounter = 0 
               const processedContent = blog.content    
                 ?.split('\n')    
                 .map(line => {      
@@ -225,7 +237,7 @@ export default function SingleBlog() {
             {/* Comments Section */}
             <NestedComments comments={comments} blogId={blog._id} user={user} />
 
-            {/* Related Articles — Added right here before the main content column closes */}
+            {/* Related Articles */}
             <div style={{ marginTop: 56, paddingTop: 40, borderTop: '1px solid rgba(255,255,255,0.06)' }}>  
               <RelatedArticles blogId={blog._id} />
             </div>

@@ -1,83 +1,80 @@
 import { useState, useRef, useEffect } from 'react'
-import { Link } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { FiBell, FiHeart, FiMessageSquare, FiUserPlus, FiCornerUpRight } from 'react-icons/fi'
+import { Link } from 'react-router-dom'
+import { FiBell, FiHeart, FiMessageSquare, FiUserPlus, FiCornerDownRight, FiCheck, FiX } from 'react-icons/fi'
 import { formatDistanceToNow } from 'date-fns'
-import { notificationAPI } from '../../services/api'
+import axios from '../../services/api'
 
-const ICONS = {
+const notificationAPI = {
+  getAll:      ()   => axios.default.get('/notifications'),
+  markRead:    (id) => axios.default.put(`/notifications/${id}/read`),
+  markAllRead: ()   => axios.default.put('/notifications/read-all'),
+  remove:      (id) => axios.default.delete(`/notifications/${id}`),
+}
+
+const ICON_MAP = {
   like:    { icon: FiHeart,         color: '#f472b6' },
   comment: { icon: FiMessageSquare, color: '#60a5fa' },
   follow:  { icon: FiUserPlus,      color: '#34d399' },
-  reply:   { icon: FiCornerUpRight, color: '#a78bfa' },
-  clap:    { icon: FiHeart,         color: '#fbbf24' },
+  reply:   { icon: FiCornerDownRight, color: '#a78bfa' },
 }
 
 export default function NotificationBell() {
   const [open, setOpen] = useState(false)
-  const wrapRef = useRef(null)
+  const ref = useRef(null)
   const queryClient = useQueryClient()
 
-  const { data: unreadData } = useQuery({
-    queryKey: ['notifUnread'],
-    queryFn: async () => (await notificationAPI.getUnreadCount()).data,
-    refetchInterval: 30000,
-  })
-
-  const { data: listData } = useQuery({
-    queryKey: ['notifList'],
-    queryFn: async () => (await notificationAPI.getAll()).data,
-    enabled: open,
+  const { data } = useQuery({
+    queryKey: ['notifications'],
+    queryFn: async () => {
+      const res = await notificationAPI.getAll()
+      return res.data
+    },
+    refetchInterval: 30000 // poll every 30s
   })
 
   const markReadMutation = useMutation({
-    mutationFn: () => notificationAPI.markAllRead(),
-    onSuccess: () => {
-      queryClient.invalidateQueries(['notifUnread'])
-      queryClient.invalidateQueries(['notifList'])
-    },
+    mutationFn: (id) => notificationAPI.markRead(id),
+    onSuccess: () => queryClient.invalidateQueries(['notifications'])
   })
 
-  const unreadCount = unreadData?.count || 0
-  const notifications = listData?.notifications || []
+  const markAllReadMutation = useMutation({
+    mutationFn: () => notificationAPI.markAllRead(),
+    onSuccess: () => queryClient.invalidateQueries(['notifications'])
+  })
+
+  const removeMutation = useMutation({
+    mutationFn: (id) => notificationAPI.remove(id),
+    onSuccess: () => queryClient.invalidateQueries(['notifications'])
+  })
 
   useEffect(() => {
     const handleClickOutside = (e) => {
-      if (wrapRef.current && !wrapRef.current.contains(e.target)) setOpen(false)
+      if (ref.current && !ref.current.contains(e.target)) setOpen(false)
     }
     document.addEventListener('mousedown', handleClickOutside)
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [])
 
-  const handleToggle = () => {
-    const next = !open
-    setOpen(next)
-    if (next && unreadCount > 0) markReadMutation.mutate()
-  }
+  const notifications = data?.notifications || []
+  const unreadCount = data?.unreadCount || 0
 
   return (
-    <div ref={wrapRef} style={{ position: 'relative' }}>
+    <div ref={ref} style={{ position: 'relative', fontFamily: "'Inter',sans-serif" }}>
       <button
-        onClick={handleToggle}
-        aria-label={unreadCount > 0 ? `Notifications, ${unreadCount} unread` : 'Notifications'}
+        onClick={() => setOpen(!open)}
         style={{
-          background: 'none', border: 'none', cursor: 'pointer',
-          color: open ? '#a78bfa' : 'rgba(255,255,255,0.5)', fontSize: 18,
-          display: 'flex', alignItems: 'center', padding: 4, position: 'relative',
-          transition: 'color 0.2s',
+          position: 'relative', background: 'none', border: 'none', cursor: 'pointer',
+          color: 'rgba(255,255,255,0.5)', fontSize: 18, display: 'flex', alignItems: 'center', padding: 4
         }}
-        onMouseEnter={e => { if (!open) e.currentTarget.style.color = '#a78bfa' }}
-        onMouseLeave={e => { if (!open) e.currentTarget.style.color = 'rgba(255,255,255,0.5)' }}
-      >
-        <FiBell />
+        onMouseEnter={e => e.currentTarget.style.color = '#a78bfa'}
+        onMouseLeave={e => e.currentTarget.style.color = unreadCount > 0 ? '#a78bfa' : 'rgba(255,255,255,0.5)'}>
+        <FiBell style={{ color: unreadCount > 0 ? '#a78bfa' : 'inherit' }} />
         {unreadCount > 0 && (
           <span style={{
-            position: 'absolute', top: -2, right: -2,
-            minWidth: 16, height: 16, padding: '0 4px',
-            borderRadius: 8, background: '#f87171',
-            color: '#fff', fontSize: 10, fontWeight: 700,
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            fontFamily: "'Inter',sans-serif", border: '2px solid #080810',
+            position: 'absolute', top: -2, right: -2, minWidth: 16, height: 16,
+            background: '#f472b6', borderRadius: 8, fontSize: 10, fontWeight: 700,
+            color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 4px'
           }}>
             {unreadCount > 9 ? '9+' : unreadCount}
           </span>
@@ -86,61 +83,67 @@ export default function NotificationBell() {
 
       {open && (
         <div style={{
-          position: 'absolute', top: 'calc(100% + 14px)', right: 0,
-          width: 340, maxHeight: 420, overflowY: 'auto',
+          position: 'absolute', top: '100%', right: 0, marginTop: 10,
+          width: 360, maxHeight: 480, overflowY: 'auto',
           background: '#0d0d1a', border: '1px solid rgba(255,255,255,0.08)',
-          borderRadius: 14, boxShadow: '0 16px 48px rgba(0,0,0,0.5)',
-          zIndex: 1100, fontFamily: "'Inter',sans-serif",
+          borderRadius: 14, boxShadow: '0 20px 48px rgba(0,0,0,0.6)', zIndex: 200
         }}>
-          <div style={{
-            padding: '14px 18px', borderBottom: '1px solid rgba(255,255,255,0.06)',
-            fontSize: 13, fontWeight: 600, color: '#fff', letterSpacing: '0.2px',
-          }}>
-            Notifications
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 18px', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+            <span style={{ fontSize: 14, fontWeight: 600, color: '#fff' }}>Notifications</span>
+            {unreadCount > 0 && (
+              <button onClick={() => markAllReadMutation.mutate()}
+                style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#a78bfa', fontSize: 12, fontFamily: "'Inter',sans-serif" }}>
+                Mark all read
+              </button>
+            )}
           </div>
 
           {notifications.length === 0 ? (
-            <div style={{ padding: '40px 20px', textAlign: 'center' }}>
-              <FiBell style={{ fontSize: 24, color: 'rgba(255,255,255,0.15)', marginBottom: 10 }} />
-              <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.3)' }}>No notifications yet</p>
+            <div style={{ textAlign: 'center', padding: '40px 20px' }}>
+              <FiBell size={32} style={{ color: 'rgba(255,255,255,0.1)', marginBottom: 12 }} />
+              <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.25)' }}>No notifications yet</p>
             </div>
           ) : (
-            notifications.map((n) => {
-              const { icon: Icon, color } = ICONS[n.type] || { icon: FiBell, color: '#a78bfa' }
-              const content = (
-                <div
-                  key={n._id}
+            notifications.map(n => {
+              const { icon: Icon, color } = ICON_MAP[n.type] || ICON_MAP.like
+              return (
+                <div key={n._id}
                   style={{
                     display: 'flex', gap: 12, padding: '14px 18px',
                     borderBottom: '1px solid rgba(255,255,255,0.04)',
-                    opacity: n.read ? 0.55 : 1, transition: 'background 0.15s',
-                  }}
-                  onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.02)'}
-                  onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
-                >
-                  <div style={{
-                    width: 32, height: 32, borderRadius: '50%', flexShrink: 0,
-                    background: `${color}1a`, display: 'flex', alignItems: 'center',
-                    justifyContent: 'center', color,
+                    background: n.isRead ? 'transparent' : 'rgba(167,139,250,0.04)',
+                    transition: 'background 0.2s'
                   }}>
-                    <Icon size={14} />
+                  <div style={{ width: 32, height: 32, borderRadius: '50%', background: color + '15', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                    <Icon size={14} style={{ color }} />
                   </div>
-                  <div style={{ minWidth: 0 }}>
-                    <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.8)', lineHeight: 1.4, marginBottom: 4 }}>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <Link
+                      to={n.blog ? `/blog/${n.blog.slug}` : '#'}
+                      onClick={() => { if (!n.isRead) markReadMutation.mutate(n._id); setOpen(false) }}
+                      style={{ fontSize: 13, color: 'rgba(255,255,255,0.7)', textDecoration: 'none', lineHeight: 1.4, display: 'block' }}>
                       {n.message}
-                    </p>
-                    <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.3)' }}>
+                    </Link>
+                    <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.25)', marginTop: 4 }}>
                       {formatDistanceToNow(new Date(n.createdAt), { addSuffix: true })}
                     </p>
                   </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 6, flexShrink: 0 }}>
+                    {!n.isRead && (
+                      <button onClick={() => markReadMutation.mutate(n._id)}
+                        style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(255,255,255,0.2)', display: 'flex' }}
+                        title="Mark as read">
+                        <FiCheck size={13} />
+                      </button>
+                    )}
+                    <button onClick={() => removeMutation.mutate(n._id)}
+                      style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(255,255,255,0.2)', display: 'flex' }}
+                      title="Remove">
+                      <FiX size={13} />
+                    </button>
+                  </div>
                 </div>
               )
-              return n.blog?.slug ? (
-                <Link key={n._id} to={`/blog/${n.blog.slug}`} onClick={() => setOpen(false)}
-                  style={{ textDecoration: 'none', display: 'block' }}>
-                  {content}
-                </Link>
-              ) : content
             })
           )}
         </div>

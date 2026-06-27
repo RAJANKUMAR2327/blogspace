@@ -113,6 +113,7 @@ export default function Navbar() {
           text-decoration: none; font-family: var(--font-display);
           font-weight: 600; transition: color 0.2s;
           padding: 8px 0; border-bottom: 1px solid var(--border-soft);
+          display: flex; align-items: center; justify-content: space-between;
         }
         .bs-mobile-link:hover { color: var(--accent); }
         .bs-right { display: flex; align-items: center; gap: 10px; }
@@ -127,6 +128,7 @@ export default function Navbar() {
       <nav className="bs-nav">
         <Link to="/" className="bs-logo">BlogSpace</Link>
 
+        {/* Desktop Links */}
         <div className="bs-nav-links">
           <Link to="/" className="bs-nav-link">Home</Link>
           <Link to="/blogs" className="bs-nav-link">Stories</Link>
@@ -139,6 +141,7 @@ export default function Navbar() {
           )}
         </div>
 
+        {/* Desktop Search */}
         <form onSubmit={handleSearch} className="bs-search-wrap">
           <FiSearch className="bs-search-icon" />
           <input
@@ -150,11 +153,13 @@ export default function Navbar() {
           />
         </form>
 
+        {/* Desktop Actions */}
         <div className="bs-right">
           <button onClick={toggleTheme} className="bs-theme-btn" aria-label="Toggle theme">
             {theme === 'dark' ? <FiSun /> : <FiMoon />}
           </button>
 
+          {/* Render notification bell for logged-in desktop users */}
           {user && <NotificationBell />}
 
           {user?.role === 'admin' && (
@@ -176,12 +181,14 @@ export default function Navbar() {
           <button
             className="bs-mobile-btn"
             onClick={() => setMenuOpen(!menuOpen)}
+            aria-label="Toggle menu"
           >
             {menuOpen ? <FiX /> : <FiMenu />}
           </button>
         </div>
       </nav>
 
+      {/* Mobile Drawer Overlay */}
       {menuOpen && (
         <div className="bs-mobile-menu">
           <form onSubmit={handleSearch} style={{ position: 'relative' }}>
@@ -195,11 +202,18 @@ export default function Navbar() {
               placeholder="Search stories..."
             />
           </form>
+          
           <Link to="/" className="bs-mobile-link" onClick={() => setMenuOpen(false)}>Home</Link>
           <Link to="/blogs" className="bs-mobile-link" onClick={() => setMenuOpen(false)}>Stories</Link>
           <Link to="/categories" className="bs-mobile-link" onClick={() => setMenuOpen(false)}>Topics</Link>
+          
           {user ? (
             <>
+              {/* Added notification support to mobile layout */}
+              <div className="bs-mobile-link" style={{ cursor: 'default' }}>
+                <span>Notifications</span>
+                <NotificationBell />
+              </div>
               <Link to="/profile" className="bs-mobile-link" onClick={() => setMenuOpen(false)}>Profile</Link>
               <Link to="/author-dashboard" className="bs-mobile-link" onClick={() => setMenuOpen(false)}>My Stats</Link>
               {user.role === 'admin' && (

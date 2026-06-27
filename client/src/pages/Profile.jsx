@@ -5,6 +5,7 @@ import { AuthContext } from '../context/AuthContext'
 import { userAPI, uploadAPI, authAPI } from '../services/api'
 import BlogCard from '../components/blog/BlogCard'
 import toast from 'react-hot-toast'
+import { FiClock } from 'react-icons/fi'
 import {
   FiEdit2, FiSave, FiX, FiBookmark, FiHeart,
   FiUsers, FiFileText, FiCamera, FiUser, FiMail,
@@ -13,6 +14,7 @@ import {
 
 const TABS = [
   { id: 'saved',     label: 'Saved',     icon: FiBookmark },
+  { id: 'history',   label: 'History',   icon: FiClock },
   { id: 'following', label: 'Following', icon: FiUsers },
   { id: 'settings',  label: 'Settings',  icon: FiEdit2 },
 ]
@@ -88,6 +90,15 @@ export default function Profile() {
       setUploading(false)
     }
   }
+
+  const { data: history, isLoading: historyLoading } = useQuery({
+    queryKey: ['readingHistory'],
+    queryFn: async () => {
+      const res = await userAPI.getHistory()
+      return res.data.history
+    },
+    enabled: activeTab === 'history'
+  })
 
   // Send Email Verification mutation
   const sendVerificationMutation = useMutation({
@@ -347,6 +358,43 @@ export default function Profile() {
           </div>
         )}
 
+        {/* Reading History */}
+        {activeTab === 'history' && (
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}>
+              <h2 style={{ fontFamily: "'Syne',sans-serif", fontSize: 22, fontWeight: 700, color: '#fff' }}>
+                Reading History
+              </h2>
+              {history?.length > 0 && (
+                <span style={{ fontSize: 13, color: 'rgba(255,255,255,0.3)' }}>{history.length} articles</span>
+              )}
+            </div>
+
+            {historyLoading ? (
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 20 }}>
+                {[1,2,3].map(i => <div key={i} className="skeleton" style={{ height: 360 }} />)}
+              </div>
+            ) : history?.length === 0 ? (
+              <div style={{ textAlign: 'center', padding: '60px 20px' }}>
+                <div style={{ fontSize: 56, marginBottom: 16 }}>📖</div>
+                <h3 style={{ fontFamily: "'Syne',sans-serif", fontSize: 22, fontWeight: 700, color: '#fff', marginBottom: 8 }}>
+                  No reading history yet
+                </h3>
+                <p style={{ color: 'rgba(255,255,255,0.3)', marginBottom: 24, fontSize: 15 }}>
+                  Articles you read will show up here
+                </p>
+                <Link to="/blogs" style={{ display: 'inline-block', padding: '12px 28px', background: 'linear-gradient(135deg,#7c3aed,#2563eb)', color: 'white', borderRadius: 12, textDecoration: 'none', fontSize: 14, fontWeight: 500 }}>
+                  Start reading →
+                </Link>
+              </div>
+            ) : (
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 20 }}>
+                {history?.map(blog => <BlogCard key={blog._id} blog={blog} />)}
+              </div>
+            )}
+          </div>
+        )}
+
         {/* Following */}
         {activeTab === 'following' && (
           <div>
@@ -414,7 +462,7 @@ export default function Profile() {
                       rows={3} style={{ resize: 'none' }} maxLength={200} />
                   </div>
                   
-                  {/* Your New Added Social Links Block */}
+                  {/* Social Links Block */}
                   <div>
                     <label style={{ fontSize: 12, color: 'rgba(255,255,255,0.35)', display: 'block', marginBottom: 6, letterSpacing: '0.5px' }}>
                       Social Links

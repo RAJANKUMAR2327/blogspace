@@ -73,6 +73,8 @@ export const userAPI = {
   getAllUsers:      ()     => API.get('/users'),
   toggleBan:        (id)   => API.put(`/users/${id}/ban`),
   deleteUser:       (id)   => API.delete(`/users/${id}`),
+  addToHistory: (blogId) => API.post(`/users/history/${blogId}`),
+  getHistory:   ()       => API.get('/users/history'),
 }
 
 // ── Notifications ───────────────────────────────────────
