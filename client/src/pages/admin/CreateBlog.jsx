@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { blogAPI, uploadAPI } from '../../services/api'
-import { compressImage } from '../../utils/compressImage' // Added compression utility
+import { compressImage } from '../../utils/compressImage' 
 import toast from 'react-hot-toast'
 import SEO from '../common/SEO'
 import { FiSave, FiSend, FiImage, FiX, FiUpload, FiArrowLeft, FiEye } from 'react-icons/fi'
@@ -12,14 +12,14 @@ export default function CreateBlog() {
   const navigate = useNavigate()
   const [loading, setLoading] = useState(false)
   const [uploading, setUploading] = useState(false)
+  const [galleryUploading, setGalleryUploading] = useState(false)
   const [preview, setPreview] = useState(false)
   const [formData, setFormData] = useState({
-    title: '', content: '', category: '', tags: '', image: '', status: 'draft', featured: false
+    title: '', content: '', category: '', tags: '', image: '', status: 'draft', featured: false, gallery: []
   })
 
   const handleChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value })
   
-  // Updated to include image compression and 10MB limit
   const handleFileUpload = async (e) => {
     const file = e.target.files[0]
     if (!file) return
@@ -39,6 +39,34 @@ export default function CreateBlog() {
     } finally {
       setUploading(false)
     }
+  }
+
+  const handleGalleryUpload = async (e) => {
+    const files = Array.from(e.target.files)
+    if (files.length === 0) return
+    if (formData.gallery.length + files.length > 8) return toast.error('Max 8 gallery images')
+
+    setGalleryUploading(true)
+    try {
+      const uploadPromises = files.map(async (file) => {
+        const compressed = await compressImage(file)
+        const fd = new FormData()
+        fd.append('image', compressed, file.name)
+        const res = await uploadAPI.blogImage(fd)
+        return res.data.url
+      })
+      const urls = await Promise.all(uploadPromises)
+      setFormData(prev => ({ ...prev, gallery: [...prev.gallery, ...urls] }))
+      toast.success(`${urls.length} image(s) added to gallery`)
+    } catch {
+      toast.error('Some gallery images failed to upload')
+    } finally {
+      setGalleryUploading(false)
+    }
+  }
+
+  const removeGalleryImage = (index) => {
+    setFormData(prev => ({ ...prev, gallery: prev.gallery.filter((_, i) => i !== index) }))
   }
 
   const handleSubmit = async (status) => {
@@ -330,12 +358,46 @@ export default function CreateBlog() {
               )}
             </div>
 
+            {/* Gallery Images */}
+            <div className="sidebar-card">
+              <div className="sidebar-title">
+                Gallery <span style={{ color: 'var(--text-tertiary)', fontWeight: 400 }}>({formData.gallery.length}/8)</span>
+              </div>
+
+              <label className="cb-upload-zone">
+                <input type="file" accept="image/*" multiple onChange={handleGalleryUpload} style={{ display: 'none' }} disabled={formData.gallery.length >= 8 || galleryUploading} />
+                <FiUpload size={18} style={{ color: 'var(--text-tertiary)', marginBottom: 6 }} />
+                <p style={{ fontSize: 13, color: 'var(--text-tertiary)', margin: 0 }}>
+                  {galleryUploading ? 'Uploading...' : 'Add gallery images'}
+                </p>
+              </label>
+
+              {formData.gallery.length > 0 && (
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 6, marginTop: 12 }}>
+                  {formData.gallery.map((img, i) => (
+                    <div key={i} style={{ position: 'relative' }}>
+                      <img src={img} alt={`Gallery ${i + 1}`} style={{ width: '100%', height: 50, objectFit: 'cover', borderRadius: 6 }} />
+                      <button onClick={() => removeGalleryImage(i)}
+                        style={{ position: 'absolute', top: -4, right: -4, background: '#f87171', border: 'none', borderRadius: '50%', width: 16, height: 16, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
+                        <FiX size={9} style={{ color: '#fff' }} />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+              <p style={{ fontSize: 11, color: 'var(--text-tertiary)', marginTop: 8 }}>Shown as a gallery at the end of your article</p>
+            </div>
+
             {/* Markdown Tips */}
             <div style={{ background: 'var(--accent-soft)', border: '1px solid color-mix(in srgb, var(--accent) 20%, transparent)', borderRadius: 14, padding: 16 }}>
               <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--accent-strong)', marginBottom: 10, letterSpacing: '0.5px' }}>✦ MARKDOWN TIPS</div>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-                {['# H1', '## H2', '### H3', '**bold**', '*italic*', '- list', '> quote', '`code`'].map(tip => (
-                  <code key={tip} style={{ fontSize: 11, background: 'color-mix(in srgb, var(--accent) 12%, transparent)', color: 'var(--accent-strong)', padding: '2px 6px', borderRadius: 4 }}>{tip}</code>
+                {[
+                  '# Heading 1', '## Heading 2', '**bold**', '*italic*',
+                  '- bullet list', '> blockquote', '`inline code`', '[link](url)',
+                  '```js\ncode here\n```', 'youtube.com/watch?v=... (own line)',
+                ].map(tip => (
+                  <code key={tip} style={{ fontSize: 11, background: 'color-mix(in srgb, var(--accent) 12%, transparent)', color: 'var(--accent-strong)', padding: '2px 6px', borderRadius: 4, whiteSpace: 'pre-wrap' }}>{tip}</code>
                 ))}
               </div>
             </div>

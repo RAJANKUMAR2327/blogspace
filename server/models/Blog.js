@@ -7,6 +7,7 @@ const blogSchema = new mongoose.Schema({
   excerpt:  { type: String, maxlength: 300 },
   image:    { type: String, default: '' },
   author:   { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+  gallery: [{ type: String }], // additional image URLs beyond the main cover image
   category: {
     type: String,
     required: [true, 'Category is required'],

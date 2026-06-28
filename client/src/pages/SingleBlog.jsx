@@ -5,6 +5,8 @@ import toast from 'react-hot-toast'
 import { formatDistanceToNow } from 'date-fns'
 import { FiHeart, FiEye, FiClock, FiShare2, FiArrowLeft, FiMessageSquare } from 'react-icons/fi'
 import SEO from '../components/common/SEO'
+import ContentRenderer from '../components/blog/ContentRenderer'
+import ImageGallery from '../components/blog/ImageGallery'
 
 // Services & Context
 import { blogAPI, commentAPI, userAPI } from '../services/api'
@@ -163,16 +165,16 @@ export default function SingleBlog() {
           .sb-meta-right { font-size: 12px; gap: 12px; }
           .sb-content-wrap { padding-left: 16px !important; padding-right: 16px !important; }
         }
-          @media (max-width: 900px) {
+        @media (max-width: 900px) {
           .single-blog-grid { grid-template-columns: 1fr !important; }
           @media (max-width: 900px) {
-  .single-blog-sidebar {
-    position: static !important;
-    order: -1;
-    margin-bottom: 24px;
-  }
-}
-}
+            .single-blog-sidebar {
+              position: static !important;
+              order: -1;
+              margin-bottom: 24px;
+            }
+          }
+        }
       `}</style>
 
       {/* Hero Image */}
@@ -234,30 +236,8 @@ export default function SingleBlog() {
             </div>
 
             {/* Content Display */}
-            {(() => {  
-              let headingCounter = 0 
-              const processedContent = blog.content    
-                ?.split('\n')    
-                .map(line => {      
-                  const mdMatch = line.match(/^(#{1,3})\s+(.+)/)      
-                  if (mdMatch) {        
-                    const id = `heading-${headingCounter}-${mdMatch[2].trim().toLowerCase().replace(/[^a-z0-9]+/g, '-')}`        
-                    headingCounter++        
-                    const level = mdMatch[1].length        
-                    return `<h${level} id="${id}">${mdMatch[2]}</h${level}>`      
-                  }      
-                  return line    
-                })    
-                .join('\n')    
-                .replace(/\n/g, '<br/>')  
-              return (    
-                <div    
-                  className="prose"    
-                  style={{ marginBottom: 48, lineHeight: 1.85, fontSize: fontSize, color: 'rgba(255,255,255,0.7)', fontWeight: 300, transition: 'font-size 0.2s' }}      
-                  dangerouslySetInnerHTML={{ __html: processedContent }}    
-                />  
-              )
-            })()}
+            {blog.gallery?.length > 0 && <ImageGallery images={blog.gallery} />}
+            <ContentRenderer content={blog.content} fontSize={fontSize} />
 
             {/* Tags */}
             {blog.tags?.length > 0 && (
