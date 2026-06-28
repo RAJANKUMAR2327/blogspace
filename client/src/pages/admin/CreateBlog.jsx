@@ -1,10 +1,13 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { blogAPI, uploadAPI } from '../../services/api'
 import { compressImage } from '../../utils/compressImage' 
 import toast from 'react-hot-toast'
 import SEO from '../common/SEO'
 import { FiSave, FiSend, FiImage, FiX, FiUpload, FiArrowLeft, FiEye } from 'react-icons/fi'
+import MarkdownEditor from '../../components/admin/MarkdownEditor'
+import { useAutoSave, getRecoverableDraft } from '../../hooks/useAutoSave'
+import { useUnsavedChangesWarning } from '../../hooks/useUnsavedChangesWarning'
 
 const CATEGORIES = ['Technology','Programming','Design','Business','Science','Health','Travel','Food','Lifestyle','Other']
 
@@ -17,6 +20,34 @@ export default function CreateBlog() {
   const [formData, setFormData] = useState({
     title: '', content: '', category: '', tags: '', image: '', status: 'draft', featured: false, gallery: []
   })
+
+  const DRAFT_ID = 'new-article'
+  const { lastSaved, clearDraft } = useAutoSave(DRAFT_ID, formData)
+  
+  // Warn user on navigation if there are unsaved inputs in title or content
+  useUnsavedChangesWarning(!!(formData.title.trim() || formData.content.trim()))
+
+  const [showRecovery, setShowRecovery] = useState(false)
+  const [recoveredDraft, setRecoveredDraft] = useState(null)
+
+  useEffect(() => {
+    const recovered = getRecoverableDraft(DRAFT_ID)
+    if (recovered?.data?.title || recovered?.data?.content) {
+      setRecoveredDraft(recovered)
+      setShowRecovery(true)
+    }
+  }, [])
+
+  const restoreDraft = () => {
+    setFormData(recoveredDraft.data)
+    setShowRecovery(false)
+    toast.success('Draft restored')
+  }
+
+  const dismissRecovery = () => {
+    clearDraft()
+    setShowRecovery(false)
+  }
 
   const handleChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value })
   
@@ -77,6 +108,7 @@ export default function CreateBlog() {
     try {
       const tagsArray = formData.tags.split(',').map(t => t.trim()).filter(Boolean)
       await blogAPI.create({ ...formData, tags: tagsArray, status })
+      clearDraft()
       toast.success(status === 'published' ? '🎉 Story published!' : 'Draft saved!')
       navigate('/admin')
     } catch (err) {
@@ -177,7 +209,7 @@ export default function CreateBlog() {
 
         .cb-page-pad { padding: 40px 48px; }
         .cb-header-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 36px; flex-wrap: wrap; gap: 16px; }
-        .cb-header-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+        .cb-header-actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
 
         @media (max-width: 900px) {
           .cb-grid { grid-template-columns: 1fr !important; }
@@ -192,6 +224,32 @@ export default function CreateBlog() {
       `}</style>
 
       <div className="cb-page-pad" style={{ maxWidth: 1200, margin: '0 auto' }}>
+        {/* Recovery Banner */}
+        {showRecovery && (
+          <div style={{
+            background: 'rgba(251,191,36,0.1)', border: '1px solid rgba(251,191,36,0.25)',
+            borderRadius: 12, padding: '14px 20px', marginBottom: 24,
+            display: 'flex', alignItems: 'center', justifycontent: 'space-between', gap: 16, flexWrap: 'wrap'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <span style={{ fontSize: 18 }}>📝</span>
+              <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.6)', margin: 0 }}>
+                Found an unsaved draft from {new Date(recoveredDraft?.savedAt).toLocaleString()}. Restore it?
+              </p>
+            </div>
+            <div style={{ display: 'flex', gap: 8 }}>
+              <button onClick={dismissRecovery}
+                style={{ padding: '7px 14px', background: 'none', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8, color: 'rgba(255,255,255,0.4)', fontSize: 12, cursor: 'pointer', fontFamily: "'Inter',sans-serif" }}>
+                Discard
+              </button>
+              <button onClick={restoreDraft}
+                style={{ padding: '7px 14px', background: 'rgba(251,191,36,0.2)', border: '1px solid rgba(251,191,36,0.3)', borderRadius: 8, color: '#fbbf24', fontSize: 12, fontWeight: 500, cursor: 'pointer', fontFamily: "'Inter',sans-serif" }}>
+                Restore Draft
+              </button>
+            </div>
+          </div>
+        )}
+
         {/* Header */}
         <div className="cb-header-row">
           <div>
@@ -205,6 +263,11 @@ export default function CreateBlog() {
             </h1>
           </div>
           <div className="cb-header-actions">
+            {lastSaved && (
+              <span style={{ fontSize: 11, color: 'rgba(52,211,153,0.7)', display: 'inline-flex', alignItems: 'center', gap: 5, marginRight: 8 }}>
+                <FiSave size={11} /> Saved locally {new Date(lastSaved).toLocaleTimeString()}
+              </span>
+            )}
             <button onClick={() => setPreview(!preview)} className="btn-draft">
               <FiEye size={14} /> {preview ? 'Edit' : 'Preview'}
             </button>
@@ -238,24 +301,12 @@ export default function CreateBlog() {
               <span style={{ fontSize: 12, color: 'var(--text-tertiary)' }}>{formData.content.length} characters</span>
             </div>
 
-            {/* Content */}
-            {preview ? (
-              <div style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-soft)', borderRadius: 12, padding: 32, minHeight: 480 }}>
-                <div className="preview-content" style={{ color: 'var(--text-secondary)' }}
-                  dangerouslySetInnerHTML={{ __html: formData.content.replace(/\n/g, '<br/>').replace(/# (.*)/g, '<h1>$1</h1>').replace(/## (.*)/g, '<h2>$1</h2>').replace(/### (.*)/g, '<h3>$1</h3>').replace(/\*\*(.*?)\*\*/g, '<strong style="color:var(--text-primary)">$1</strong>').replace(/\*(.*?)\*/g, '<em>$1</em>').replace(/`(.*?)`/g, '<code>$1</code>') || '<p style="color:var(--text-tertiary)">Nothing to preview yet...</p>' }}
-                />
-              </div>
-            ) : (
-              <div style={{ position: 'relative' }}>
-                <textarea
-                  className="cb-textarea"
-                  name="content"
-                  value={formData.content}
-                  onChange={handleChange}
-                  placeholder={`Start writing your story...\n\nTips:\n# Heading 1\n## Heading 2\n**bold text**\n*italic text*\n- list item\n\`code\`\n> blockquote`}
-                />
-              </div>
-            )}
+            {/* Content Component Replacement */}
+            <MarkdownEditor
+              value={formData.content}
+              onChange={(val) => setFormData(p => ({ ...p, content: val || '' }))}
+              height={520}
+            />
           </div>
 
           {/* Sidebar */}
@@ -314,7 +365,7 @@ export default function CreateBlog() {
               {formData.tags && (
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 10 }}>
                   {formData.tags.split(',').map(t => t.trim()).filter(Boolean).map(tag => (
-                    <span key={tag} style={{ fontSize: 11, padding: '3px 8px', background: 'var(--accent-soft)', border: '1px solid color-mix(in srgb, var(--accent) 25%, transparent)', borderRadius: 6, color: 'var(--accent-strong)' }}>#{tag}</span>
+                    <span key={tag} style={{ fontSize: 11, padding: '3px 8px', background: 'var(--accent-soft)', border: '1px solid color-mix(in srgb, var(--accent) 25%, transparent)', borderRadius: 6, color: 'var(--accent-strong)' }}>##{tag}</span>
                   ))}
                 </div>
               )}

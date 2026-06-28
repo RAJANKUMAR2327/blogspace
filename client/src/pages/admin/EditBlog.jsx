@@ -1,9 +1,12 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { useQuery, useMutation } from '@tanstack/react-query'
 import { blogAPI, uploadAPI } from '../../services/api'
 import toast from 'react-hot-toast'
 import { FiSave, FiSend, FiArrowLeft, FiImage, FiX, FiUpload, FiEye } from 'react-icons/fi'
+import MarkdownEditor from '../../components/admin/MarkdownEditor'
+import { useAutoSave, getRecoverableDraft } from '../../hooks/useAutoSave'
+import { useUnsavedChangesWarning } from '../../hooks/useUnsavedChangesWarning'
 
 const CATEGORIES = ['Technology','Programming','Design','Business','Science','Health','Travel','Food','Lifestyle','Other']
 
@@ -26,8 +29,6 @@ export default function EditBlog() {
   })
 
   // Populate the form once, the first time blog data becomes available.
-  // Using a render-time check instead of useEffect avoids an extra
-  // cascading render after the data loads.
   if (blog && !initialized) {
     setFormData({
       title: blog.title || '',
@@ -40,9 +41,39 @@ export default function EditBlog() {
     setInitialized(true)
   }
 
+  const DRAFT_ID = `edit-${id}`
+  const { lastSaved, clearDraft } = useAutoSave(DRAFT_ID, formData)
+
+  // Warn on navigation ONLY if changes have been made relative to the original post
+  useUnsavedChangesWarning(!!(blog && (formData.title !== (blog.title || '') || formData.content !== (blog.content || ''))))
+
+  const [showRecovery, setShowRecovery] = useState(false)
+  const [recoveredDraft, setRecoveredDraft] = useState(null)
+
+  useEffect(() => {
+    if (!blog) return 
+    const recovered = getRecoverableDraft(DRAFT_ID)
+    if (recovered && recovered.data?.content !== blog.content) {
+      setRecoveredDraft(recovered)
+      setShowRecovery(true)
+    }
+  }, [blog])
+
+  const restoreDraft = () => {
+    setFormData(recoveredDraft.data)
+    setShowRecovery(false)
+    toast.success('Draft restored')
+  }
+
+  const dismissRecovery = () => {
+    clearDraft()
+    setShowRecovery(false)
+  }
+
   const updateMutation = useMutation({
     mutationFn: (data) => blogAPI.update(id, data),
     onSuccess: () => {
+      clearDraft()
       toast.success('Story updated!')
       navigate('/admin')
     },
@@ -109,7 +140,7 @@ export default function EditBlog() {
 
         .eb-page-pad { padding: 40px 48px; }
         .eb-header-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 36px; flex-wrap: wrap; gap: 16px; }
-        .eb-header-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+        .eb-header-actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
 
         @media (max-width: 900px) {
           .eb-grid { grid-template-columns: 1fr !important; }
@@ -124,6 +155,32 @@ export default function EditBlog() {
       `}</style>
 
       <div className="eb-page-pad" style={{ maxWidth: 1200, margin: '0 auto' }}>
+        {/* Recovery Banner */}
+        {showRecovery && (
+          <div style={{
+            background: 'rgba(251,191,36,0.1)', border: '1px solid rgba(251,191,36,0.25)',
+            borderRadius: 12, padding: '14px 20px', marginBottom: 24,
+            display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16, flexWrap: 'wrap'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <span style={{ fontSize: 18 }}>📝</span>
+              <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.6)', margin: 0 }}>
+                Found an unsaved draft from {new Date(recoveredDraft?.savedAt).toLocaleString()}. Restore it?
+              </p>
+            </div>
+            <div style={{ display: 'flex', gap: 8 }}>
+              <button onClick={dismissRecovery}
+                style={{ padding: '7px 14px', background: 'none', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8, color: 'rgba(255,255,255,0.4)', fontSize: 12, cursor: 'pointer', fontFamily: "'Inter',sans-serif" }}>
+                Discard
+              </button>
+              <button onClick={restoreDraft}
+                style={{ padding: '7px 14px', background: 'rgba(251,191,36,0.2)', border: '1px solid rgba(251,191,36,0.3)', borderRadius: 8, color: '#fbbf24', fontSize: 12, fontWeight: 500, cursor: 'pointer', fontFamily: "'Inter',sans-serif" }}>
+                Restore Draft
+              </button>
+            </div>
+          </div>
+        )}
+
         {/* Header */}
         <div className="eb-header-row">
           <div>
@@ -137,6 +194,11 @@ export default function EditBlog() {
             </h1>
           </div>
           <div className="eb-header-actions">
+            {lastSaved && (
+              <span style={{ fontSize: 11, color: 'rgba(52,211,153,0.7)', display: 'inline-flex', alignItems: 'center', gap: 5, marginRight: 8 }}>
+                <FiSave size={11} /> Saved locally {new Date(lastSaved).toLocaleTimeString()}
+              </span>
+            )}
             <button onClick={() => setPreview(!preview)} className="btn-draft">
               <FiEye size={14} /> {preview ? 'Edit' : 'Preview'}
             </button>
@@ -161,17 +223,13 @@ export default function EditBlog() {
               <span style={{ fontSize: 12, color: 'var(--text-tertiary)' }}>{wordCount} words</span>
               <span style={{ fontSize: 12, color: 'var(--text-tertiary)' }}>~{readTime} min read</span>
             </div>
-            {preview ? (
-              <div style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-soft)', borderRadius: 12, padding: 32, minHeight: 480 }}>
-                <div style={{ color: 'var(--text-secondary)', lineHeight: 1.85 }}
-                  dangerouslySetInnerHTML={{ __html: formData.content.replace(/\n/g, '<br/>') || '<p style="color:var(--text-tertiary)">Nothing to preview...</p>' }}
-                />
-              </div>
-            ) : (
-              <textarea className="eb-textarea" value={formData.content}
-                onChange={(e) => setFormData(p => ({ ...p, content: e.target.value }))}
-                placeholder="Write your story here..." />
-            )}
+
+            {/* Content Component Replacement */}
+            <MarkdownEditor
+              value={formData.content}
+              onChange={(val) => setFormData(p => ({ ...p, content: val || '' }))}
+              height={520}
+            />
           </div>
 
           {/* Sidebar */}
