@@ -8,6 +8,8 @@ import { FiSave, FiSend, FiImage, FiX, FiUpload, FiArrowLeft, FiEye } from 'reac
 import MarkdownEditor from '../../components/admin/MarkdownEditor'
 import { useAutoSave, getRecoverableDraft } from '../../hooks/useAutoSave'
 import { useUnsavedChangesWarning } from '../../hooks/useUnsavedChangesWarning'
+// 1. Added the AISuggestionsPanel import
+import AISuggestionsPanel from '../../components/admin/AISuggestionsPanel'
 
 const CATEGORIES = ['Technology','Programming','Design','Business','Science','Health','Travel','Food','Lifestyle','Other']
 
@@ -355,6 +357,20 @@ export default function CreateBlog() {
                 <span style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-tertiary)', pointerEvents: 'none', fontSize: 12 }}>▼</span>
               </div>
             </div>
+
+            {/* 2. Added AISuggestionsPanel placement here */}
+            <AISuggestionsPanel
+              content={formData.content}
+              category={formData.category}
+              onSelectTitle={(title) => setFormData(p => ({ ...p, title }))}
+              onSelectTags={(tags) => {
+                setFormData(p => {
+                  const existingTags = p.tags ? p.tags.split(',').map(t => t.trim()).filter(Boolean) : []
+                  const merged = [...new Set([...existingTags, ...tags])]
+                  return { ...p, tags: merged.join(', ') }
+                })
+              }}
+            />
 
             {/* Tags */}
             <div className="sidebar-card">

@@ -152,5 +152,8 @@ export const newsletterAPI = {
   send:            (data)  => API.post('/newsletter/send', data),
   sendDigestNow:   ()      => API.post('/newsletter/send-digest'),
 }
+export const aiAPI = {
+  suggestTitlesAndTags: (content, category) => API.post('/ai/suggest-titles-tags', { content, category }),
+}
 
 export default API
