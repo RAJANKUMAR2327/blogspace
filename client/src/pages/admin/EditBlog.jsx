@@ -9,6 +9,8 @@ import { useAutoSave, getRecoverableDraft } from '../../hooks/useAutoSave'
 import { useUnsavedChangesWarning } from '../../hooks/useUnsavedChangesWarning'
 // 1. Added the AISuggestionsPanel import
 import AISuggestionsPanel from '../../components/admin/AISuggestionsPanel'
+// Added WritingCheckPanel import
+import WritingCheckPanel from '../../components/admin/WritingCheckPanel'
 
 const CATEGORIES = ['Technology','Programming','Design','Business','Science','Health','Travel','Food','Lifestyle','Other']
 
@@ -162,7 +164,7 @@ export default function EditBlog() {
           <div style={{
             background: 'rgba(251,191,36,0.1)', border: '1px solid rgba(251,191,36,0.25)',
             borderRadius: 12, padding: '14px 20px', marginBottom: 24,
-            display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16, flexWrap: 'wrap'
+            display: 'flex', alignItems: 'center', justifycontent: 'space-between', gap: 16, flexWrap: 'wrap'
           }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
               <span style={{ fontSize: 18 }}>📝</span>
@@ -273,6 +275,9 @@ export default function EditBlog() {
                 })
               }}
             />
+
+            {/* Added WritingCheckPanel panel immediately after AISuggestionsPanel */}
+            <WritingCheckPanel content={formData.content} />
 
             <div className="sidebar-card">
               <div className="sidebar-title">Tags</div>

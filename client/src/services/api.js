@@ -157,6 +157,8 @@ export const aiAPI = {
   summarize:            (blogId) => API.post(`/ai/summarize/${blogId}`),
   getArticleChat:       (blogId, sessionId) => API.get(`/ai/chat/${blogId}`, { params: { sessionId } }),
   askAboutArticle:      (blogId, question, sessionId) => API.post(`/ai/chat/${blogId}`, { question, sessionId }),
+  generateArticle:      (data) => API.post('/ai/generate-article', data),
+  checkWriting:         (content) => API.post('/ai/check-writing', { content }),
 }
 
 export default API

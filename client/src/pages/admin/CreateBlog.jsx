@@ -4,12 +4,14 @@ import { blogAPI, uploadAPI } from '../../services/api'
 import { compressImage } from '../../utils/compressImage' 
 import toast from 'react-hot-toast'
 import SEO from '../common/SEO'
-import { FiSave, FiSend, FiImage, FiX, FiUpload, FiArrowLeft, FiEye } from 'react-icons/fi'
+import { FiSave, FiSend, FiImage, FiX, FiUpload, FiArrowLeft, FiEye, FiZap } from 'react-icons/fi'
 import MarkdownEditor from '../../components/admin/MarkdownEditor'
 import { useAutoSave, getRecoverableDraft } from '../../hooks/useAutoSave'
 import { useUnsavedChangesWarning } from '../../hooks/useUnsavedChangesWarning'
-// 1. Added the AISuggestionsPanel import
 import AISuggestionsPanel from '../../components/admin/AISuggestionsPanel'
+import GenerateArticleModal from '../../components/admin/GenerateArticleModal'
+// Added WritingCheckPanel import
+import WritingCheckPanel from '../../components/admin/WritingCheckPanel'
 
 const CATEGORIES = ['Technology','Programming','Design','Business','Science','Health','Travel','Food','Lifestyle','Other']
 
@@ -19,6 +21,7 @@ export default function CreateBlog() {
   const [uploading, setUploading] = useState(false)
   const [galleryUploading, setGalleryUploading] = useState(false)
   const [preview, setPreview] = useState(false)
+  const [showGenerateModal, setShowGenerateModal] = useState(false)
   const [formData, setFormData] = useState({
     title: '', content: '', category: '', tags: '', image: '', status: 'draft', featured: false, gallery: []
   })
@@ -26,7 +29,6 @@ export default function CreateBlog() {
   const DRAFT_ID = 'new-article'
   const { lastSaved, clearDraft } = useAutoSave(DRAFT_ID, formData)
   
-  // Warn user on navigation if there are unsaved inputs in title or content
   useUnsavedChangesWarning(!!(formData.title.trim() || formData.content.trim()))
 
   const [showRecovery, setShowRecovery] = useState(false)
@@ -231,7 +233,7 @@ export default function CreateBlog() {
           <div style={{
             background: 'rgba(251,191,36,0.1)', border: '1px solid rgba(251,191,36,0.25)',
             borderRadius: 12, padding: '14px 20px', marginBottom: 24,
-            display: 'flex', alignItems: 'center', justifycontent: 'space-between', gap: 16, flexWrap: 'wrap'
+            display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16, flexWrap: 'wrap'
           }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
               <span style={{ fontSize: 18 }}>📝</span>
@@ -270,6 +272,9 @@ export default function CreateBlog() {
                 <FiSave size={11} /> Saved locally {new Date(lastSaved).toLocaleTimeString()}
               </span>
             )}
+            <button onClick={() => setShowGenerateModal(true)} className="btn-draft" style={{ borderColor: 'rgba(251,191,36,0.3)', color: '#fbbf24' }}>  
+              <FiZap size={14} /> Generate with AI
+            </button>
             <button onClick={() => setPreview(!preview)} className="btn-draft">
               <FiEye size={14} /> {preview ? 'Edit' : 'Preview'}
             </button>
@@ -358,7 +363,7 @@ export default function CreateBlog() {
               </div>
             </div>
 
-            {/* 2. Added AISuggestionsPanel placement here */}
+            {/* AISuggestionsPanel placement */}
             <AISuggestionsPanel
               content={formData.content}
               category={formData.category}
@@ -372,6 +377,9 @@ export default function CreateBlog() {
               }}
             />
 
+            {/* Added WritingCheckPanel panel immediately after AISuggestionsPanel */}
+            <WritingCheckPanel content={formData.content} />
+
             {/* Tags */}
             <div className="sidebar-card">
               <div className="sidebar-title">Tags</div>
@@ -381,7 +389,7 @@ export default function CreateBlog() {
               {formData.tags && (
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 10 }}>
                   {formData.tags.split(',').map(t => t.trim()).filter(Boolean).map(tag => (
-                    <span key={tag} style={{ fontSize: 11, padding: '3px 8px', background: 'var(--accent-soft)', border: '1px solid color-mix(in srgb, var(--accent) 25%, transparent)', borderRadius: 6, color: 'var(--accent-strong)' }}>##{tag}</span>
+                    <span key={tag} style={{ fontSize: 11, padding: '3px 8px', background: 'var(--accent-soft)', border: '1px solid color-mix(in srgb, var(--accent) 25%, transparent)', borderRadius: 6, color: 'var(--accent-strong)' }}>#{tag}</span>
                   ))}
                 </div>
               )}
@@ -471,6 +479,13 @@ export default function CreateBlog() {
           </div>
         </div>
       </div>
+
+      {showGenerateModal && (
+        <GenerateArticleModal
+          onClose={() => setShowGenerateModal(false)}
+          onGenerated={(title, content) => setFormData(p => ({ ...p, title, content }))}
+        />
+      )}
     </div>
   )
 }
