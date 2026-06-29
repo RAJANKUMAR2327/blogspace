@@ -19,6 +19,7 @@ import ReadingControls from '../components/blog/ReadingControls'
 import NestedComments from '../components/blog/NestedComments'
 import FollowButton from '../components/common/FollowButton'
 import RelatedArticles from '../components/blog/RelatedArticles'
+import AskAIWidget from '../components/blog/AskAIWidget'
 
 export default function SingleBlog() {
   const { slug } = useParams()
@@ -281,6 +282,9 @@ export default function SingleBlog() {
 
         </div> {/* /Grid layout wrapper */}
       </div>
+
+      {/* Floating UI Widget Element */}
+      <AskAIWidget blogId={blog?._id} />
     </div>
   )
 }

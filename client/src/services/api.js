@@ -154,6 +154,9 @@ export const newsletterAPI = {
 }
 export const aiAPI = {
   suggestTitlesAndTags: (content, category) => API.post('/ai/suggest-titles-tags', { content, category }),
+  summarize:            (blogId) => API.post(`/ai/summarize/${blogId}`),
+  getArticleChat:       (blogId, sessionId) => API.get(`/ai/chat/${blogId}`, { params: { sessionId } }),
+  askAboutArticle:      (blogId, question, sessionId) => API.post(`/ai/chat/${blogId}`, { question, sessionId }),
 }
 
 export default API
