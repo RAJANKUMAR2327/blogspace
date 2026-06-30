@@ -5,6 +5,7 @@ import { useInView } from 'react-intersection-observer'
 import { blogAPI } from '../services/api'
 import BlogCard from '../components/blog/BlogCard'
 import SEO from '../components/common/SEO'
+import EmptyState from '../components/common/EmptyState'
 import { FiSearch, FiGrid, FiList } from 'react-icons/fi'
 
 const CATEGORIES = ['All', 'Technology', 'Programming', 'Design', 'Business', 'Science', 'Health', 'Travel', 'Food', 'Lifestyle', 'Other']
@@ -194,15 +195,17 @@ export default function BlogList() {
             {[...Array(9)].map((_, i) => <div key={i} className="skeleton" style={{ height: 360 }} />)}
           </div>
         ) : allBlogs.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: '80px 20px' }}>
-            <div style={{ fontSize: 56, marginBottom: 16 }}>🔍</div>
-            <h3 style={{ fontFamily: 'var(--font-display)', fontSize: 24, fontWeight: 700, color: 'var(--text-primary)', marginBottom: 8 }}>No stories found</h3>
-            <p style={{ color: 'var(--text-tertiary)', marginBottom: 24 }}>Try different keywords or browse all categories</p>
-            <button onClick={() => { setSearch(''); setSearchParams({}) }}
-              style={{ padding: '10px 24px', background: 'var(--accent)', color: 'var(--text-on-accent)', border: 'none', borderRadius: 'var(--radius-md)', cursor: 'pointer', fontSize: 14, fontWeight: 500 }}>
-              Clear filters
-            </button>
-          </div>
+          <EmptyState
+            illustration="noResults"
+            title="No stories found"
+            description="Try different keywords or browse all categories"
+            action={
+              <button onClick={() => { setSearch(''); setSearchParams({}) }}
+                style={{ padding: '10px 24px', background: 'linear-gradient(135deg,#7c3aed,#2563eb)', color: 'white', border: 'none', borderRadius: 10, cursor: 'pointer', fontSize: 14, fontWeight: 500, fontFamily: "'Inter',sans-serif" }}>
+                Clear filters
+              </button>
+            }
+          />
         ) : (
           <>
             <div className={`bl-grid ${view === 'list' ? 'list-view' : ''}`}>

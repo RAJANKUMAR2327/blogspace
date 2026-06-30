@@ -4,6 +4,8 @@ import { Link } from 'react-router-dom'
 import { FiBell, FiHeart, FiMessageSquare, FiUserPlus, FiCornerDownRight, FiCheck, FiX } from 'react-icons/fi'
 import { formatDistanceToNow } from 'date-fns'
 import axios from '../../services/api'
+// Import EmptyState assuming it is in the same directory or adjust path accordingly
+import EmptyState from './EmptyState'
 
 const notificationAPI = {
   getAll:      ()   => axios.default.get('/notifications'),
@@ -99,9 +101,12 @@ export default function NotificationBell() {
           </div>
 
           {notifications.length === 0 ? (
-            <div style={{ textAlign: 'center', padding: '40px 20px' }}>
-              <FiBell size={32} style={{ color: 'rgba(255,255,255,0.1)', marginBottom: 12 }} />
-              <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.25)' }}>No notifications yet</p>
+            <div style={{ padding: '24px 0' }}>
+              <EmptyState 
+                illustration="noNotifications" 
+                title="All caught up" 
+                description="No new notifications" 
+              />
             </div>
           ) : (
             notifications.map(n => {

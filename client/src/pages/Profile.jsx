@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom'
 import { AuthContext } from '../context/AuthContext'
 import { userAPI, uploadAPI, authAPI } from '../services/api'
 import BlogCard from '../components/blog/BlogCard'
+import EmptyState from '../components/common/EmptyState'
 import toast from 'react-hot-toast'
 import { FiClock } from 'react-icons/fi'
 import {
@@ -348,18 +349,16 @@ export default function Profile() {
                 {[1,2,3].map(i => <div key={i} className="skeleton" style={{ height: 360 }} />)}
               </div>
             ) : savedBlogs?.length === 0 ? (
-              <div style={{ textAlign: 'center', padding: '60px 20px' }}>
-                <div style={{ fontSize: 56, marginBottom: 16 }}>🔖</div>
-                <h3 style={{ fontFamily: "'Syne',sans-serif", fontSize: 22, fontWeight: 700, color: '#fff', marginBottom: 8 }}>
-                  No saved articles yet
-                </h3>
-                <p style={{ color: 'rgba(255,255,255,0.3)', marginBottom: 24, fontSize: 15 }}>
-                  Save articles you want to read later by clicking the bookmark icon
-                </p>
-                <Link to="/blogs" style={{ display: 'inline-block', padding: '12px 28px', background: 'linear-gradient(135deg,#7c3aed,#2563eb)', color: 'white', borderRadius: 12, textDecoration: 'none', fontSize: 14, fontWeight: 500 }}>
-                  Browse stories →
-                </Link>
-              </div>
+              <EmptyState
+                illustration="bookmark"
+                title="No saved articles yet"
+                description="Save articles you want to read later by clicking the bookmark icon"
+                action={
+                  <Link to="/blogs" style={{ display: 'inline-block', padding: '12px 28px', background: 'linear-gradient(135deg,#7c3aed,#2563eb)', color: 'white', borderRadius: 12, textDecoration: 'none', fontSize: 14, fontWeight: 500 }}>
+                    Browse stories →
+                  </Link>
+                }
+              />
             ) : (
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 20 }}>
                 {savedBlogs.map(blog => <BlogCard key={blog._id} blog={blog} />)}

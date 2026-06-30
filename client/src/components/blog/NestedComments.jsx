@@ -6,6 +6,8 @@ import { Link } from 'react-router-dom'
 import { FiTrash2, FiCornerDownRight, FiEdit2, FiHeart, FiFlag, FiX, FiCheck } from 'react-icons/fi'
 import { formatDistanceToNow } from 'date-fns'
 import toast from 'react-hot-toast'
+// Import EmptyState assuming it is in the same directory or adjust path accordingly
+import EmptyState from './EmptyState' 
 
 function CommentItem({ comment, blogId, depth = 0 }) {
   const { user } = useContext(AuthContext)
@@ -245,9 +247,11 @@ export default function NestedComments({ comments, blogId, user }) {
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
         {comments?.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: '40px 20px', color: 'rgba(255,255,255,0.2)', fontSize: 14 }}>
-            No comments yet — be the first to share your thoughts!
-          </div>
+          <EmptyState 
+            illustration="noComments" 
+            title="No comments yet" 
+            description="Be the first to share your thoughts!" 
+          />
         ) : (
           comments?.map(comment => (
             <CommentItem key={comment._id} comment={comment} blogId={blogId} depth={0} />

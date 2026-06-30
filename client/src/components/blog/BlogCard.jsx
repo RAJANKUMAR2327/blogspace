@@ -111,7 +111,7 @@ export default function BlogCard({ blog }) {
         .bc-stat { display:flex;align-items:center;gap:3px;font-size:11px;color:var(--text-tertiary); }
       `}</style>
 
-      <article className="blog-card">
+      <article className="blog-card bs-hover-lift">
         <div className="bc-img-wrap">
           <Link to={`/blog/${blog.slug}`}>
             {/* Replaced standard <img> with LazyImage */}

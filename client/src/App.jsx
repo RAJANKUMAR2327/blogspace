@@ -1,10 +1,9 @@
-import { Routes, Route } from 'react-router-dom'
+import { Routes, Route, useLocation } from 'react-router-dom'
 import { Suspense, lazy } from 'react'
 import BottomNav from './components/common/BottomNav'
 import OfflineBanner from './components/common/OfflineBanner'
 import InstallPrompt from './components/common/InstallPrompt'
-
-
+import RouteLoadingBar from './components/common/RouteLoadingBar'
 
 // Components (keep these eager — needed immediately on every page)
 import Navbar from './components/common/Navbar'
@@ -39,64 +38,69 @@ const ManageComments   = lazy(() => import('./pages/admin/ManageComments'))
 const PlatformAnalytics = lazy(() => import('./pages/admin/PlatformAnalytics'))
 
 function App() {
+  const location = useLocation()
+
   return (
     <div style={{ background: '#080810', minHeight: '100vh' }}>
+      <RouteLoadingBar />
       <Navbar />
       <BottomNav />
       <OfflineBanner />
       <InstallPrompt />
       <main>
         <Suspense fallback={<PageLoader />}>
-          <Routes>
-            {/* Public Routes */}
-            <Route path="/"                    element={<Home />} />
-            <Route path="/blogs"               element={<BlogList />} />
-            <Route path="/blog/:slug"          element={<SingleBlog />} />
-            <Route path="/categories"          element={<Categories />} />
-            <Route path="/search"              element={<SearchResults />} />
-            <Route path="/login"               element={<Login />} />
-            <Route path="/register"            element={<Register />} />
-            <Route path="/forgot-password"     element={<ForgotPassword />} />
-            <Route path="/reset-password/:token" element={<ResetPassword />} />
-            <Route path="/auth/callback"       element={<AuthCallback />} />
-            <Route path="/verify-email/:token" element={<VerifyEmail />} />
-            <Route path="/author/:id"          element={<AuthorPage />} />
+          <div key={location.pathname} className="bs-page-enter">
+            <Routes>
+              {/* Public Routes */}
+              <Route path="/"                    element={<Home />} />
+              <Route path="/blogs"               element={<BlogList />} />
+              <Route path="/blog/:slug"          element={<SingleBlog />} />
+              <Route path="/categories"          element={<Categories />} />
+              <Route path="/search"              element={<SearchResults />} />
+              <Route path="/login"               element={<Login />} />
+              <Route path="/register"            element={<Register />} />
+              <Route path="/forgot-password"     element={<ForgotPassword />} />
+              <Route path="/reset-password/:token" element={<ResetPassword />} />
+              <Route path="/auth/callback"       element={<AuthCallback />} />
+              <Route path="/verify-email/:token" element={<VerifyEmail />} />
+              <Route path="/author/:id"          element={<AuthorPage />} />
 
-            {/* Protected User Routes */}
-            <Route path="/profile" element={
-              <ProtectedRoute><Profile /></ProtectedRoute>
-            } />
-            <Route path="/author-dashboard" element={
-              <ProtectedRoute><AuthorDashboard /></ProtectedRoute>
-            } />
+              {/* Protected User Routes */}
+              <Route path="/profile" element={
+                <ProtectedRoute><Profile /></ProtectedRoute>
+              } />
+              <Route path="/author-dashboard" element={
+                <ProtectedRoute><AuthorDashboard /></ProtectedRoute>
+              } />
 
-            {/* Protected Admin Routes */}
-            <Route path="/admin" element={
-              <ProtectedRoute adminOnly><Dashboard /></ProtectedRoute>
-            } />
-            <Route path="/admin/create" element={
-              <ProtectedRoute adminOnly><CreateBlog /></ProtectedRoute>
-            } />
-            <Route path="/admin/edit/:id" element={
-              <ProtectedRoute adminOnly><EditBlog /></ProtectedRoute>
-            } />
-            <Route path="/admin/users" element={
-              <ProtectedRoute adminOnly><ManageUsers /></ProtectedRoute>
-            } />
-            <Route path="/admin/comments" element={
-              <ProtectedRoute adminOnly><ManageComments /></ProtectedRoute>
-            } />
-            <Route path="/admin/analytics" element={
-              <ProtectedRoute adminOnly><PlatformAnalytics /></ProtectedRoute>
-            } />
-            <Route path="/admin/audit-logs" element={
-              <ProtectedRoute adminOnly><AuditLogs /></ProtectedRoute>
-            } />  
-            <Route path="/newsletter/unsubscribe/:token" element={<UnsubscribeConfirm />} />
+              {/* Protected Admin Routes */}
+              <Route path="/admin" element={
+                <ProtectedRoute adminOnly><Dashboard /></ProtectedRoute>
+              } />
+              <Route path="/admin/create" element={
+                <ProtectedRoute adminOnly><CreateBlog /></ProtectedRoute>
+              } />
+              <Route path="/admin/edit/:id" element={
+                <ProtectedRoute adminOnly><EditBlog /></ProtectedRoute>
+              } />
+              <Route path="/admin/users" element={
+                <ProtectedRoute adminOnly><ManageUsers /></ProtectedRoute>
+              } />
+              <Route path="/admin/comments" element={
+                <ProtectedRoute adminOnly><ManageComments /></ProtectedRoute>
+              } />
+              <Route path="/admin/analytics" element={
+                <ProtectedRoute adminOnly><PlatformAnalytics /></ProtectedRoute>
+              } />
+              <Route path="/admin/audit-logs" element={
+                <ProtectedRoute adminOnly><AuditLogs /></ProtectedRoute>
+              } />  
+              <Route path="/newsletter/unsubscribe/:token" element={<UnsubscribeConfirm />} />
 
-            {/* 404 Fallback */}
-            <Route path="*" element={<NotFound />} />
-          </Routes>
+              {/* 404 Fallback */}
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </div>
         </Suspense>
       </main>
       <Footer />
