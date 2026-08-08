@@ -15,7 +15,7 @@ router.get('/recommended',   optionalAuth, getRecommended)
 router.get('/trash',         protect, adminOnly, getTrash)
 router.get('/',              getBlogs)
 router.get('/:id/related',   getRelatedBlogs)
-router.get('/:slug',         getBlogBySlug)
+router.get('/:slug',         optionalAuth, getBlogBySlug)
 router.get('/:id/analytics',    protect, getArticleAnalytics)
 
 router.post('/',                     protect, adminOnly, createBlog)

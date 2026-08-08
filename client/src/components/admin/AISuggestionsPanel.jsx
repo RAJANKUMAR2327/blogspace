@@ -44,7 +44,7 @@ export default function AISuggestionsPanel({ content, category, onSelectTitle, o
           width: '100%', padding: '10px 16px', borderRadius: 10,
           border: 'none', cursor: (mutation.isPending || content.trim().length < 50) ? 'not-allowed' : 'pointer',
           background: 'linear-gradient(135deg, rgba(251,191,36,0.2), rgba(251,146,60,0.2))',
-          color: '#fbbf24', fontSize: 13, fontWeight: 500, fontFamily: "'Inter',sans-serif",
+          color: '#fbbf24', fontSize: 'var(--text-sm)', fontWeight: 500, fontFamily: "'Inter',sans-serif",
           display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
           opacity: (mutation.isPending || content.trim().length < 50) ? 0.5 : 1,
           transition: 'all 0.2s'
@@ -57,7 +57,7 @@ export default function AISuggestionsPanel({ content, category, onSelectTitle, o
       </button>
 
       {content.trim().length < 50 && (
-        <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.2)', marginTop: 8 }}>
+        <p style={{ fontSize: 'var(--text-xs)', color: 'var(--text-tertiary)', marginTop: 8 }}>
           Write a bit more content first (at least a few sentences)
         </p>
       )}
@@ -70,7 +70,7 @@ export default function AISuggestionsPanel({ content, category, onSelectTitle, o
       {suggestions && (
         <div style={{ marginTop: 16 }}>
           {/* Title suggestions */}
-          <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.3)', letterSpacing: '0.5px', textTransform: 'uppercase', marginBottom: 8 }}>
+          <p style={{ fontSize: 'var(--text-xs)', color: 'var(--text-tertiary)', letterSpacing: '0.5px', textTransform: 'uppercase', marginBottom: 8 }}>
             Title Ideas
           </p>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 16 }}>
@@ -80,19 +80,19 @@ export default function AISuggestionsPanel({ content, category, onSelectTitle, o
                 onClick={() => { onSelectTitle(title); toast.success('Title applied') }}
                 style={{
                   textAlign: 'left', padding: '8px 10px', borderRadius: 8,
-                  background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.06)',
-                  color: 'rgba(255,255,255,0.7)', fontSize: 12, cursor: 'pointer',
+                  background: 'var(--bg-surface-2)', border: '1px solid var(--border-soft)',
+                  color: 'var(--text-secondary)', fontSize: 12, cursor: 'pointer',
                   fontFamily: "'Inter',sans-serif", transition: 'all 0.2s', lineHeight: 1.4
                 }}
-                onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(251,191,36,0.3)'; e.currentTarget.style.color = '#fff' }}
-                onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.06)'; e.currentTarget.style.color = 'rgba(255,255,255,0.7)' }}>
+                onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(251,191,36,0.3)'; e.currentTarget.style.color = 'var(--text-primary)' }}
+                onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border-soft)'; e.currentTarget.style.color = 'var(--text-secondary)' }}>
                 {title}
               </button>
             ))}
           </div>
 
           {/* Tag suggestions */}
-          <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.3)', letterSpacing: '0.5px', textTransform: 'uppercase', marginBottom: 8 }}>
+          <p style={{ fontSize: 'var(--text-xs)', color: 'var(--text-tertiary)', letterSpacing: '0.5px', textTransform: 'uppercase', marginBottom: 8 }}>
             Tag Ideas <span style={{ fontWeight: 400 }}>(click to select)</span>
           </p>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 12 }}>
@@ -103,11 +103,11 @@ export default function AISuggestionsPanel({ content, category, onSelectTitle, o
                   key={tag}
                   onClick={() => toggleTag(tag)}
                   style={{
-                    padding: '5px 12px', borderRadius: 100, fontSize: 11, cursor: 'pointer',
+                    padding: '5px 12px', borderRadius: 100, fontSize: 'var(--text-xs)', cursor: 'pointer',
                     fontFamily: "'Inter',sans-serif", transition: 'all 0.2s',
-                    border: `1px solid ${isSelected ? 'rgba(251,191,36,0.4)' : 'rgba(255,255,255,0.08)'}`,
-                    background: isSelected ? 'rgba(251,191,36,0.15)' : 'rgba(255,255,255,0.04)',
-                    color: isSelected ? '#fbbf24' : 'rgba(255,255,255,0.5)',
+                    border: `1px solid ${isSelected ? 'rgba(251,191,36,0.4)' : 'var(--border-soft)'}`,
+                    background: isSelected ? 'rgba(251,191,36,0.15)' : 'var(--bg-surface-2)',
+                    color: isSelected ? '#fbbf24' : 'var(--text-secondary)',
                     display: 'flex', alignItems: 'center', gap: 4
                   }}>
                   {isSelected && <FiCheck size={10} />} {tag}

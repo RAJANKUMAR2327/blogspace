@@ -1,8 +1,10 @@
 import { Routes, Route, useLocation } from 'react-router-dom'
 import { Suspense, lazy } from 'react'
+import { AnimatePresence, motion } from 'framer-motion'
 import BottomNav from './components/common/BottomNav'
 import OfflineBanner from './components/common/OfflineBanner'
 import InstallPrompt from './components/common/InstallPrompt'
+import ScrollToTop from './components/common/ScrollToTop'
 import RouteLoadingBar from './components/common/RouteLoadingBar'
 
 // Components (keep these eager — needed immediately on every page)
@@ -28,6 +30,8 @@ const AuthorDashboard  = lazy(() => import('./pages/AuthorDashboard'))
 const AuthorPage       = lazy(() => import('./pages/AuthorPage'))
 const AuditLogs        = lazy(() => import('./pages/admin/AuditLogs'))
 const UnsubscribeConfirm = lazy(() => import('./pages/UnsubscribeConfirm'))
+const Privacy          = lazy(() => import('./pages/Privacy'))
+const Terms            = lazy(() => import('./pages/Terms'))
 
 // Admin pages (lazy-loaded — zero bundle cost for regular users)
 const Dashboard        = lazy(() => import('./pages/admin/Dashboard'))
@@ -47,10 +51,18 @@ function App() {
       <BottomNav />
       <OfflineBanner />
       <InstallPrompt />
+      <ScrollToTop />
       <main>
         <Suspense fallback={<PageLoader />}>
-          <div key={location.pathname} className="bs-page-enter">
-            <Routes>
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={location.pathname}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.22, ease: [0.4, 0, 0.2, 1] }}
+            >
+              <Routes location={location}>
               {/* Public Routes */}
               <Route path="/"                    element={<Home />} />
               <Route path="/blogs"               element={<BlogList />} />
@@ -96,11 +108,14 @@ function App() {
                 <ProtectedRoute adminOnly><AuditLogs /></ProtectedRoute>
               } />  
               <Route path="/newsletter/unsubscribe/:token" element={<UnsubscribeConfirm />} />
+              <Route path="/privacy" element={<Privacy />} />
+              <Route path="/terms" element={<Terms />} />
 
               {/* 404 Fallback */}
               <Route path="*" element={<NotFound />} />
-            </Routes>
-          </div>
+              </Routes>
+            </motion.div>
+          </AnimatePresence>
         </Suspense>
       </main>
       <Footer />

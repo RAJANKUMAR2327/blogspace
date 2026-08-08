@@ -3,6 +3,11 @@ import { useQuery } from '@tanstack/react-query'
 import { blogAPI } from '../services/api'
 import RecommendedArticles from '../components/blog/RecommendedArticles'
 import SEO from '../components/common/SEO'
+import Reveal from '../components/common/Reveal'
+import { StaggerGrid, StaggerItem } from '../components/common/StaggerGrid'
+import CrossfadeLoader from '../components/common/CrossfadeLoader'
+import { AnimatePresence, motion, useScroll, useTransform } from 'framer-motion'
+import AnimatedCounter from '../components/common/AnimatedCounter'
 
 const CATEGORIES = [
   { name: 'Technology',  emoji: '💻', var: '--cat-technology' },
@@ -24,6 +29,11 @@ const FALLBACK_IMGS = [
 ]
 
 export default function Home() {
+  // Subtle parallax on the decorative hero rings — purely decorative element,
+  // so moving it slower than scroll adds depth without hurting readability.
+  const { scrollY } = useScroll()
+  const heroParallaxY = useTransform(scrollY, [0, 600], [0, 80])
+
   const { data: blogsData, isLoading } = useQuery({
     queryKey: ['featuredBlogs'],
     queryFn: async () => {
@@ -302,10 +312,12 @@ export default function Home() {
       {/* ── HERO ── */}
       <section className="home-hero">
         <div className="hero-visual">
-          <div className="ring" />
-          <div className="ring" />
-          <div className="ring" />
-          <div className="ring-center">✦</div>
+          <motion.div style={{ y: heroParallaxY }}>
+            <div className="ring" />
+            <div className="ring" />
+            <div className="ring" />
+            <div className="ring-center">✦</div>
+          </motion.div>
         </div>
 
         <div className="hero-badge">
@@ -335,15 +347,15 @@ export default function Home() {
 
         <div className="hero-stats">
           <div>
-            <div className="stat-num">{total}+</div>
+            <div className="stat-num"><AnimatedCounter value={total} suffix="+" /></div>
             <div className="stat-label">Published stories</div>
           </div>
           <div>
-            <div className="stat-num">100+</div>
+            <div className="stat-num"><AnimatedCounter value={100} suffix="+" /></div>
             <div className="stat-label">Active writers</div>
           </div>
           <div>
-            <div className="stat-num">10+</div>
+            <div className="stat-num"><AnimatedCounter value={10} suffix="+" /></div>
             <div className="stat-label">Topics covered</div>
           </div>
         </div>
@@ -362,21 +374,23 @@ export default function Home() {
       </div>
 
       {/* ── FEATURED ── */}
+      <Reveal>
       <section className="section">
         <div className="section-tag">Editor's picks</div>
         <h2 className="section-title">Featured this week</h2>
         <p className="section-sub">Hand-picked stories from our editorial team</p>
 
+        <AnimatePresence mode="wait">
         {isLoading ? (
-          <div className="featured-grid">
+          <motion.div key="skeleton" exit={{ opacity: 0 }} className="featured-grid">
             <div className="skeleton" style={{ minHeight: 460 }} />
             <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
               <div className="skeleton" style={{ flex: 1, minHeight: 225 }} />
               <div className="skeleton" style={{ flex: 1, minHeight: 225 }} />
             </div>
-          </div>
+          </motion.div>
         ) : blogs.length > 0 ? (
-          <div className="featured-grid">
+          <motion.div key="content" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }} className="featured-grid">
             <Link to={`/blog/${blogs[0]?.slug}`} className="feat-main">
               <img
                 className="feat-img"
@@ -405,20 +419,23 @@ export default function Home() {
                 </Link>
               ))}
             </div>
-          </div>
+          </motion.div>
         ) : (
-          <div style={{ textAlign: 'center', padding: '80px', background: 'var(--bg-surface)', borderRadius: 'var(--radius-lg)', border: '1px solid var(--border-soft)' }}>
+          <motion.div key="empty" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }} style={{ textAlign: 'center', padding: '80px', background: 'var(--bg-surface)', borderRadius: 'var(--radius-lg)', border: '1px solid var(--border-soft)' }}>
             <div style={{ fontSize: 48, marginBottom: 16 }}>📝</div>
-            <h3 style={{ fontFamily: 'var(--font-display)', fontSize: 22, fontWeight: 700, color: 'var(--text-primary)', marginBottom: 8 }}>No stories yet</h3>
+            <h3 style={{ fontFamily: 'var(--font-display)', fontSize: 'var(--text-xl)', fontWeight: 700, color: 'var(--text-primary)', marginBottom: 8 }}>No stories yet</h3>
             <p style={{ color: 'var(--text-tertiary)', marginBottom: 24 }}>Be the first to publish something great.</p>
             <Link to="/admin/create" style={{ display: 'inline-block', padding: '12px 28px', background: 'var(--accent)', color: 'var(--text-on-accent)', borderRadius: 'var(--radius-md)', textDecoration: 'none', fontSize: '14px', fontWeight: 500 }}>
               Write a story
             </Link>
-          </div>
+          </motion.div>
         )}
+        </AnimatePresence>
       </section>
+      </Reveal>
 
       {/* ── CATEGORIES ── */}
+      <Reveal>
       <section className="section section-dark">
         <div className="section-tag">Explore topics</div>
         <h2 className="section-title">Find your passion</h2>
@@ -440,8 +457,10 @@ export default function Home() {
           ))}
         </div>
       </section>
+      </Reveal>
 
       {/* ── LATEST ── */}
+      <Reveal>
       <section className="section">
         <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', marginBottom: 40 }}>
           <div>
@@ -449,23 +468,27 @@ export default function Home() {
             <h2 className="section-title">Latest articles</h2>
             <p className="section-sub">What's new on BlogSpace today</p>
           </div>
-          <Link to="/blogs" style={{ fontSize: 13, color: 'var(--text-tertiary)', textDecoration: 'none', transition: 'color 0.2s', paddingBottom: 40 }}
+          <Link to="/blogs" style={{ fontSize: 'var(--text-sm)', color: 'var(--text-tertiary)', textDecoration: 'none', transition: 'color 0.2s', paddingBottom: 40 }}
             onMouseEnter={e => e.currentTarget.style.color = 'var(--accent)'}
             onMouseLeave={e => e.currentTarget.style.color = 'var(--text-tertiary)'}>
             View all →
           </Link>
         </div>
 
-        {isLoading ? (
-          <div className="articles-grid">
-            {[1, 2, 3].map(i => <div key={i} className="skeleton" style={{ height: 360 }} />)}
-          </div>
-        ) : (
-          <div className="articles-grid">
+        <CrossfadeLoader
+          isLoading={isLoading}
+          skeleton={
+            <div className="articles-grid">
+              {[1, 2, 3].map(i => <div key={i} className="skeleton" style={{ height: 360 }} />)}
+            </div>
+          }
+          content={
+          <StaggerGrid className="articles-grid">
             {blogs.map((blog, i) => {
               const catMeta = CATEGORIES.find(c => c.name === blog.category)
               return (
-                <Link key={blog._id} to={`/blog/${blog.slug}`} className="article-card">
+                <StaggerItem key={blog._id}>
+                <Link to={`/blog/${blog.slug}`} className="article-card">
                   <div className="art-img-wrap">
                     <img
                       className="art-img"
@@ -487,13 +510,17 @@ export default function Home() {
                     </div>
                   </div>
                 </Link>
+                </StaggerItem>
               )
             })}
-          </div>
-        )}
+          </StaggerGrid>
+          }
+        />
       </section>
+      </Reveal>
 
       {/* ── NEWSLETTER ── */}
+      <Reveal>
       <section className="section nl-section">
         <div style={{ maxWidth: 600 }}>
           <div className="section-tag">Stay updated</div>
@@ -505,13 +532,16 @@ export default function Home() {
             Join thousands of readers who get our hand-picked selection of the week's best writing every Sunday morning.
           </p>
           <div className="nl-form">
-            <input className="nl-input" type="email" placeholder="your@email.com" />
+            <input className="nl-input" type="email" aria-label="Email address" placeholder="your@email.com" />
             <button className="nl-btn">Subscribe</button>
           </div>
         </div>
       </section>
-      
-      <RecommendedArticles />
+      </Reveal>
+
+      <Reveal>
+        <RecommendedArticles />
+      </Reveal>
     </div>
   )
 }

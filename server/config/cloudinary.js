@@ -1,4 +1,5 @@
 const cloudinary = require('cloudinary').v2
+const cloudinaryRoot = require('cloudinary') // multer-storage-cloudinary needs the raw module (with nested .v2)
 const multer = require('multer')
 const cloudinaryStorage = require('multer-storage-cloudinary')
 
@@ -9,7 +10,7 @@ cloudinary.config({
 })
 
 const blogStorage = new cloudinaryStorage({
-  cloudinary,
+  cloudinary: cloudinaryRoot,
   folder:         'blogspace/blogs',
   allowedFormats: ['jpg', 'jpeg', 'png', 'webp'],
   transformation: [
@@ -18,7 +19,7 @@ const blogStorage = new cloudinaryStorage({
 })
 
 const profileStorage = new cloudinaryStorage({
-  cloudinary,
+  cloudinary: cloudinaryRoot,
   folder:         'blogspace/profiles',
   allowedFormats: ['jpg', 'jpeg', 'png', 'webp'],
   transformation: [

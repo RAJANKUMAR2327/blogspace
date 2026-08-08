@@ -3,27 +3,36 @@ const Comment = require('../models/Comment')
 // @GET /api/comments/:blogId
 exports.getComments = async (req, res, next) => {
   try {
-    const filter = { blog: req.params.blogId, parentComment: null }
+    const filter = { blog: req.params.blogId }
     // Public only sees approved comments; admin sees everything
     if (req.user?.role !== 'admin') filter.isApproved = true
 
-    const comments = await Comment.find(filter)
+    // Single query for every comment on this article (any depth), then
+    // build the reply tree in memory. This also fixes the old N+1 pattern
+    // (one query per top-level comment) and, more importantly, the old
+    // version only ever fetched one level of replies — a reply-to-a-reply
+    // was stored fine but never returned. Arbitrary depth now works, matching
+    // what the client's NestedComments component already recursively renders.
+    const all = await Comment.find(filter)
       .populate('user', 'name profileImage')
-      .sort({ createdAt: -1 })
+      .sort({ createdAt: 1 })
 
-    const commentsWithReplies = await Promise.all(
-      comments.map(async (comment) => {
-        const replyFilter = { parentComment: comment._id }
-        if (req.user?.role !== 'admin') replyFilter.isApproved = true
+    const byId = new Map()
+    all.forEach(c => byId.set(c._id.toString(), { ...c.toObject(), replies: [] }))
 
-        const replies = await Comment.find(replyFilter)
-          .populate('user', 'name profileImage')
-          .sort({ createdAt: 1 })
-        return { ...comment.toObject(), replies }
-      })
-    )
+    const topLevel = []
+    byId.forEach(comment => {
+      if (comment.parentComment) {
+        const parent = byId.get(comment.parentComment.toString())
+        if (parent) parent.replies.push(comment)
+        else topLevel.push(comment) // parent missing/filtered out — surface it rather than drop it silently
+      } else {
+        topLevel.push(comment)
+      }
+    })
+    topLevel.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
 
-    res.json({ success: true, comments: commentsWithReplies })
+    res.json({ success: true, comments: topLevel })
   } catch (error) { next(error) }
 }
 
@@ -120,8 +129,18 @@ exports.deleteComment = async (req, res, next) => {
     if (comment.user.toString() !== req.user._id.toString() && req.user.role !== 'admin') {
       return res.status(403).json({ message: 'Not authorized' })
     }
-    await Comment.deleteMany({ parentComment: comment._id })
-    await comment.deleteOne()
+
+    // Cascade-delete the whole reply subtree, not just direct children —
+    // with arbitrary-depth nesting now supported, a reply can have its own
+    // replies, which would otherwise be left orphaned (pointing at a
+    // parentComment that no longer exists) after this delete.
+    const idsToDelete = [comment._id]
+    for (let i = 0; i < idsToDelete.length; i++) {
+      const children = await Comment.find({ parentComment: idsToDelete[i] }).select('_id')
+      idsToDelete.push(...children.map(c => c._id))
+    }
+    await Comment.deleteMany({ _id: { $in: idsToDelete } })
+
     res.json({ success: true, message: 'Comment deleted' })
   } catch (error) { next(error) }
 }

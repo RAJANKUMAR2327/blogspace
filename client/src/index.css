@@ -14,8 +14,23 @@
    ============================================================ */
 
 :root {
+  /* ---- Typography scale ----
+     Consolidates what was 15 different ad-hoc font-size values scattered
+     across the app into one consistent system. Use these instead of raw
+     px numbers in new/edited components. */
+  --text-xs:   11px;  /* meta text, timestamps, tiny labels */
+  --text-sm:   13px;  /* secondary text, captions, nav links */
+  --text-base: 15px;  /* body copy */
+  --text-md:   16px;  /* emphasized body, form labels */
+  --text-lg:   18px;  /* small headings, card titles */
+  --text-xl:   22px;  /* subheadings */
+  --text-2xl:  28px;  /* section headings */
+  --text-3xl:  36px;  /* page titles */
+  --text-4xl:  56px;  /* hero titles */
+  --text-5xl:  72px;  /* large display type (rare) */
+
   /* ---- Editorial (light) — default ---- */
-  --bg-page:        #FAF8F2;
+  --bg-page:        #FFFFFF;
   --bg-surface:     #FFFFFF;
   --bg-surface-2:   #F3F0E6;
   --bg-elevated:    #FFFFFF;
@@ -222,11 +237,18 @@ a { color: inherit; }
   to   { opacity: 1; transform: translateY(0); }
 }
 
-/* ── Phase 24: Shared hover-lift utility ── */
-.bs-hover-lift {
-  transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+/* ── App-wide button micro-interactions ──
+   A single rule gives every button in the app consistent, subtle press
+   feedback — no need to touch each component individually. Buttons that
+   already have their own hover animation (framer-motion cards, etc.) are
+   unaffected since this only touches :active (the actual click moment). */
+button:not(:disabled) {
+  transition: transform 0.15s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.15s ease;
 }
-.bs-hover-lift:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 16px 40px rgba(124,58,237,0.15);
+button:not(:disabled):active {
+  transform: scale(0.96);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  button:not(:disabled):active { transform: none; }
 }

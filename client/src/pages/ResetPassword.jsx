@@ -5,12 +5,6 @@ import { authAPI } from '../services/api'
 import toast from 'react-hot-toast'
 import { FiLock, FiEye, FiEyeOff } from 'react-icons/fi'
 
-// ─────────────────────────────────────────
-// STEP 12: Reset Password Page
-// - Reads :token from URL (sent in email)
-// - User sets new password
-// - On success → auto-login and redirect
-// ─────────────────────────────────────────
 export default function ResetPassword() {
   const { token }   = useParams()
   const { login }   = useContext(AuthContext)
@@ -34,8 +28,10 @@ export default function ResetPassword() {
 
     setLoading(true)
     try {
-      const res = await authAPI.resetPassword(token, { password: formData.password })
-      // Auto-login after reset
+      // authAPI.resetPassword(token, password) wraps password into { password }
+      // itself — passing an object here (as this used to) double-nests the body
+      // and corrupts the saved hash. Pass the raw string.
+      const res = await authAPI.resetPassword(token, formData.password)
       login(res.data.user, res.data.token)
       toast.success('Password reset successfully! You are now logged in.')
       navigate('/')
@@ -47,65 +43,89 @@ export default function ResetPassword() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-950 flex items-center justify-center px-4">
-      <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 w-full max-w-md p-8">
+    <div style={{
+      minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center',
+      background: 'var(--bg-page)', fontFamily: 'var(--font-ui)', padding: 24
+    }}>
+      <style>{`
+        .rp-input {
+          width: 100%; padding: 12px 40px 12px 40px; border-radius: 10px;
+          border: 1px solid var(--border-strong); background: var(--bg-surface-2);
+          color: var(--text-primary); font-size: 14px; font-family: var(--font-ui);
+          outline: none; transition: border-color 0.2s; box-sizing: border-box;
+        }
+        .rp-input:focus { border-color: var(--accent); }
+        .rp-input::placeholder { color: var(--text-tertiary); }
+        .rp-btn {
+          width: 100%; padding: 13px; border-radius: 10px; border: none;
+          background: var(--accent); color: var(--text-on-accent);
+          font-size: 14px; font-weight: 500; cursor: pointer; transition: background 0.2s;
+        }
+        .rp-btn:hover:not(:disabled) { background: var(--accent-strong); }
+        .rp-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+        .rp-eye {
+          position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
+          background: none; border: none; cursor: pointer; color: var(--text-tertiary);
+          display: flex; padding: 2px;
+        }
+      `}</style>
 
-        <div className="text-center mb-8">
-          <div className="text-4xl mb-3">🔑</div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Set new password</h1>
-          <p className="text-gray-500 dark:text-gray-400 text-sm">
+      <div style={{
+        maxWidth: 420, width: '100%', background: 'var(--bg-surface)',
+        border: '1px solid var(--border-soft)', borderRadius: 'var(--radius-lg)',
+        padding: '40px 36px', boxShadow: 'var(--shadow-card)'
+      }}>
+        <div style={{ textAlign: 'center', marginBottom: 28 }}>
+          <div style={{ fontSize: 'var(--text-3xl)', marginBottom: 10 }}>🔑</div>
+          <h1 style={{ fontFamily: 'var(--font-display)', fontSize: 24, fontWeight: 700, color: 'var(--text-primary)', marginBottom: 8 }}>
+            Set new password
+          </h1>
+          <p style={{ color: 'var(--text-tertiary)', fontSize: 14 }}>
             Choose a strong password for your account
           </p>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-5">
-
-          {/* New Password */}
+        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            <label style={{ fontSize: 'var(--text-sm)', fontWeight: 500, color: 'var(--text-secondary)', display: 'block', marginBottom: 6 }}>
               New Password
             </label>
-            <div className="relative">
-              <FiLock className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+            <div style={{ position: 'relative' }}>
+              <FiLock size={15} style={{ position: 'absolute', left: 13, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-tertiary)' }} />
               <input
+                className="rp-input"
                 type={showPassword ? 'text' : 'password'}
                 name="password" value={formData.password}
                 onChange={handleChange} required placeholder="Min 6 characters"
-                className="w-full pl-10 pr-12 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
               />
-              <button type="button" onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
-                {showPassword ? <FiEyeOff /> : <FiEye />}
+              <button type="button" className="rp-eye" onClick={() => setShowPassword(!showPassword)}>
+                {showPassword ? <FiEyeOff size={15} /> : <FiEye size={15} />}
               </button>
             </div>
           </div>
 
-          {/* Confirm Password */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            <label style={{ fontSize: 'var(--text-sm)', fontWeight: 500, color: 'var(--text-secondary)', display: 'block', marginBottom: 6 }}>
               Confirm New Password
             </label>
-            <div className="relative">
-              <FiLock className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+            <div style={{ position: 'relative' }}>
+              <FiLock size={15} style={{ position: 'absolute', left: 13, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-tertiary)' }} />
               <input
+                className="rp-input"
                 type={showPassword ? 'text' : 'password'}
                 name="confirmPassword" value={formData.confirmPassword}
                 onChange={handleChange} required placeholder="Repeat new password"
-                className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
               />
             </div>
           </div>
 
-          <button
-            type="submit" disabled={loading}
-            className="w-full bg-purple-600 text-white py-3 rounded-xl font-semibold hover:bg-purple-700 transition-colors disabled:opacity-70"
-          >
+          <button type="submit" className="rp-btn" disabled={loading}>
             {loading ? 'Resetting...' : 'Reset Password'}
           </button>
         </form>
 
-        <p className="text-center mt-6 text-sm text-gray-500">
-          <Link to="/login" className="text-purple-600 dark:text-purple-400 hover:underline">
+        <p style={{ textAlign: 'center', marginTop: 24, fontSize: 'var(--text-sm)', color: 'var(--text-tertiary)' }}>
+          <Link to="/login" style={{ color: 'var(--accent)', textDecoration: 'none', fontWeight: 500 }}>
             Back to login
           </Link>
         </p>

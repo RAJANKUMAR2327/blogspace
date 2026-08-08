@@ -167,14 +167,14 @@ export default function EditBlog() {
             display: 'flex', alignItems: 'center', justifycontent: 'space-between', gap: 16, flexWrap: 'wrap'
           }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-              <span style={{ fontSize: 18 }}>📝</span>
-              <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.6)', margin: 0 }}>
+              <span style={{ fontSize: 'var(--text-lg)' }}>📝</span>
+              <p style={{ fontSize: 'var(--text-sm)', color: 'var(--text-secondary)', margin: 0 }}>
                 Found an unsaved draft from {new Date(recoveredDraft?.savedAt).toLocaleString()}. Restore it?
               </p>
             </div>
             <div style={{ display: 'flex', gap: 8 }}>
               <button onClick={dismissRecovery}
-                style={{ padding: '7px 14px', background: 'none', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8, color: 'rgba(255,255,255,0.4)', fontSize: 12, cursor: 'pointer', fontFamily: "'Inter',sans-serif" }}>
+                style={{ padding: '7px 14px', background: 'none', border: '1px solid var(--border-strong)', borderRadius: 8, color: 'var(--text-tertiary)', fontSize: 12, cursor: 'pointer', fontFamily: "'Inter',sans-serif" }}>
                 Discard
               </button>
               <button onClick={restoreDraft}
@@ -188,7 +188,7 @@ export default function EditBlog() {
         {/* Header */}
         <div className="eb-header-row">
           <div>
-            <Link to="/admin" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 13, color: 'var(--text-tertiary)', textDecoration: 'none', marginBottom: 8, transition: 'color 0.2s' }}
+            <Link to="/admin" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 'var(--text-sm)', color: 'var(--text-tertiary)', textDecoration: 'none', marginBottom: 8, transition: 'color 0.2s' }}
               onMouseEnter={e => e.currentTarget.style.color = 'var(--accent)'}
               onMouseLeave={e => e.currentTarget.style.color = 'var(--text-tertiary)'}>
               <FiArrowLeft size={12} /> Back to dashboard
@@ -199,7 +199,7 @@ export default function EditBlog() {
           </div>
           <div className="eb-header-actions">
             {lastSaved && (
-              <span style={{ fontSize: 11, color: 'rgba(52,211,153,0.7)', display: 'inline-flex', alignItems: 'center', gap: 5, marginRight: 8 }}>
+              <span style={{ fontSize: 'var(--text-xs)', color: 'rgba(52,211,153,0.7)', display: 'inline-flex', alignItems: 'center', gap: 5, marginRight: 8 }}>
                 <FiSave size={11} /> Saved locally {new Date(lastSaved).toLocaleTimeString()}
               </span>
             )}
@@ -221,7 +221,7 @@ export default function EditBlog() {
             <input className="eb-input" type="text" value={formData.title}
               onChange={(e) => setFormData(p => ({ ...p, title: e.target.value }))}
               placeholder="Story title..."
-              style={{ fontSize: 22, fontFamily: 'var(--font-display)', fontWeight: 700, padding: '16px 20px', borderRadius: 12 }}
+              style={{ fontSize: 'var(--text-xl)', fontFamily: 'var(--font-display)', fontWeight: 700, padding: '16px 20px', borderRadius: 12 }}
             />
             <div style={{ display: 'flex', gap: 16, padding: '4px', flexWrap: 'wrap' }}>
               <span style={{ fontSize: 12, color: 'var(--text-tertiary)' }}>{wordCount} words</span>
@@ -284,7 +284,7 @@ export default function EditBlog() {
               <input className="eb-input" type="text" value={formData.tags}
                 onChange={(e) => setFormData(p => ({ ...p, tags: e.target.value }))}
                 placeholder="react, javascript, ai" />
-              <p style={{ fontSize: 11, color: 'var(--text-tertiary)', marginTop: 6 }}>Separate with commas</p>
+              <p style={{ fontSize: 'var(--text-xs)', color: 'var(--text-tertiary)', marginTop: 6 }}>Separate with commas</p>
             </div>
 
             <div className="sidebar-card">
@@ -292,13 +292,13 @@ export default function EditBlog() {
               <label className="eb-upload-zone">
                 <input type="file" accept="image/*" onChange={handleFileUpload} style={{ display: 'none' }} />
                 <FiUpload size={18} style={{ color: 'var(--text-tertiary)', marginBottom: 6 }} />
-                <p style={{ fontSize: 13, color: 'var(--text-tertiary)', margin: 0 }}>
+                <p style={{ fontSize: 'var(--text-sm)', color: 'var(--text-tertiary)', margin: 0 }}>
                   {uploading ? 'Uploading...' : 'Upload new image'}
                 </p>
               </label>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, margin: '10px 0' }}>
                 <div style={{ flex: 1, height: 1, background: 'var(--border-soft)' }} />
-                <span style={{ fontSize: 11, color: 'var(--text-tertiary)' }}>or URL</span>
+                <span style={{ fontSize: 'var(--text-xs)', color: 'var(--text-tertiary)' }}>or URL</span>
                 <div style={{ flex: 1, height: 1, background: 'var(--border-soft)' }} />
               </div>
               <input className="eb-input" type="url" placeholder="https://..."

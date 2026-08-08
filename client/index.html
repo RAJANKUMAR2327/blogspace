@@ -37,6 +37,16 @@
 
     <!-- Google Sign-In -->
     <script src="https://accounts.google.com/gsi/client" async defer></script>
+
+    <!-- reCAPTCHA v3 (invisible) — only loads if a site key is configured -->
+    <script>
+      if ("%VITE_RECAPTCHA_SITE_KEY%" && "%VITE_RECAPTCHA_SITE_KEY%" !== "%" + "VITE_RECAPTCHA_SITE_KEY" + "%") {
+        const s = document.createElement('script')
+        s.src = "https://www.google.com/recaptcha/api.js?render=%VITE_RECAPTCHA_SITE_KEY%"
+        s.async = true
+        document.head.appendChild(s)
+      }
+    </script>
   </head>
   <body>
     <div id="root"></div>

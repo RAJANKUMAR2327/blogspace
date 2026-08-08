@@ -23,60 +23,90 @@ export default function ForgotPassword() {
     }
   }
 
-  if (sent) {
-    return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-950 flex items-center justify-center px-4">
-        <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 w-full max-w-md p-8 text-center">
-          <div className="text-5xl mb-4">📧</div>
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Check your email</h2>
-          <p className="text-gray-500 dark:text-gray-400 mb-6">
-            We sent a reset link to <strong className="text-gray-700 dark:text-gray-300">{email}</strong>.
-            The link expires in 15 minutes.
-          </p>
-          <Link to="/login"
-            className="inline-flex items-center gap-2 text-purple-600 dark:text-purple-400 hover:underline font-medium">
-            <FiArrowLeft /> Back to login
-          </Link>
-        </div>
-      </div>
-    )
-  }
-
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-950 flex items-center justify-center px-4">
-      <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 w-full max-w-md p-8">
+    <div style={{
+      minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center',
+      background: 'var(--bg-page)', fontFamily: 'var(--font-ui)', padding: 24
+    }}>
+      <style>{`
+        .fp-input {
+          width: 100%; padding: 12px 14px 12px 40px; border-radius: 10px;
+          border: 1px solid var(--border-strong); background: var(--bg-surface-2);
+          color: var(--text-primary); font-size: 14px; font-family: var(--font-ui);
+          outline: none; transition: border-color 0.2s; box-sizing: border-box;
+        }
+        .fp-input:focus { border-color: var(--accent); }
+        .fp-input::placeholder { color: var(--text-tertiary); }
+        .fp-btn {
+          width: 100%; padding: 13px; border-radius: 10px; border: none;
+          background: var(--accent); color: var(--text-on-accent);
+          font-size: 14px; font-weight: 500; cursor: pointer; transition: background 0.2s;
+        }
+        .fp-btn:hover:not(:disabled) { background: var(--accent-strong); }
+        .fp-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+      `}</style>
 
-        <div className="text-center mb-8">
-          <div className="text-4xl mb-3">🔐</div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Forgot password?</h1>
-          <p className="text-gray-500 dark:text-gray-400 text-sm">
-            Enter your email and we'll send you a reset link
-          </p>
-        </div>
-
-        <form onSubmit={handleSubmit} className="space-y-5">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Email Address</label>
-            <div className="relative">
-              <FiMail className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-              <input type="email" value={email} onChange={(e) => setEmail(e.target.value)}
-                required placeholder="you@example.com"
-                className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500 transition" />
-            </div>
+      <div style={{
+        maxWidth: 420, width: '100%', background: 'var(--bg-surface)',
+        border: '1px solid var(--border-soft)', borderRadius: 'var(--radius-lg)',
+        padding: '40px 36px', boxShadow: 'var(--shadow-card)'
+      }}>
+        {sent ? (
+          <div style={{ textAlign: 'center' }}>
+            <div style={{ fontSize: 44, marginBottom: 16 }}>📧</div>
+            <h1 style={{ fontFamily: 'var(--font-display)', fontSize: 'var(--text-xl)', fontWeight: 700, color: 'var(--text-primary)', marginBottom: 10 }}>
+              Check your email
+            </h1>
+            <p style={{ color: 'var(--text-secondary)', fontSize: 14, marginBottom: 28, lineHeight: 1.6 }}>
+              We sent a reset link to <strong style={{ color: 'var(--text-primary)' }}>{email}</strong>.
+              The link expires in 15 minutes.
+            </p>
+            <Link to="/login" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, color: 'var(--accent)', textDecoration: 'none', fontSize: 14, fontWeight: 500 }}>
+              <FiArrowLeft size={14} /> Back to login
+            </Link>
           </div>
+        ) : (
+          <>
+            <div style={{ textAlign: 'center', marginBottom: 28 }}>
+              <div style={{ fontSize: 'var(--text-3xl)', marginBottom: 10 }}>🔐</div>
+              <h1 style={{ fontFamily: 'var(--font-display)', fontSize: 24, fontWeight: 700, color: 'var(--text-primary)', marginBottom: 8 }}>
+                Forgot password?
+              </h1>
+              <p style={{ color: 'var(--text-tertiary)', fontSize: 14 }}>
+                Enter your email and we'll send you a reset link
+              </p>
+            </div>
 
-          <button type="submit" disabled={loading}
-            className="w-full bg-purple-600 text-white py-3 rounded-xl font-semibold hover:bg-purple-700 transition-colors disabled:opacity-70">
-            {loading ? 'Sending...' : 'Send Reset Link'}
-          </button>
-        </form>
+            <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
+              <div>
+                <label style={{ fontSize: 'var(--text-sm)', fontWeight: 500, color: 'var(--text-secondary)', display: 'block', marginBottom: 6 }}>
+                  Email Address
+                </label>
+                <div style={{ position: 'relative' }}>
+                  <FiMail size={15} style={{ position: 'absolute', left: 13, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-tertiary)' }} />
+                  <input
+                    className="fp-input"
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                    placeholder="you@example.com"
+                  />
+                </div>
+              </div>
 
-        <div className="text-center mt-6">
-          <Link to="/login"
-            className="inline-flex items-center gap-1 text-sm text-gray-500 dark:text-gray-400 hover:text-purple-600 dark:hover:text-purple-400">
-            <FiArrowLeft size={14} /> Back to login
-          </Link>
-        </div>
+              <button type="submit" className="fp-btn" disabled={loading}>
+                {loading ? 'Sending...' : 'Send Reset Link'}
+              </button>
+            </form>
+
+            <div style={{ textAlign: 'center', marginTop: 24 }}>
+              <Link to="/login" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 'var(--text-sm)', color: 'var(--text-tertiary)', textDecoration: 'none' }}>
+                <FiArrowLeft size={13} /> Back to login
+              </Link>
+            </div>
+          </>
+        )}
       </div>
     </div>
   )

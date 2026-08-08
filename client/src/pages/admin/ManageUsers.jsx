@@ -73,7 +73,7 @@ export default function ManageUsers() {
       <div className="mu-page-pad">
         {/* Header */}
         <div style={{ marginBottom: 32 }}>
-          <Link to="/admin" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 13, color: 'var(--text-tertiary)', textDecoration: 'none', marginBottom: 8, transition: 'color 0.2s' }}
+          <Link to="/admin" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 'var(--text-sm)', color: 'var(--text-tertiary)', textDecoration: 'none', marginBottom: 8, transition: 'color 0.2s' }}
             onMouseEnter={e => e.currentTarget.style.color = 'var(--accent)'}
             onMouseLeave={e => e.currentTarget.style.color = 'var(--text-tertiary)'}>
             ← Back to dashboard
@@ -131,7 +131,7 @@ export default function ManageUsers() {
                 <thead>
                   <tr style={{ borderBottom: '1px solid var(--border-soft)' }}>
                     {['User', 'Role', 'Joined', 'Status', 'Actions'].map(h => (
-                      <th key={h} style={{ padding: '12px 20px', textAlign: 'left', fontSize: 11, fontWeight: 500, color: 'var(--text-tertiary)', letterSpacing: '1px', textTransform: 'uppercase', whiteSpace: 'nowrap' }}>{h}</th>
+                      <th key={h} style={{ padding: '12px 20px', textAlign: 'left', fontSize: 'var(--text-xs)', fontWeight: 500, color: 'var(--text-tertiary)', letterSpacing: '1px', textTransform: 'uppercase', whiteSpace: 'nowrap' }}>{h}</th>
                     ))}
                   </tr>
                 </thead>
@@ -155,18 +155,18 @@ export default function ManageUsers() {
                       </td>
                       {/* Role */}
                       <td style={{ padding: '14px 20px' }}>
-                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 11, padding: '4px 10px', borderRadius: 6, background: user.role === 'admin' ? 'var(--accent-soft)' : 'var(--bg-surface-2)', color: user.role === 'admin' ? 'var(--accent-strong)' : 'var(--text-tertiary)', border: `1px solid ${user.role === 'admin' ? 'color-mix(in srgb, var(--accent) 25%, transparent)' : 'var(--border-soft)'}`, letterSpacing: '0.5px', textTransform: 'uppercase', whiteSpace: 'nowrap' }}>
+                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 'var(--text-xs)', padding: '4px 10px', borderRadius: 6, background: user.role === 'admin' ? 'var(--accent-soft)' : 'var(--bg-surface-2)', color: user.role === 'admin' ? 'var(--accent-strong)' : 'var(--text-tertiary)', border: `1px solid ${user.role === 'admin' ? 'color-mix(in srgb, var(--accent) 25%, transparent)' : 'var(--border-soft)'}`, letterSpacing: '0.5px', textTransform: 'uppercase', whiteSpace: 'nowrap' }}>
                           {user.role === 'admin' ? <FiShield size={10} /> : <FiUser size={10} />}
                           {user.role}
                         </span>
                       </td>
                       {/* Joined */}
-                      <td style={{ padding: '14px 20px', fontSize: 13, color: 'var(--text-tertiary)', whiteSpace: 'nowrap' }}>
+                      <td style={{ padding: '14px 20px', fontSize: 'var(--text-sm)', color: 'var(--text-tertiary)', whiteSpace: 'nowrap' }}>
                         {formatDistanceToNow(new Date(user.createdAt), { addSuffix: true })}
                       </td>
                       {/* Status */}
                       <td style={{ padding: '14px 20px' }}>
-                        <span style={{ fontSize: 11, padding: '4px 10px', borderRadius: 6, background: user.isBanned ? 'color-mix(in srgb, var(--danger) 12%, transparent)' : 'color-mix(in srgb, var(--success) 12%, transparent)', color: user.isBanned ? 'var(--danger)' : 'var(--success)', border: `1px solid ${user.isBanned ? 'color-mix(in srgb, var(--danger) 25%, transparent)' : 'color-mix(in srgb, var(--success) 25%, transparent)'}`, textTransform: 'uppercase', letterSpacing: '0.5px', whiteSpace: 'nowrap' }}>
+                        <span style={{ fontSize: 'var(--text-xs)', padding: '4px 10px', borderRadius: 6, background: user.isBanned ? 'color-mix(in srgb, var(--danger) 12%, transparent)' : 'color-mix(in srgb, var(--success) 12%, transparent)', color: user.isBanned ? 'var(--danger)' : 'var(--success)', border: `1px solid ${user.isBanned ? 'color-mix(in srgb, var(--danger) 25%, transparent)' : 'color-mix(in srgb, var(--success) 25%, transparent)'}`, textTransform: 'uppercase', letterSpacing: '0.5px', whiteSpace: 'nowrap' }}>
                           {user.isBanned ? 'Banned' : 'Active'}
                         </span>
                       </td>

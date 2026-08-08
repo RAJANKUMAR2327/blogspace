@@ -6,6 +6,10 @@ import { blogAPI } from '../services/api'
 import BlogCard from '../components/blog/BlogCard'
 import SEO from '../components/common/SEO'
 import EmptyState from '../components/common/EmptyState'
+import Breadcrumbs from '../components/common/Breadcrumbs'
+import Reveal from '../components/common/Reveal'
+import { StaggerGrid, StaggerItem } from '../components/common/StaggerGrid'
+import { AnimatePresence, motion } from 'framer-motion'
 import { FiSearch, FiGrid, FiList } from 'react-icons/fi'
 
 const CATEGORIES = ['All', 'Technology', 'Programming', 'Design', 'Business', 'Science', 'Health', 'Travel', 'Food', 'Lifestyle', 'Other']
@@ -131,44 +135,68 @@ export default function BlogList() {
       <div className="bl-header-pad" style={{ position: 'relative', overflow: 'hidden' }}>
         <div style={{ position: 'absolute', inset: 0, backgroundImage: 'radial-gradient(color-mix(in srgb, var(--text-primary) 4%, transparent) 1px, transparent 1px)', backgroundSize: '28px 28px' }} />
         <div style={{ position: 'absolute', top: 0, left: '50%', transform: 'translateX(-50%)', width: '600px', height: '200px', background: 'radial-gradient(ellipse, color-mix(in srgb, var(--accent) 14%, transparent), transparent 70%)', pointerEvents: 'none' }} />
-        <div style={{ position: 'relative' }}>
-          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, fontSize: 11, letterSpacing: '2px', textTransform: 'uppercase', color: 'var(--accent)', marginBottom: 12 }}>
+        <Reveal style={{ position: 'relative' }}>
+          <Breadcrumbs items={category ? [
+            { label: 'Stories', to: '/blogs' },
+            { label: category }
+          ] : [{ label: 'Stories' }]} />
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, fontSize: 'var(--text-xs)', letterSpacing: '2px', textTransform: 'uppercase', color: 'var(--accent)', marginBottom: 12 }}>
             <span style={{ width: 16, height: 1, background: 'var(--accent)', display: 'inline-block' }} />
             Explore
           </div>
           <h1 style={{ fontFamily: 'var(--font-display)', fontSize: 'clamp(32px,5vw,56px)', fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '-1px', marginBottom: 8 }}>
             All Stories
           </h1>
-          <p style={{ fontSize: 16, color: 'var(--text-tertiary)', fontFamily: 'var(--font-body)', marginBottom: 40 }}>
+          <p style={{ fontSize: 'var(--text-md)', color: 'var(--text-tertiary)', fontFamily: 'var(--font-body)', marginBottom: 40 }}>
             {totalCount} articles across {CATEGORIES.length - 1} topics
           </p>
 
           {/* Search */}
           <form onSubmit={handleSearch} className="bl-search-form">
             <div style={{ position: 'relative', flex: 1 }}>
-              <FiSearch style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-tertiary)', fontSize: 16 }} />
-              <input className="bl-search-input" type="text" value={search}
+              <FiSearch style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-tertiary)', fontSize: 'var(--text-md)' }} />
+              <input className="bl-search-input" type="text" aria-label="Search stories" value={search}
                 onChange={(e) => setSearch(e.target.value)} placeholder="Search articles, topics, authors..." />
             </div>
             <button type="submit" className="bl-search-btn">Search</button>
           </form>
-        </div>
+        </Reveal>
       </div>
 
       {/* Category Filter */}
       <div className="bl-cat-pad" style={{ overflowX: 'auto' }}>
         <div style={{ display: 'flex', gap: 8, width: 'max-content', paddingBottom: 4 }}>
-          {CATEGORIES.map(cat => (
-            <button key={cat} onClick={() => handleCategory(cat)}
-              className={`cat-pill ${(category === cat || (cat === 'All' && !category)) ? 'active' : ''}`}
-              style={cat !== 'All' && CAT_VAR[cat] && (category === cat) ? {
-                borderColor: `var(${CAT_VAR[cat]})`,
-                background: `color-mix(in srgb, var(${CAT_VAR[cat]}) 15%, transparent)`,
-                color: `var(${CAT_VAR[cat]})`
-              } : {}}>
-              {cat}
-            </button>
-          ))}
+          {CATEGORIES.map(cat => {
+            const isActive = category === cat || (cat === 'All' && !category)
+            return (
+              <motion.button
+                key={cat}
+                onClick={() => handleCategory(cat)}
+                whileTap={{ scale: 0.94 }}
+                className={`cat-pill ${isActive ? 'active' : ''}`}
+                style={{
+                  position: 'relative', overflow: 'hidden',
+                  color: isActive && cat !== 'All' && CAT_VAR[cat] ? `var(${CAT_VAR[cat]})` : undefined
+                }}
+              >
+                {isActive && (
+                  <motion.span
+                    layoutId="activeCatPill"
+                    transition={{ type: 'spring', stiffness: 400, damping: 32 }}
+                    style={{
+                      position: 'absolute', inset: 0, borderRadius: 'inherit',
+                      background: cat !== 'All' && CAT_VAR[cat]
+                        ? `color-mix(in srgb, var(${CAT_VAR[cat]}) 15%, transparent)`
+                        : 'var(--bg-surface-2)',
+                      border: `1px solid ${cat !== 'All' && CAT_VAR[cat] ? `var(${CAT_VAR[cat]})` : 'var(--border-strong)'}`,
+                      zIndex: 0
+                    }}
+                  />
+                )}
+                <span style={{ position: 'relative', zIndex: 1 }}>{cat}</span>
+              </motion.button>
+            )
+          })}
         </div>
       </div>
 
@@ -180,21 +208,23 @@ export default function BlogList() {
             {isLoading ? 'Loading...' : `${allBlogs.length} of ${totalCount} stories`}
           </p>
           <div style={{ display: 'flex', gap: 6 }}>
-            <button onClick={() => setView('grid')} style={{ padding: '7px 10px', background: view === 'grid' ? 'var(--accent-soft)' : 'var(--bg-surface-2)', border: '1px solid', borderColor: view === 'grid' ? 'var(--accent)' : 'var(--border-soft)', borderRadius: 8, color: view === 'grid' ? 'var(--accent-strong)' : 'var(--text-tertiary)', cursor: 'pointer', fontSize: 16, display: 'flex', alignItems: 'center' }}>
+            <button onClick={() => setView('grid')} style={{ padding: '7px 10px', background: view === 'grid' ? 'var(--accent-soft)' : 'var(--bg-surface-2)', border: '1px solid', borderColor: view === 'grid' ? 'var(--accent)' : 'var(--border-soft)', borderRadius: 8, color: view === 'grid' ? 'var(--accent-strong)' : 'var(--text-tertiary)', cursor: 'pointer', fontSize: 'var(--text-md)', display: 'flex', alignItems: 'center' }}>
               <FiGrid />
             </button>
-            <button onClick={() => setView('list')} style={{ padding: '7px 10px', background: view === 'list' ? 'var(--accent-soft)' : 'var(--bg-surface-2)', border: '1px solid', borderColor: view === 'list' ? 'var(--accent)' : 'var(--border-soft)', borderRadius: 8, color: view === 'list' ? 'var(--accent-strong)' : 'var(--text-tertiary)', cursor: 'pointer', fontSize: 16, display: 'flex', alignItems: 'center' }}>
+            <button onClick={() => setView('list')} style={{ padding: '7px 10px', background: view === 'list' ? 'var(--accent-soft)' : 'var(--bg-surface-2)', border: '1px solid', borderColor: view === 'list' ? 'var(--accent)' : 'var(--border-soft)', borderRadius: 8, color: view === 'list' ? 'var(--accent-strong)' : 'var(--text-tertiary)', cursor: 'pointer', fontSize: 'var(--text-md)', display: 'flex', alignItems: 'center' }}>
               <FiList />
             </button>
           </div>
         </div>
 
         {/* Content Layout */}
+        <AnimatePresence mode="wait">
         {isLoading ? (
-          <div className="bl-grid" style={{ gridTemplateColumns: view === 'grid' ? undefined : '1fr' }}>
+          <motion.div key="skeleton" exit={{ opacity: 0 }} className="bl-grid" style={{ gridTemplateColumns: view === 'grid' ? undefined : '1fr' }}>
             {[...Array(9)].map((_, i) => <div key={i} className="skeleton" style={{ height: 360 }} />)}
-          </div>
+          </motion.div>
         ) : allBlogs.length === 0 ? (
+          <motion.div key="empty" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }}>
           <EmptyState
             illustration="noResults"
             title="No stories found"
@@ -206,11 +236,12 @@ export default function BlogList() {
               </button>
             }
           />
+          </motion.div>
         ) : (
-          <>
-            <div className={`bl-grid ${view === 'list' ? 'list-view' : ''}`}>
-              {allBlogs.map(blog => <BlogCard key={blog._id} blog={blog} view={view} />)}
-            </div>
+          <motion.div key="content" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }}>
+            <StaggerGrid className={`bl-grid ${view === 'list' ? 'list-view' : ''}`}>
+              {allBlogs.map(blog => <StaggerItem key={blog._id}><BlogCard blog={blog} view={view} /></StaggerItem>)}
+            </StaggerGrid>
 
             {/* Sentinel element + loading indicator */}
             <div ref={loadMoreRef} style={{ display: 'flex', justifyContent: 'center', padding: '40px 0' }}>
@@ -218,11 +249,12 @@ export default function BlogList() {
                 <div style={{ width: 28, height: 28, borderRadius: '50%', border: '2px solid var(--border-soft)', borderTop: '2px solid var(--accent)', animation: 'spin 0.8s linear infinite' }} />
               )}
               {!hasNextPage && allBlogs.length > 0 && (
-                <p style={{ fontSize: 13, color: 'var(--text-tertiary)', opacity: 0.7 }}>You've reached the end — {totalCount} stories total</p>
+                <p style={{ fontSize: 'var(--text-sm)', color: 'var(--text-tertiary)', opacity: 0.7 }}>You've reached the end — {totalCount} stories total</p>
               )}
             </div>
-          </>
+          </motion.div>
         )}
+        </AnimatePresence>
       </div>
     </div>
   )

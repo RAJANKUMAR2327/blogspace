@@ -3,7 +3,7 @@ import { useNavigate, Link } from 'react-router-dom'
 import { blogAPI, uploadAPI } from '../../services/api'
 import { compressImage } from '../../utils/compressImage' 
 import toast from 'react-hot-toast'
-import SEO from '../common/SEO'
+import SEO from '../../components/common/SEO'
 import { FiSave, FiSend, FiImage, FiX, FiUpload, FiArrowLeft, FiEye, FiZap } from 'react-icons/fi'
 import MarkdownEditor from '../../components/admin/MarkdownEditor'
 import { useAutoSave, getRecoverableDraft } from '../../hooks/useAutoSave'
@@ -236,14 +236,14 @@ export default function CreateBlog() {
             display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16, flexWrap: 'wrap'
           }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-              <span style={{ fontSize: 18 }}>📝</span>
-              <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.6)', margin: 0 }}>
+              <span style={{ fontSize: 'var(--text-lg)' }}>📝</span>
+              <p style={{ fontSize: 'var(--text-sm)', color: 'var(--text-secondary)', margin: 0 }}>
                 Found an unsaved draft from {new Date(recoveredDraft?.savedAt).toLocaleString()}. Restore it?
               </p>
             </div>
             <div style={{ display: 'flex', gap: 8 }}>
               <button onClick={dismissRecovery}
-                style={{ padding: '7px 14px', background: 'none', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8, color: 'rgba(255,255,255,0.4)', fontSize: 12, cursor: 'pointer', fontFamily: "'Inter',sans-serif" }}>
+                style={{ padding: '7px 14px', background: 'none', border: '1px solid var(--border-strong)', borderRadius: 8, color: 'var(--text-tertiary)', fontSize: 12, cursor: 'pointer', fontFamily: "'Inter',sans-serif" }}>
                 Discard
               </button>
               <button onClick={restoreDraft}
@@ -257,7 +257,7 @@ export default function CreateBlog() {
         {/* Header */}
         <div className="cb-header-row">
           <div>
-            <Link to="/admin" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 13, color: 'var(--text-tertiary)', textDecoration: 'none', marginBottom: 8, transition: 'color 0.2s' }}
+            <Link to="/admin" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 'var(--text-sm)', color: 'var(--text-tertiary)', textDecoration: 'none', marginBottom: 8, transition: 'color 0.2s' }}
               onMouseEnter={e => e.currentTarget.style.color = 'var(--accent)'}
               onMouseLeave={e => e.currentTarget.style.color = 'var(--text-tertiary)'}>
               <FiArrowLeft size={12} /> Back to dashboard
@@ -268,7 +268,7 @@ export default function CreateBlog() {
           </div>
           <div className="cb-header-actions">
             {lastSaved && (
-              <span style={{ fontSize: 11, color: 'rgba(52,211,153,0.7)', display: 'inline-flex', alignItems: 'center', gap: 5, marginRight: 8 }}>
+              <span style={{ fontSize: 'var(--text-xs)', color: 'rgba(52,211,153,0.7)', display: 'inline-flex', alignItems: 'center', gap: 5, marginRight: 8 }}>
                 <FiSave size={11} /> Saved locally {new Date(lastSaved).toLocaleTimeString()}
               </span>
             )}
@@ -298,7 +298,7 @@ export default function CreateBlog() {
               value={formData.title}
               onChange={handleChange}
               placeholder="Your story title..."
-              style={{ fontSize: 22, fontFamily: 'var(--font-display)', fontWeight: 700, padding: '16px 20px', borderRadius: 12 }}
+              style={{ fontSize: 'var(--text-xl)', fontFamily: 'var(--font-display)', fontWeight: 700, padding: '16px 20px', borderRadius: 12 }}
             />
 
             {/* Word count bar */}
@@ -338,15 +338,15 @@ export default function CreateBlog() {
                 onClick={() => setFormData(p => ({ ...p, featured: !p.featured }))}
                 style={{
                   width: '100%', padding: '10px 16px', borderRadius: 10,
-                  fontSize: 13, fontWeight: 500, cursor: 'pointer',
+                  fontSize: 'var(--text-sm)', fontWeight: 500, cursor: 'pointer',
                   transition: 'all 0.2s', fontFamily: "'Inter',sans-serif",
-                  border: formData.featured ? '1px solid rgba(251,191,36,0.4)' : '1px solid rgba(255,255,255,0.08)',
-                  background: formData.featured ? 'rgba(251,191,36,0.15)' : 'rgba(255,255,255,0.04)',
-                  color: formData.featured ? '#fbbf24' : 'rgba(255,255,255,0.4)',
+                  border: formData.featured ? '1px solid rgba(251,191,36,0.4)' : '1px solid var(--border-soft)',
+                  background: formData.featured ? 'rgba(251,191,36,0.15)' : 'var(--bg-surface-2)',
+                  color: formData.featured ? '#fbbf24' : 'var(--text-tertiary)',
                 }}>
                 {formData.featured ? '⭐ Featured' : '☆ Mark as Featured'}
               </button>
-              <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.2)', marginTop: 8 }}>
+              <p style={{ fontSize: 'var(--text-xs)', color: 'var(--text-tertiary)', marginTop: 8 }}>
                 Featured articles appear in the homepage hero section
               </p>  
             </div>
@@ -385,11 +385,11 @@ export default function CreateBlog() {
               <div className="sidebar-title">Tags</div>
               <input className="cb-input" type="text" name="tags" value={formData.tags}
                 onChange={handleChange} placeholder="react, javascript, ai" />
-              <p style={{ fontSize: 11, color: 'var(--text-tertiary)', marginTop: 6 }}>Separate with commas</p>
+              <p style={{ fontSize: 'var(--text-xs)', color: 'var(--text-tertiary)', marginTop: 6 }}>Separate with commas</p>
               {formData.tags && (
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 10 }}>
                   {formData.tags.split(',').map(t => t.trim()).filter(Boolean).map(tag => (
-                    <span key={tag} style={{ fontSize: 11, padding: '3px 8px', background: 'var(--accent-soft)', border: '1px solid color-mix(in srgb, var(--accent) 25%, transparent)', borderRadius: 6, color: 'var(--accent-strong)' }}>#{tag}</span>
+                    <span key={tag} style={{ fontSize: 'var(--text-xs)', padding: '3px 8px', background: 'var(--accent-soft)', border: '1px solid color-mix(in srgb, var(--accent) 25%, transparent)', borderRadius: 6, color: 'var(--accent-strong)' }}>#{tag}</span>
                   ))}
                 </div>
               )}
@@ -403,15 +403,15 @@ export default function CreateBlog() {
               <label className="cb-upload-zone">
                 <input type="file" accept="image/*" onChange={handleFileUpload} style={{ display: 'none' }} />
                 <FiUpload size={20} style={{ color: 'var(--text-tertiary)', marginBottom: 6 }} />
-                <p style={{ fontSize: 13, color: 'var(--text-tertiary)', margin: 0 }}>
+                <p style={{ fontSize: 'var(--text-sm)', color: 'var(--text-tertiary)', margin: 0 }}>
                   {uploading ? 'Uploading...' : 'Click to upload image'}
                 </p>
-                <p style={{ fontSize: 11, color: 'var(--text-tertiary)', margin: '4px 0 0' }}>PNG, JPG up to 10MB</p>
+                <p style={{ fontSize: 'var(--text-xs)', color: 'var(--text-tertiary)', margin: '4px 0 0' }}>PNG, JPG up to 10MB</p>
               </label>
 
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, margin: '10px 0' }}>
                 <div style={{ flex: 1, height: 1, background: 'var(--border-soft)' }} />
-                <span style={{ fontSize: 11, color: 'var(--text-tertiary)' }}>or URL</span>
+                <span style={{ fontSize: 'var(--text-xs)', color: 'var(--text-tertiary)' }}>or URL</span>
                 <div style={{ flex: 1, height: 1, background: 'var(--border-soft)' }} />
               </div>
 
@@ -442,7 +442,7 @@ export default function CreateBlog() {
               <label className="cb-upload-zone">
                 <input type="file" accept="image/*" multiple onChange={handleGalleryUpload} style={{ display: 'none' }} disabled={formData.gallery.length >= 8 || galleryUploading} />
                 <FiUpload size={18} style={{ color: 'var(--text-tertiary)', marginBottom: 6 }} />
-                <p style={{ fontSize: 13, color: 'var(--text-tertiary)', margin: 0 }}>
+                <p style={{ fontSize: 'var(--text-sm)', color: 'var(--text-tertiary)', margin: 0 }}>
                   {galleryUploading ? 'Uploading...' : 'Add gallery images'}
                 </p>
               </label>
@@ -460,7 +460,7 @@ export default function CreateBlog() {
                   ))}
                 </div>
               )}
-              <p style={{ fontSize: 11, color: 'var(--text-tertiary)', marginTop: 8 }}>Shown as a gallery at the end of your article</p>
+              <p style={{ fontSize: 'var(--text-xs)', color: 'var(--text-tertiary)', marginTop: 8 }}>Shown as a gallery at the end of your article</p>
             </div>
 
             {/* Markdown Tips */}
@@ -472,7 +472,7 @@ export default function CreateBlog() {
                   '- bullet list', '> blockquote', '`inline code`', '[link](url)',
                   '```js\ncode here\n```', 'youtube.com/watch?v=... (own line)',
                 ].map(tip => (
-                  <code key={tip} style={{ fontSize: 11, background: 'color-mix(in srgb, var(--accent) 12%, transparent)', color: 'var(--accent-strong)', padding: '2px 6px', borderRadius: 4, whiteSpace: 'pre-wrap' }}>{tip}</code>
+                  <code key={tip} style={{ fontSize: 'var(--text-xs)', background: 'color-mix(in srgb, var(--accent) 12%, transparent)', color: 'var(--accent-strong)', padding: '2px 6px', borderRadius: 4, whiteSpace: 'pre-wrap' }}>{tip}</code>
                 ))}
               </div>
             </div>

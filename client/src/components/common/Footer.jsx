@@ -143,8 +143,8 @@ export default function Footer() {
             <div className="bs-footer-col-links">
               <Link to="/" className="bs-footer-col-link">About Us</Link>
               <Link to="/" className="bs-footer-col-link">Contact</Link>
-              <Link to="/" className="bs-footer-col-link">Privacy Policy</Link>
-              <Link to="/" className="bs-footer-col-link">Terms of Service</Link>
+              <Link to="/privacy" className="bs-footer-col-link">Privacy Policy</Link>
+              <Link to="/terms" className="bs-footer-col-link">Terms of Service</Link>
             </div>
           </div>
         </div>
@@ -159,9 +159,9 @@ export default function Footer() {
             All systems operational
           </div>
           <div className="bs-footer-bottom-links">
-            <Link to="/" className="bs-footer-bottom-link">Privacy</Link>
-            <Link to="/" className="bs-footer-bottom-link">Terms</Link>
-            <Link to="/" className="bs-footer-bottom-link">Cookies</Link>
+            <Link to="/privacy" className="bs-footer-bottom-link">Privacy</Link>
+            <Link to="/terms" className="bs-footer-bottom-link">Terms</Link>
+            <Link to="/privacy" className="bs-footer-bottom-link">Cookies</Link>
           </div>
         </div>
       </footer>

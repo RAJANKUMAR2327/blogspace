@@ -6,6 +6,7 @@ import toast from 'react-hot-toast'
 import { FiMail, FiLock, FiEye, FiEyeOff, FiArrowRight } from 'react-icons/fi'
 import GoogleSignInButton from '../components/common/GoogleSignInButton'
 import GitHubSignInButton from '../components/common/GitHubSignInButton'
+import { getRecaptchaToken } from '../utils/recaptcha'
 
 export default function Login() {
   const { login } = useContext(AuthContext)
@@ -13,6 +14,8 @@ export default function Login() {
   const [formData, setFormData] = useState({ email: '', password: '' })
   const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [twoFactorTempToken, setTwoFactorTempToken] = useState(null)
+  const [twoFactorCode, setTwoFactorCode] = useState('')
 
   const handleChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value })
 
@@ -20,12 +23,32 @@ export default function Login() {
     e.preventDefault()
     setLoading(true)
     try {
-      const res = await authAPI.login(formData)
+      const recaptchaToken = await getRecaptchaToken('login')
+      const res = await authAPI.login({ ...formData, recaptchaToken })
+      if (res.data.requires2FA) {
+        setTwoFactorTempToken(res.data.tempToken)
+        return
+      }
       login(res.data.user, res.data.token)
       toast.success(`Welcome back, ${res.data.user.name.split(' ')[0]}!`)
       navigate(res.data.user.role === 'admin' ? '/admin' : '/')
     } catch (err) {
       toast.error(err.response?.data?.message || 'Invalid credentials')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleVerifyTwoFactor = async (e) => {
+    e.preventDefault()
+    setLoading(true)
+    try {
+      const res = await authAPI.verifyLoginTwoFactor(twoFactorTempToken, twoFactorCode)
+      login(res.data.user, res.data.token)
+      toast.success(`Welcome back, ${res.data.user.name.split(' ')[0]}!`)
+      navigate(res.data.user.role === 'admin' ? '/admin' : '/')
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Invalid code')
     } finally {
       setLoading(false)
     }
@@ -77,11 +100,11 @@ export default function Login() {
         <div style={{ position: 'absolute', width: '400px', height: '400px', borderRadius: '50%', background: 'radial-gradient(circle, color-mix(in srgb, var(--accent) 25%, transparent), transparent 70%)', animation: 'float 8s ease-in-out infinite' }} />
 
         <div style={{ position: 'relative', textAlign: 'center', animation: 'fadeUp 0.8s ease both' }}>
-          <div style={{ fontSize: 72, marginBottom: 24, color: 'var(--accent)', animation: 'float 6s ease-in-out infinite' }}>✦</div>
-          <h2 style={{ fontFamily: 'var(--font-display)', fontSize: 36, fontWeight: 700, color: 'var(--text-primary)', marginBottom: 12, letterSpacing: '-0.5px' }}>
+          <div style={{ fontSize: 'var(--text-5xl)', marginBottom: 24, color: 'var(--accent)', animation: 'float 6s ease-in-out infinite' }}>✦</div>
+          <h2 style={{ fontFamily: 'var(--font-display)', fontSize: 'var(--text-3xl)', fontWeight: 700, color: 'var(--text-primary)', marginBottom: 12, letterSpacing: '-0.5px' }}>
             Welcome back
           </h2>
-          <p style={{ fontSize: 16, color: 'var(--text-secondary)', lineHeight: 1.7, maxWidth: 320, fontWeight: 400 }}>
+          <p style={{ fontSize: 'var(--text-md)', color: 'var(--text-secondary)', lineHeight: 1.7, maxWidth: 320, fontWeight: 400 }}>
             Sign in to access your stories, saved articles, and personalized feed.
           </p>
 
@@ -105,20 +128,60 @@ export default function Login() {
       <div className="login-right-panel" style={{ width: '100%', maxWidth: 480, display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: '60px 48px', borderLeft: '1px solid var(--border-soft)' }}>
         <div style={{ animation: 'fadeUp 0.6s ease both' }}>
           {/* Logo */}
-          <Link to="/" style={{ fontFamily: 'var(--font-display)', fontSize: 22, fontWeight: 700, color: 'var(--accent)', textDecoration: 'none', display: 'inline-block', marginBottom: 40 }}>
+          <Link to="/" style={{ fontFamily: 'var(--font-display)', fontSize: 'var(--text-xl)', fontWeight: 700, color: 'var(--accent)', textDecoration: 'none', display: 'inline-block', marginBottom: 40 }}>
             BlogSpace
           </Link>
 
-          <h1 style={{ fontFamily: 'var(--font-display)', fontSize: 28, fontWeight: 700, color: 'var(--text-primary)', marginBottom: 8, letterSpacing: '-0.5px' }}>Sign in</h1>
-          <p style={{ fontSize: 15, color: 'var(--text-tertiary)', marginBottom: 36, fontWeight: 400 }}>
-            Don't have an account?{' '}
-            <Link to="/register" style={{ color: 'var(--accent)', textDecoration: 'none', fontWeight: 500 }}>Get started free</Link>
+          <h1 style={{ fontFamily: 'var(--font-display)', fontSize: 'var(--text-2xl)', fontWeight: 700, color: 'var(--text-primary)', marginBottom: 8, letterSpacing: '-0.5px' }}>
+            {twoFactorTempToken ? 'Enter your code' : 'Sign in'}
+          </h1>
+          <p style={{ fontSize: 'var(--text-base)', color: 'var(--text-tertiary)', marginBottom: 36, fontWeight: 400 }}>
+            {twoFactorTempToken ? (
+              'Open your authenticator app and enter the 6-digit code'
+            ) : (
+              <>
+                Don't have an account?{' '}
+                <Link to="/register" style={{ color: 'var(--accent)', textDecoration: 'none', fontWeight: 500 }}>Get started free</Link>
+              </>
+            )}
           </p>
 
+          {twoFactorTempToken ? (
+            <form onSubmit={handleVerifyTwoFactor} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+              <div>
+                <label style={{ fontSize: 'var(--text-sm)', fontWeight: 500, color: 'var(--text-secondary)', display: 'block', marginBottom: 6 }}>Verification code</label>
+                <input
+                  className="login-input"
+                  type="text"
+                  autoComplete="one-time-code"
+                  maxLength={9}
+                  value={twoFactorCode}
+                  onChange={(e) => setTwoFactorCode(e.target.value.toUpperCase().replace(/[^0-9A-Z-]/g, ''))}
+                  required
+                  autoFocus
+                  placeholder="123456"
+                  style={{ textAlign: 'center', fontSize: 'var(--text-xl)', letterSpacing: '4px', fontFamily: 'monospace' }}
+                />
+                <p style={{ fontSize: 12, color: 'var(--text-tertiary)', marginTop: 8, textAlign: 'center' }}>
+                  Enter the 6-digit code from your app, or one of your backup codes
+                </p>
+              </div>
+              <button type="submit" className="login-btn" disabled={loading || twoFactorCode.length < 6}>
+                {loading ? 'Verifying...' : <>Verify <FiArrowRight /></>}
+              </button>
+              <button
+                type="button"
+                onClick={() => { setTwoFactorTempToken(null); setTwoFactorCode('') }}
+                style={{ background: 'none', border: 'none', color: 'var(--text-tertiary)', fontSize: 'var(--text-sm)', cursor: 'pointer', textAlign: 'center' }}
+              >
+                ← Back to login
+              </button>
+            </form>
+          ) : (
           <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
             {/* Email */}
             <div>
-              <label style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-secondary)', display: 'block', marginBottom: 6 }}>Email address</label>
+              <label style={{ fontSize: 'var(--text-sm)', fontWeight: 500, color: 'var(--text-secondary)', display: 'block', marginBottom: 6 }}>Email address</label>
               <div style={{ position: 'relative' }}>
                 <FiMail className="icon-wrap" />
                 <input className="login-input" type="email" name="email" value={formData.email}
@@ -129,8 +192,8 @@ export default function Login() {
             {/* Password */}
             <div>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
-                <label style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-secondary)' }}>Password</label>
-                <Link to="/forgot-password" style={{ fontSize: 13, color: 'var(--accent)', textDecoration: 'none' }}>Forgot password?</Link>
+                <label style={{ fontSize: 'var(--text-sm)', fontWeight: 500, color: 'var(--text-secondary)' }}>Password</label>
+                <Link to="/forgot-password" style={{ fontSize: 'var(--text-sm)', color: 'var(--accent)', textDecoration: 'none' }}>Forgot password?</Link>
               </div>
               <div style={{ position: 'relative' }}>
                 <FiLock className="icon-wrap" />
@@ -147,7 +210,10 @@ export default function Login() {
               {loading ? 'Signing in...' : <>Sign in <FiArrowRight /></>}
             </button>
           </form>
+          )}
 
+          {!twoFactorTempToken && (
+          <>
           {/* Divider */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, margin: '28px 0' }}>
             <div style={{ flex: 1, height: 1, background: 'var(--border-soft)' }} />
@@ -160,6 +226,8 @@ export default function Login() {
           <div style={{ marginTop: 10 }}>
             <GitHubSignInButton />
           </div>
+          </>
+          )}
         </div>
       </div>
     </div>

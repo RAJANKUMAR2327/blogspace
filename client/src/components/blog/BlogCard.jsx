@@ -5,7 +5,10 @@ import { AuthContext } from '../../context/AuthContext'
 import { userAPI } from '../../services/api'
 import { FiBookmark, FiEye, FiHeart, FiClock } from 'react-icons/fi'
 import toast from 'react-hot-toast'
+import { motion } from 'framer-motion'
 import LazyImage from '../common/LazyImage' // Imported LazyImage component
+import { useSavedBlogIds } from '../../hooks/useSavedBlogIds'
+import AnimatedCounter from '../common/AnimatedCounter'
 
 const CAT_VAR = {
   Technology:  '--cat-technology',
@@ -36,6 +39,9 @@ export default function BlogCard({ blog }) {
     }
   })
 
+  const savedIds = useSavedBlogIds()
+  const isSaved = savedIds.has(blog._id)
+
   return (
     <>
       <style>{`
@@ -46,7 +52,7 @@ export default function BlogCard({ blog }) {
           box-shadow: var(--shadow-card);
         }
         .blog-card:hover {
-          transform: translateY(-5px); border-color: var(--accent);
+          border-color: var(--accent);
           box-shadow: var(--shadow-pop);
         }
         /* Target both the old class and the new inner wrapper class for the hover zoom effect */
@@ -111,7 +117,12 @@ export default function BlogCard({ blog }) {
         .bc-stat { display:flex;align-items:center;gap:3px;font-size:11px;color:var(--text-tertiary); }
       `}</style>
 
-      <article className="blog-card bs-hover-lift">
+      <motion.article
+        className="blog-card"
+        whileHover={{ y: -6, scale: 1.015 }}
+        whileTap={{ scale: 0.98 }}
+        transition={{ type: 'spring', stiffness: 300, damping: 22 }}
+      >
         <div className="bc-img-wrap">
           <Link to={`/blog/${blog.slug}`}>
             {/* Replaced standard <img> with LazyImage */}
@@ -136,9 +147,10 @@ export default function BlogCard({ blog }) {
             <button
               className="bc-save-btn"
               onClick={(e) => { e.preventDefault(); saveMutation.mutate() }}
-              title="Save article"
+              title={isSaved ? 'Remove from saved' : 'Save article'}
+              style={{ color: isSaved ? 'var(--accent)' : undefined }}
             >
-              <FiBookmark size={14} />
+              <FiBookmark size={14} fill={isSaved ? 'currentColor' : 'none'} />
             </button>
           )}
         </div>
@@ -170,13 +182,13 @@ export default function BlogCard({ blog }) {
               </Link>
             </div>
             <div className="bc-stats">
-              <span className="bc-stat"><FiEye size={11} /> {blog.views || 0}</span>
-              <span className="bc-stat"><FiHeart size={11} /> {blog.likes?.length || 0}</span>
+              <span className="bc-stat"><FiEye size={11} /> <AnimatedCounter value={blog.views || 0} /></span>
+              <span className="bc-stat"><FiHeart size={11} /> <AnimatedCounter value={blog.likes?.length || 0} /></span>
               <span className="bc-stat"><FiClock size={11} /> {readTime}m</span>
             </div>
           </div>
         </div>
-      </article>
+      </motion.article>
     </>
   )
 }
