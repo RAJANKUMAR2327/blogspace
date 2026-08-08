@@ -5,17 +5,29 @@ const {
   forgotPassword, resetPassword,
   githubRedirect, githubCallback,
   sendVerificationEmail, verifyEmail,
-  refreshAccessToken, logout
+  refreshAccessToken, logout, googleAuth,
+  verifyLoginTwoFactor
 } = require('../controllers/authController')
+const {
+  setupTwoFactor, verifySetupTwoFactor, disableTwoFactor, regenerateBackupCodes
+} = require('../controllers/twoFactorController')
 
 const { protect } = require('../middleware/auth')
+const { verifyRecaptcha } = require('../middleware/recaptcha')
+const { emailSendRateLimit } = require('../middleware/emailRateLimit')
 
-router.post('/register',               register)
-router.post('/login',                  login)
+router.post('/register',               verifyRecaptcha(0.5), register)
+router.post('/login',                  verifyRecaptcha(0.5), login)
+router.post('/2fa/verify-login',       verifyLoginTwoFactor)
+router.post('/2fa/setup',              protect, setupTwoFactor)
+router.post('/2fa/verify-setup',       protect, verifySetupTwoFactor)
+router.post('/2fa/disable',            protect, disableTwoFactor)
+router.post('/2fa/regenerate-backup-codes', protect, regenerateBackupCodes)
+router.post('/google',                 googleAuth)
 router.post('/refresh', refreshAccessToken)
 router.post('/logout',  protect, logout)
 router.get ('/me',         protect,    getMe)
-router.post('/forgot-password',        forgotPassword)
+router.post('/forgot-password',        emailSendRateLimit, forgotPassword)
 router.put ('/reset-password/:token',  resetPassword)
 
 // GitHub OAuth

@@ -73,11 +73,18 @@ API.interceptors.response.use(
 export const authAPI = {
   register:         (data)  => API.post('/auth/register', data),
   login:            (data)  => API.post('/auth/login', data),
+  googleAuth:       (credential) => API.post('/auth/google', { credential }),
   logout:           ()      => API.post('/auth/logout'),
   getMe:            ()      => API.get('/auth/me'),
   forgotPassword:   (email) => API.post('/auth/forgot-password', { email }),
   resetPassword:    (token, password) => API.put(`/auth/reset-password/${token}`, { password }),
   sendVerification: ()      => API.post('/auth/send-verification'),
+  verifyEmail:      (token) => API.get(`/auth/verify-email/${token}`),
+  verifyLoginTwoFactor: (tempToken, code) => API.post('/auth/2fa/verify-login', { tempToken, code }),
+  setupTwoFactor:       ()  => API.post('/auth/2fa/setup'),
+  verifySetupTwoFactor: (code) => API.post('/auth/2fa/verify-setup', { code }),
+  disableTwoFactor:     (password) => API.post('/auth/2fa/disable', { password }),
+  regenerateBackupCodes: (password) => API.post('/auth/2fa/regenerate-backup-codes', { password }),
 }
 
 // ── Blogs ─────────────────────────────────────────────
@@ -148,6 +155,7 @@ export const uploadAPI = {
 export const newsletterAPI = {
   subscribe:       (email, categories) => API.post('/newsletter/subscribe', { email, categories }),
   unsubscribe:     (email) => API.post('/newsletter/unsubscribe', { email }),
+  unsubscribeByToken: (token) => API.get(`/newsletter/unsubscribe/${token}`),
   getSubscribers:  ()      => API.get('/newsletter/subscribers'),
   send:            (data)  => API.post('/newsletter/send', data),
   sendDigestNow:   ()      => API.post('/newsletter/send-digest'),

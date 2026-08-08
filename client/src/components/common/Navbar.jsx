@@ -147,6 +147,7 @@ export default function Navbar() {
           <input
             className="bs-search-input"
             type="text"
+            aria-label="Search stories"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search stories..."
@@ -197,6 +198,7 @@ export default function Navbar() {
               className="bs-search-input"
               style={{ width: '100%' }}
               type="text"
+              aria-label="Search stories"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search stories..."

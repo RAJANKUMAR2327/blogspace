@@ -13,7 +13,8 @@ const userSchema = new mongoose.Schema({
     required: [true, 'Email is required'],
     unique: true,
     lowercase: true,
-    trim: true
+    trim: true,
+    match: [/^[^\s@]+@[^\s@]+\.[^\s@]+$/, 'Please enter a valid email address']
   },
   password: {
     type: String,
@@ -24,6 +25,7 @@ const userSchema = new mongoose.Schema({
   bio:          { type: String, maxlength: 200, default: '' },
   role:         { type: String, enum: ['user', 'admin'], default: 'user' },
   savedBlogs:   [{ type: mongoose.Schema.Types.ObjectId, ref: 'Blog' }],
+  readHistory:  [{ type: mongoose.Schema.Types.ObjectId, ref: 'Blog' }],
   following:    [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
   followers:    [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
   socialLinks: {
@@ -35,17 +37,23 @@ const userSchema = new mongoose.Schema({
   isVerified:   { type: Boolean, default: false },
   googleId: { type: String },
   githubId: { type: String },
-  verificationToken:    { type: String },
+  verificationToken:    { type: String, select: false },
   verificationExpire:   { type: Date },
   isBanned:     { type: Boolean, default: false },
-  resetPasswordToken:  { type: String },
-  refreshTokens: [{
-  token:     { type: String },
-  createdAt: { type: Date, default: Date.now },
-  userAgent: { type: String },
-  ip:        { type: String }
-}],
-  resetPasswordExpire: { type: Date }
+  twoFactorEnabled: { type: Boolean, default: false },
+  twoFactorSecret:  { type: String, select: false }, // never returned by default queries
+  twoFactorBackupCodes: [{ type: String, select: false }], // bcrypt-hashed, one-time use each
+  resetPasswordToken:  { type: String, select: false },
+  refreshTokens: {
+    type: [{
+      token:     { type: String },
+      createdAt: { type: Date, default: Date.now },
+      userAgent: { type: String },
+      ip:        { type: String }
+    }],
+    select: false // session tokens must never be returned by default queries
+  },
+  resetPasswordExpire: { type: Date, select: false }
 }, { timestamps: true })
 
 userSchema.pre('save', async function(next) {
@@ -58,4 +66,4 @@ userSchema.methods.comparePassword = async function(candidatePassword) {
   return bcrypt.compare(candidatePassword, this.password)
 }
 
-module.exports = mongoose.model('User', userSchema)
+module.exports = mongoose.models.User || mongoose.model('User', userSchema)

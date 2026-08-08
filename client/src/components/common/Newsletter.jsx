@@ -1,8 +1,6 @@
 import { useState } from 'react'
-import axios from 'axios'
+import { newsletterAPI } from '../../services/api'
 import toast from 'react-hot-toast'
-
-const API = import.meta.env.VITE_API_URL
 
 export default function Newsletter() {
   const [email, setEmail] = useState('')
@@ -13,7 +11,7 @@ export default function Newsletter() {
     if (!email) return
     setLoading(true)
     try {
-      await axios.post(`${API}/newsletter/subscribe`, { email })
+      await newsletterAPI.subscribe(email)
       toast.success('Successfully subscribed!')
       setEmail('')
     } catch {
@@ -31,6 +29,7 @@ export default function Newsletter() {
         <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto">
           <input
             type="email"
+            aria-label="Email address"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             placeholder="Enter your email"

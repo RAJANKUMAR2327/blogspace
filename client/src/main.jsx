@@ -2,7 +2,8 @@ import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { BrowserRouter } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { Toaster } from 'react-hot-toast'
+import { Toaster, ToastBar } from 'react-hot-toast'
+import { motion } from 'framer-motion'
 import { ThemeProvider } from './context/ThemeContext'
 import { AuthProvider } from './context/AuthContext'
 import './index.css'
@@ -44,16 +45,31 @@ createRoot(document.getElementById('root')).render(
                 position="top-right"
                 toastOptions={{
                   style: {
-                    background: '#0d0d1a',
-                    color: '#fff',
-                    border: '1px solid rgba(255,255,255,0.08)',
+                    background: 'var(--bg-surface)',
+                    color: 'var(--text-primary)',
+                    border: '1px solid var(--border-soft)',
                     fontFamily: "'Inter', sans-serif",
                     fontSize: '14px',
+                    boxShadow: 'var(--shadow-pop)',
                   },
-                  success: { iconTheme: { primary: '#34d399', secondary: '#0d0d1a' } },
-                  error:   { iconTheme: { primary: '#f87171', secondary: '#0d0d1a' } },
+                  success: { iconTheme: { primary: '#34d399', secondary: 'var(--bg-surface)' } },
+                  error:   { iconTheme: { primary: '#f87171', secondary: 'var(--bg-surface)' } },
                 }}
-              />
+              >
+                {(t) => (
+                  <motion.div
+                    initial={{ opacity: 0, y: -20, scale: 0.9 }}
+                    animate={{
+                      opacity: t.visible ? 1 : 0,
+                      y: t.visible ? 0 : -20,
+                      scale: t.visible ? 1 : 0.9,
+                    }}
+                    transition={{ type: 'spring', stiffness: 320, damping: 24 }}
+                  >
+                    <ToastBar toast={t} />
+                  </motion.div>
+                )}
+              </Toaster>
             </AuthProvider>
           </ThemeProvider>
         </QueryClientProvider>

@@ -2,6 +2,8 @@ import { Link } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { blogAPI } from '../services/api'
 import SEO from '../components/common/SEO'
+import Breadcrumbs from '../components/common/Breadcrumbs'
+import Reveal from '../components/common/Reveal'
 
 const CATEGORIES = [
   { name: 'Technology',  emoji: '💻', color: '#a78bfa', desc: 'AI, gadgets, software & the future of tech' },
@@ -29,14 +31,14 @@ export default function Categories() {
   data?.forEach(b => { countMap[b.category] = (countMap[b.category] || 0) + 1 })
 
   return (
-    <div style={{ background: '#080810', minHeight: '100vh', paddingTop: 64, fontFamily: "'Inter',sans-serif" }}>
+    <div style={{ background: 'var(--bg-page)', minHeight: '100vh', paddingTop: 64, fontFamily: "'Inter',sans-serif" }}>
       <SEO title="Browse Topics" description="Explore articles by category on BlogSpace." />
 
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Inter:wght@300;400;500&display=swap');
         @keyframes fadeUp { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:translateY(0)} }
         .cat-grid-card {
-          background:#0d0d1a; border:1px solid rgba(255,255,255,0.06);
+          background:var(--bg-surface); border:1px solid var(--border-soft);
           border-radius:16px; padding:28px; cursor:pointer;
           transition:all 0.3s; text-decoration:none; display:block;
           position:relative; overflow:hidden;
@@ -51,20 +53,21 @@ export default function Categories() {
 
       {/* Header */}
       <div style={{ padding: '60px 48px 48px', position: 'relative', overflow: 'hidden' }}>
-        <div style={{ position: 'absolute', inset: 0, backgroundImage: 'radial-gradient(rgba(255,255,255,0.02) 1px, transparent 1px)', backgroundSize: '28px 28px' }} />
+        <div style={{ position: 'absolute', inset: 0, backgroundImage: 'radial-gradient(color-mix(in srgb, var(--text-primary) 4%, transparent) 1px, transparent 1px)', backgroundSize: '28px 28px' }} />
         <div style={{ position: 'absolute', top: 0, left: '50%', transform: 'translateX(-50%)', width: '600px', height: '200px', background: 'radial-gradient(ellipse,rgba(124,58,237,0.12),transparent 70%)', pointerEvents: 'none' }} />
-        <div style={{ position: 'relative' }}>
-          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, fontSize: 11, letterSpacing: '2px', textTransform: 'uppercase', color: 'rgba(167,139,250,0.6)', marginBottom: 12 }}>
+        <Reveal style={{ position: 'relative' }}>
+          <Breadcrumbs items={[{ label: 'Topics' }]} />
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, fontSize: 'var(--text-xs)', letterSpacing: '2px', textTransform: 'uppercase', color: 'rgba(167,139,250,0.6)', marginBottom: 12 }}>
             <span style={{ width: 16, height: 1, background: 'rgba(167,139,250,0.4)', display: 'inline-block' }} />
             Browse
           </div>
-          <h1 style={{ fontFamily: "'Syne',sans-serif", fontSize: 'clamp(32px,5vw,56px)', fontWeight: 800, color: '#fff', letterSpacing: '-1px', marginBottom: 8 }}>
+          <h1 style={{ fontFamily: "'Syne',sans-serif", fontSize: 'clamp(32px,5vw,56px)', fontWeight: 800, color: 'var(--text-primary)', letterSpacing: '-1px', marginBottom: 8 }}>
             All Topics
           </h1>
-          <p style={{ fontSize: 16, color: 'rgba(255,255,255,0.35)', fontWeight: 300 }}>
+          <p style={{ fontSize: 'var(--text-md)', color: 'var(--text-tertiary)', fontWeight: 300 }}>
             Find stories on topics that spark your curiosity
           </p>
-        </div>
+        </Reveal>
       </div>
 
       {/* Categories Grid */}
@@ -77,22 +80,22 @@ export default function Categories() {
               e.currentTarget.style.boxShadow = `0 16px 40px ${color}15`
             }}
             onMouseLeave={e => {
-              e.currentTarget.style.borderColor = 'rgba(255,255,255,0.06)'
+              e.currentTarget.style.borderColor = 'var(--border-soft)'
               e.currentTarget.style.boxShadow = 'none'
             }}>
             {/* Glow bg */}
             <div style={{ position: 'absolute', inset: 0, background: `radial-gradient(circle at 20% 20%, ${color}08, transparent 60%)`, borderRadius: 16 }} />
 
             <div style={{ position: 'relative' }}>
-              <div style={{ fontSize: 36, marginBottom: 14 }}>{emoji}</div>
+              <div style={{ fontSize: 'var(--text-3xl)', marginBottom: 14 }}>{emoji}</div>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
-                <h3 style={{ fontFamily: "'Syne',sans-serif", fontSize: 18, fontWeight: 700, color: '#fff' }}>{name}</h3>
+                <h3 style={{ fontFamily: "'Syne',sans-serif", fontSize: 'var(--text-lg)', fontWeight: 700, color: 'var(--text-primary)' }}>{name}</h3>
                 <span style={{ fontSize: 12, color, background: color + '15', border: `1px solid ${color}30`, padding: '3px 10px', borderRadius: 100 }}>
                   {countMap[name] || 0} stories
                 </span>
               </div>
-              <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.35)', lineHeight: 1.5, fontWeight: 300, marginBottom: 16 }}>{desc}</p>
-              <div style={{ fontSize: 13, color, display: 'flex', alignItems: 'center', gap: 4 }}>
+              <p style={{ fontSize: 'var(--text-sm)', color: 'var(--text-tertiary)', lineHeight: 1.5, fontWeight: 300, marginBottom: 16 }}>{desc}</p>
+              <div style={{ fontSize: 'var(--text-sm)', color, display: 'flex', alignItems: 'center', gap: 4 }}>
                 Browse stories →
               </div>
             </div>

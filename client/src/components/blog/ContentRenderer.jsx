@@ -1,4 +1,32 @@
-import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter'
+import { PrismAsyncLight as SyntaxHighlighter } from 'react-syntax-highlighter'
+import javascript from 'react-syntax-highlighter/dist/esm/languages/prism/javascript'
+import jsx from 'react-syntax-highlighter/dist/esm/languages/prism/jsx'
+import typescript from 'react-syntax-highlighter/dist/esm/languages/prism/typescript'
+import tsx from 'react-syntax-highlighter/dist/esm/languages/prism/tsx'
+import python from 'react-syntax-highlighter/dist/esm/languages/prism/python'
+import bash from 'react-syntax-highlighter/dist/esm/languages/prism/bash'
+import json from 'react-syntax-highlighter/dist/esm/languages/prism/json'
+import css from 'react-syntax-highlighter/dist/esm/languages/prism/css'
+import markup from 'react-syntax-highlighter/dist/esm/languages/prism/markup' // html/xml
+import sql from 'react-syntax-highlighter/dist/esm/languages/prism/sql'
+import java from 'react-syntax-highlighter/dist/esm/languages/prism/java'
+
+SyntaxHighlighter.registerLanguage('javascript', javascript)
+SyntaxHighlighter.registerLanguage('js', javascript)
+SyntaxHighlighter.registerLanguage('jsx', jsx)
+SyntaxHighlighter.registerLanguage('typescript', typescript)
+SyntaxHighlighter.registerLanguage('ts', typescript)
+SyntaxHighlighter.registerLanguage('tsx', tsx)
+SyntaxHighlighter.registerLanguage('python', python)
+SyntaxHighlighter.registerLanguage('py', python)
+SyntaxHighlighter.registerLanguage('bash', bash)
+SyntaxHighlighter.registerLanguage('sh', bash)
+SyntaxHighlighter.registerLanguage('json', json)
+SyntaxHighlighter.registerLanguage('css', css)
+SyntaxHighlighter.registerLanguage('html', markup)
+SyntaxHighlighter.registerLanguage('xml', markup)
+SyntaxHighlighter.registerLanguage('sql', sql)
+SyntaxHighlighter.registerLanguage('java', java)
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism'
 
 // Matches ```language\ncode\n``` blocks
@@ -7,6 +35,19 @@ const CODE_BLOCK_REGEX = /```(\w*)\n([\s\S]*?)```/g
 const YOUTUBE_REGEX = /(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([a-zA-Z0-9_-]{11})/g
 // Matches Vimeo URLs
 const VIMEO_REGEX = /(?:https?:\/\/)?(?:www\.)?vimeo\.com\/(\d+)/g
+
+// Only these URL schemes are safe to render as a clickable href — blocks
+// javascript:/data:/vbscript: URIs that would execute on click. Relative
+// URLs (no scheme at all, e.g. "/about" or "#section") are also allowed.
+const isSafeHref = (url) => {
+  if (!url) return false
+  try {
+    const parsed = new URL(url, window.location.origin)
+    return ['http:', 'https:', 'mailto:'].includes(parsed.protocol)
+  } catch {
+    return false
+  }
+}
 
 export default function ContentRenderer({ content, fontSize = 17 }) {
   if (!content) return null
@@ -65,6 +106,34 @@ export default function ContentRenderer({ content, fontSize = 17 }) {
         )
       }
 
+      // Inline images — ![alt](url), rendered as their own block with a
+      // caption (from the alt text) rather than inline with surrounding text,
+      // since a line containing only an image is meant to be a standalone
+      // visual break in the article, not part of a paragraph.
+      //
+      // Deliberately NOT using LazyImage here — that component crops to a
+      // fixed-height box (object-fit: cover) for thumbnails, but an
+      // in-article image should show its natural aspect ratio uncropped.
+      const img = line.match(/^!\[([^\]]*)\]\(([^)]+)\)$/)
+      if (img) {
+        const [, alt, src] = img
+        return (
+          <figure key={`${key}-${i}`} style={{ margin: '2rem 0' }}>
+            <img
+              src={src}
+              alt={alt || 'Article image'}
+              loading="lazy"
+              style={{ width: '100%', height: 'auto', display: 'block', borderRadius: 12, background: 'var(--bg-surface-2)' }}
+            />
+            {alt && (
+              <figcaption style={{ textAlign: 'center', fontSize: 'var(--text-sm)', color: 'var(--text-tertiary)', marginTop: 10, fontStyle: 'italic' }}>
+                {alt}
+              </figcaption>
+            )}
+          </figure>
+        )
+      }
+
       // Headings
       const h1 = line.match(/^# (.+)/)
       const h2 = line.match(/^## (.+)/)
@@ -75,30 +144,38 @@ export default function ContentRenderer({ content, fontSize = 17 }) {
         const id = `heading-${headingCounter}-${text.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`
         headingCounter++
         const Tag = `h${level}`
-        return <Tag key={`${key}-${i}`} id={id} style={{ fontFamily: "'Syne',sans-serif", fontWeight: 700, color: '#fff', margin: level === 1 ? '1.5rem 0 0.75rem' : '1.25rem 0 0.6rem', fontSize: level === 1 ? '1.8rem' : level === 2 ? '1.4rem' : '1.15rem' }}>{text}</Tag>
+        return <Tag key={`${key}-${i}`} id={id} style={{ fontFamily: "'Syne',sans-serif", fontWeight: 700, color: 'var(--text-primary)', margin: level === 1 ? '1.5rem 0 0.75rem' : '1.25rem 0 0.6rem', fontSize: level === 1 ? '1.8rem' : level === 2 ? '1.4rem' : '1.15rem' }}>{text}</Tag>
       }
 
       // Blockquote
       const bq = line.match(/^> (.+)/)
       if (bq) {
         return (
-          <blockquote key={`${key}-${i}`} style={{ borderLeft: '3px solid #7c3aed', paddingLeft: '1rem', margin: '1rem 0', color: 'rgba(255,255,255,0.45)', fontStyle: 'italic' }}>
+          <blockquote key={`${key}-${i}`} style={{ borderLeft: '3px solid #7c3aed', paddingLeft: '1rem', margin: '1rem 0', color: 'var(--text-tertiary)', fontStyle: 'italic' }}>
             {bq[1]}
           </blockquote>
         )
       }
 
-      // List items
-      const li = line.match(/^- (.+)/)
+      // List items — accept -, *, or • as bullet markers (AI-generated and
+      // pasted content doesn't always use a literal "- ")
+      const li = line.match(/^[-*•]\s+(.+)/)
       if (li) {
-        return <li key={`${key}-${i}`} style={{ color: 'rgba(255,255,255,0.65)', lineHeight: 1.8, marginLeft: 20 }}>{renderInline(li[1])}</li>
+        return (
+          <li key={`${key}-${i}`} style={{
+            color: 'var(--text-secondary)', lineHeight: 1.8, marginLeft: 20,
+            display: 'list-item', listStyleType: 'disc', listStylePosition: 'outside'
+          }}>
+            {renderInline(li[1])}
+          </li>
+        )
       }
 
       // Empty line
       if (line.trim() === '') return <div key={`${key}-${i}`} style={{ height: 8 }} />
 
       // Regular paragraph
-      return <p key={`${key}-${i}`} style={{ margin: '0.75rem 0', lineHeight: 1.85, fontSize, color: 'rgba(255,255,255,0.7)', fontWeight: 300 }}>{renderInline(line)}</p>
+      return <p key={`${key}-${i}`} style={{ margin: '0.75rem 0', lineHeight: 1.85, fontSize, color: 'var(--text-secondary)', fontWeight: 300 }}>{renderInline(line)}</p>
     })
   }
 
@@ -115,10 +192,14 @@ export default function ContentRenderer({ content, fontSize = 17 }) {
       if (!m) { parts.push(remaining); break }
       if (m.index > 0) parts.push(remaining.slice(0, m.index))
 
-      if (m[1]) parts.push(<strong key={key++} style={{ color: '#fff', fontWeight: 600 }}>{m[2]}</strong>)
+      if (m[1]) parts.push(<strong key={key++} style={{ color: 'var(--text-primary)', fontWeight: 600 }}>{m[2]}</strong>)
       else if (m[3]) parts.push(<em key={key++}>{m[4]}</em>)
       else if (m[5]) parts.push(<code key={key++} style={{ background: 'rgba(124,58,237,0.15)', color: '#a78bfa', padding: '2px 6px', borderRadius: 4, fontSize: '0.9em', fontFamily: 'monospace' }}>{m[6]}</code>)
-      else if (m[7]) parts.push(<a key={key++} href={m[9]} target="_blank" rel="noreferrer" style={{ color: '#a78bfa', textDecoration: 'underline' }}>{m[8]}</a>)
+      else if (m[7]) parts.push(
+        isSafeHref(m[9])
+          ? <a key={key++} href={m[9]} target="_blank" rel="noreferrer" style={{ color: '#a78bfa', textDecoration: 'underline' }}>{m[8]}</a>
+          : <span key={key++}>{m[8]}</span> // unsafe scheme (e.g. javascript:) — render as plain text instead
+      )
 
       remaining = remaining.slice(m.index + m[0].length)
     }

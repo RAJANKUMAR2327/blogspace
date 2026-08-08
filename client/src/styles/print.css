@@ -1,0 +1,37 @@
+@media print {
+  nav, footer, .no-print,
+  .action-btn, .tag-chip {
+    display: none !important;
+  }
+
+  body, * {
+    background: white !important;
+    color: black !important;
+  }
+
+  a {
+    color: black !important;
+    text-decoration: underline !important;
+  }
+
+  .prose, [class*="prose"] {
+    color: black !important;
+  }
+
+  .prose h1, .prose h2, .prose h3 {
+    color: black !important;
+  }
+
+  img {
+    max-width: 100% !important;
+    page-break-inside: avoid;
+  }
+
+  h1, h2, h3 {
+    page-break-after: avoid;
+  }
+
+  p, blockquote, ul, ol {
+    page-break-inside: avoid;
+  }
+}

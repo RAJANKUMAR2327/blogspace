@@ -3,7 +3,6 @@ const LoginActivity = require('../models/LoginActivity')
 const crypto = require('crypto')
 const { OAuth2Client } = require('google-auth-library')
 const User = require('../models/User')
-const generateToken = require('../utils/generateToken')
 const axios = require('axios')
 
 const generateAccessToken = (id) => {
@@ -12,6 +11,14 @@ const generateAccessToken = (id) => {
 
 const generateRefreshToken = (id) => {
   return jwt.sign({ id }, process.env.JWT_REFRESH_SECRET || process.env.JWT_SECRET, { expiresIn: '30d' })
+}
+
+// Short-lived token proving "this browser already entered the correct
+// password" — used to bridge password-check and 2FA-code-check without
+// re-sending the password. Deliberately NOT a valid access token (different
+// purpose claim), so it can't be used to call protected routes.
+const generateTempToken = (id) => {
+  return jwt.sign({ id, purpose: '2fa-challenge' }, process.env.JWT_SECRET, { expiresIn: '5m' })
 }
 
 const setRefreshCookie = (res, token) => {
@@ -35,11 +42,7 @@ exports.register = async (req, res, next) => {
     if (existingUser) return res.status(400).json({ message: 'Email already registered' })
 
     const user = await User.create({ name, email, password })
-    const token = generateToken(user._id)
-    res.status(201).json({
-      success: true, token,
-      user: { _id: user._id, name: user.name, email: user.email, role: user.role, profileImage: user.profileImage }
-    })
+    await completeLogin(user, req, res, { statusCode: 201 })
   } catch (error) { next(error) }
 }
 
@@ -56,7 +59,7 @@ exports.refreshAccessToken = async (req, res, next) => {
       return res.status(401).json({ message: 'Invalid or expired refresh token' })
     }
 
-    const user = await User.findById(decoded.id)
+    const user = await User.findById(decoded.id).select('+refreshTokens')
     if (!user) return res.status(401).json({ message: 'User not found' })
 
     const tokenExists = user.refreshTokens?.some(t => t.token === refreshToken)
@@ -86,14 +89,57 @@ exports.logout = async (req, res, next) => {
     res.json({ success: true, message: 'Logged out' })
   } catch (error) { next(error) }
 }
+// Core of "log this user in": issues a short-lived access token + a
+// revocable, httpOnly, rotating refresh-token cookie, and records the
+// session/login activity. Returns the access token so callers can either
+// send it as JSON (completeLogin) or embed it in a redirect (GitHub OAuth).
+const issueSession = async (user, req, res, opts = {}) => {
+  const accessToken  = generateAccessToken(user._id)
+  const refreshToken = generateRefreshToken(user._id)
+
+  user.refreshTokens = opts.revokeExisting ? [] : (user.refreshTokens || [])
+  user.refreshTokens.push({ token: refreshToken, userAgent: req.headers['user-agent'], ip: req.ip })
+  if (user.refreshTokens.length > 5) user.refreshTokens = user.refreshTokens.slice(-5)
+  await user.save({ validateBeforeSave: false })
+
+  setRefreshCookie(res, refreshToken)
+
+  LoginActivity.create({
+    user: user._id, ip: req.ip, userAgent: req.headers['user-agent'], success: true
+  }).catch(() => {})
+
+  return accessToken
+}
+
+// Shared by normal login, post-2FA-verification login, register, and
+// Google sign-in — issues a real (short-lived + revocable) session and
+// responds with it as JSON.
+// `opts.statusCode` lets callers like register() keep responding 201.
+// `opts.revokeExisting` clears all other active sessions first — used after
+// a password reset, since a token stolen before the reset shouldn't still
+// work after it.
+const completeLogin = async (user, req, res, opts = {}) => {
+  const accessToken = await issueSession(user, req, res, opts)
+  res.status(opts.statusCode || 200).json({
+    success: true,
+    token: accessToken,
+    user: { _id: user._id, name: user.name, email: user.email, role: user.role, profileImage: user.profileImage }
+  })
+}
+
 exports.login = async (req, res, next) => {
   try {
     const { email, password } = req.body
     if (!email || !password) return res.status(400).json({ message: 'Email and password required' })
 
-    const user = await User.findOne({ email }).select('+password')
+    const user = await User.findOne({ email }).select('+password +refreshTokens')
 
-    if (!user || !(await user.comparePassword(password))) {
+    // Accounts created via Google/GitHub have no password set (by design —
+    // see githubCallback/googleAuth). Reject those explicitly here instead
+    // of letting comparePassword() run against a missing hash, which
+    // otherwise risks throwing and surfacing a confusing 500 instead of the
+    // same clean "invalid credentials" response every other wrong attempt gets.
+    if (!user || !user.password || !(await user.comparePassword(password))) {
       // Log failed attempt (only if user exists, so we don't leak account existence via timing later)
       if (user) {
         LoginActivity.create({
@@ -112,35 +158,74 @@ exports.login = async (req, res, next) => {
       return res.status(403).json({ message: 'Your account has been banned' })
     }
 
-    const accessToken  = generateAccessToken(user._id)
-    const refreshToken = generateRefreshToken(user._id)
-    user.refreshTokens = [{ token: refreshToken, userAgent: req.headers['user-agent'], ip: req.ip }]
-    await user.save({ validateBeforeSave: false })
-    setRefreshCookie(res, refreshToken)
+    // Password is correct — if 2FA is on, stop here and ask for the code
+    // instead of issuing real tokens yet.
+    if (user.twoFactorEnabled) {
+      return res.json({
+        success: true,
+        requires2FA: true,
+        tempToken: generateTempToken(user._id)
+      })
+    }
 
-    res.status(201).json({
-      success: true,
-      token: accessToken,
-      user: { _id: user._id, name: user.name, email: user.email, role: user.role, profileImage: user.profileImage }
-})
+    await completeLogin(user, req, res)
+  } catch (error) { next(error) }
+}
 
-    // Store refresh token, keep max 5 sessions per user
-    user.refreshTokens = user.refreshTokens || []
-    user.refreshTokens.push({ token: refreshToken, userAgent: req.headers['user-agent'], ip: req.ip })
-    if (user.refreshTokens.length > 5) user.refreshTokens = user.refreshTokens.slice(-5)
-    await user.save({ validateBeforeSave: false })
+// @POST /api/auth/2fa/verify-login — second step of login when 2FA is enabled
+exports.verifyLoginTwoFactor = async (req, res, next) => {
+  try {
+    const { tempToken, code } = req.body
+    if (!tempToken || !code) return res.status(400).json({ message: 'Missing verification code' })
 
-    setRefreshCookie(res, refreshToken)
+    let decoded
+    try {
+      decoded = jwt.verify(tempToken, process.env.JWT_SECRET)
+    } catch {
+      return res.status(401).json({ message: 'Session expired — please log in again' })
+    }
+    if (decoded.purpose !== '2fa-challenge') {
+      return res.status(401).json({ message: 'Invalid verification session' })
+    }
 
-    LoginActivity.create({
-      user: user._id, ip: req.ip, userAgent: req.headers['user-agent'], success: true
-    }).catch(() => {})
+    const user = await User.findById(decoded.id).select('+twoFactorSecret +twoFactorBackupCodes +refreshTokens')
+    if (!user || !user.twoFactorEnabled) {
+      return res.status(401).json({ message: 'Two-factor authentication is not enabled for this account' })
+    }
 
-    res.json({
-      success: true,
-      token: accessToken,
-      user: { _id: user._id, name: user.name, email: user.email, role: user.role, profileImage: user.profileImage }
-    })
+    const { verify } = require('otplib')
+    // otplib's verify() throws on malformed input (e.g. a non-6-digit
+    // string) instead of returning { valid: false } — but backup codes are
+    // longer than a TOTP code, so a legitimate backup-code attempt would
+    // otherwise crash here before ever reaching the backup-code check below.
+    let result
+    try {
+      result = await verify({ secret: user.twoFactorSecret, token: code })
+    } catch {
+      result = { valid: false }
+    }
+
+    if (!result.valid) {
+      // Not a valid TOTP code — check if it matches (and consume) a backup code instead
+      const bcrypt = require('bcryptjs')
+      let matchedIndex = -1
+      for (let i = 0; i < (user.twoFactorBackupCodes || []).length; i++) {
+        if (await bcrypt.compare(code.trim().toUpperCase(), user.twoFactorBackupCodes[i])) {
+          matchedIndex = i
+          break
+        }
+      }
+
+      if (matchedIndex === -1) {
+        return res.status(401).json({ message: 'Invalid verification code' })
+      }
+
+      // Backup codes are one-time use — remove it so it can't be replayed
+      user.twoFactorBackupCodes.splice(matchedIndex, 1)
+      await user.save({ validateBeforeSave: false })
+    }
+
+    await completeLogin(user, req, res)
   } catch (error) { next(error) }
 }
 
@@ -180,11 +265,7 @@ exports.googleAuth = async (req, res, next) => {
       })
     }
 
-    const token = generateToken(user._id)
-    res.json({
-      success: true, token,
-      user: { _id: user._id, name: user.name, email: user.email, role: user.role, profileImage: user.profileImage }
-    })
+    await completeLogin(user, req, res)
   } catch (error) {
     console.error('❌ Google auth error:', error.message)
     res.status(401).json({ message: 'Google sign-in failed' })
@@ -243,11 +324,9 @@ exports.resetPassword = async (req, res, next) => {
     user.resetPasswordExpire = undefined
     await user.save()
 
-    const token = generateToken(user._id)
-    res.json({
-      success: true, token,
-      user: { _id: user._id, name: user.name, email: user.email, role: user.role, profileImage: user.profileImage }
-    })
+    // Revoke every existing session — if the account was compromised, a
+    // refresh token issued before the reset must not keep working after it.
+    await completeLogin(user, req, res, { revokeExisting: true })
   } catch (error) { next(error) }
 }
 
@@ -313,9 +392,15 @@ exports.githubCallback = async (req, res, next) => {
 
     if (user.isBanned) return res.redirect(`${process.env.CLIENT_URL}/login?error=account_banned`)
 
-    const token = generateToken(user._id)
-    // Redirect back to frontend with token in URL — frontend will pick it up and store it
-    res.redirect(`${process.env.CLIENT_URL}/auth/callback?token=${token}`)
+    // Same session scheme as every other login path: short-lived access
+    // token + httpOnly rotating refresh cookie (set on this response before
+    // the redirect). The token still has to travel in the redirect URL
+    // since this is a full-page browser navigation, not an AJAX call — but
+    // it now expires in 15 minutes instead of 30 days, and the browser
+    // picks up a real refresh cookie to silently renew it going forward, so
+    // logout/revocation actually work for GitHub-authed accounts too.
+    const appAccessToken = await issueSession(user, req, res)
+    res.redirect(`${process.env.CLIENT_URL}/auth/callback?token=${appAccessToken}`)
   } catch (error) {
     console.error('GitHub OAuth error:', error.message)
     res.redirect(`${process.env.CLIENT_URL}/login?error=github_failed`)

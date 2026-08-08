@@ -5,6 +5,7 @@ import { commentAPI, blogAPI } from '../../services/api'
 import toast from 'react-hot-toast'
 import { formatDistanceToNow } from 'date-fns'
 import { FiTrash2, FiSearch, FiMessageSquare, FiFilter, FiCheck, FiX, FiFlag } from 'react-icons/fi'
+import { AnimatePresence, motion } from 'framer-motion'
 
 export default function ManageComments() {
   const queryClient = useQueryClient()
@@ -58,7 +59,7 @@ export default function ManageComments() {
   const filteredComments = comments?.filter(c =>
     c.content?.toLowerCase().includes(search.toLowerCase()) ||
     c.user?.name?.toLowerCase().includes(search.toLowerCase()) ||
-    c.blogTitle?.toLowerCase().includes(search.toLowerCase())
+    c.blog?.title?.toLowerCase().includes(search.toLowerCase())
   )
 
   return (
@@ -81,7 +82,7 @@ export default function ManageComments() {
       <div style={{ padding: '48px' }}>
         {/* Header Dashboard section */}
         <div style={{ marginBottom: 32 }}>
-          <Link to="/admin" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 13, color: 'var(--text-tertiary)', textDecoration: 'none', marginBottom: 8, transition: 'color 0.2s' }}
+          <Link to="/admin" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 'var(--text-sm)', color: 'var(--text-tertiary)', textDecoration: 'none', marginBottom: 8, transition: 'color 0.2s' }}
             onMouseEnter={e => e.currentTarget.style.color = 'var(--accent)'}
             onMouseLeave={e => e.currentTarget.style.color = 'var(--text-tertiary)'}>
             ← Back to dashboard
@@ -122,9 +123,9 @@ export default function ManageComments() {
                 style={{
                   padding: '8px 16px', borderRadius: 8, fontSize: 12, fontWeight: 500, cursor: 'pointer',
                   border: '1px solid', fontFamily: "'Inter',sans-serif", transition: 'all 0.2s',
-                  borderColor: filter === f ? 'rgba(167,139,250,0.4)' : 'rgba(255,255,255,0.08)',
-                  background: filter === f ? 'rgba(167,139,250,0.15)' : 'rgba(255,255,255,0.04)',
-                  color: filter === f ? '#a78bfa' : 'rgba(255,255,255,0.4)'
+                  borderColor: filter === f ? 'rgba(167,139,250,0.4)' : 'var(--border-soft)',
+                  background: filter === f ? 'rgba(167,139,250,0.15)' : 'var(--bg-surface-2)',
+                  color: filter === f ? '#a78bfa' : 'var(--text-tertiary)'
                 }}>
                 {f === 'all' ? 'All Comments' : f === 'flagged' ? '🚩 Flagged' : '⏳ Pending'}
               </button>
@@ -142,28 +143,33 @@ export default function ManageComments() {
 
         {/* Content Sheet */}
         <div style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-soft)', borderRadius: 16, overflow: 'hidden' }}>
+          <AnimatePresence mode="wait">
           {isLoading ? (
+            <motion.div key="skeleton" exit={{ opacity: 0 }}>
             <div style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 12 }}>
               {[...Array(6)].map((_, i) => (
                 <div key={i} className="skeleton" style={{ height: 80 }} />
               ))}
             </div>
+            </motion.div>
           ) : filteredComments?.length === 0 ? (
+            <motion.div key="empty" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }}>
             <div style={{ textAlign: 'center', padding: '60px 20px' }}>
               <div style={{ fontSize: 48, marginBottom: 12 }}>💬</div>
-              <p style={{ fontFamily: 'var(--font-display)', fontSize: 18, fontWeight: 700, color: 'var(--text-primary)', marginBottom: 8 }}>
+              <p style={{ fontFamily: 'var(--font-display)', fontSize: 'var(--text-lg)', fontWeight: 700, color: 'var(--text-primary)', marginBottom: 8 }}>
                 No comments found
               </p>
               <p style={{ color: 'var(--text-tertiary)', fontSize: 14 }}>
                 {search ? 'Try different search terms' : `No comments found matching layout filter "${filter}".`}
               </p>
             </div>
+            </motion.div>
           ) : (
-            <div>
+            <motion.div key="content" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }}>
               {/* Header Titles */}
               <div className="mc-row-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 180px 140px 110px', gap: 16, padding: '12px 24px', borderBottom: '1px solid var(--border-soft)' }}>
                 {['Comment', 'Story', 'Date', 'Actions'].map(h => (
-                  <div key={h} style={{ fontSize: 11, fontWeight: 500, color: 'var(--text-tertiary)', letterSpacing: '1px', textTransform: 'uppercase' }}>{h}</div>
+                  <div key={h} style={{ fontSize: 'var(--text-xs)', fontWeight: 500, color: 'var(--text-tertiary)', letterSpacing: '1px', textTransform: 'uppercase' }}>{h}</div>
                 ))}
               </div>
 
@@ -178,7 +184,7 @@ export default function ManageComments() {
                         <div style={{ width: 30, height: 30, borderRadius: '50%', background: 'var(--accent)', display: 'flex', alignItems: 'center', justifycontent: 'center', fontSize: 12, fontWeight: 700, color: 'var(--text-on-accent)', flexShrink: 0, justifyContent: 'center' }}>
                           {comment.user?.name?.[0]?.toUpperCase() || '?'}
                         </div>
-                        <span style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-secondary)' }}>
+                        <span style={{ fontSize: 'var(--text-sm)', fontWeight: 500, color: 'var(--text-secondary)' }}>
                           {comment.user?.name || 'Unknown'}
                         </span>
 
@@ -196,11 +202,11 @@ export default function ManageComments() {
 
                     {/* Blog Column Link */}
                     <div>
-                      <Link to={`/blog/${comment.blogSlug}`}
+                      <Link to={`/blog/${comment.blog?.slug}`}
                         style={{ fontSize: 12, color: 'var(--accent)', textDecoration: 'none', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', lineHeight: 1.5, transition: 'color 0.2s' }}
                         onMouseEnter={e => e.currentTarget.style.color = 'var(--accent-strong)'}
                         onMouseLeave={e => e.currentTarget.style.color = 'var(--accent)'}>
-                        {comment.blogTitle}
+                        {comment.blog?.title}
                       </Link>
                     </div>
 
@@ -234,8 +240,9 @@ export default function ManageComments() {
                   </div>
                 </div>
               ))}
-            </div>
+            </motion.div>
           )}
+          </AnimatePresence>
         </div>
       </div>
     </div>

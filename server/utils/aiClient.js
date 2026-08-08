@@ -13,7 +13,7 @@ function getClient() {
 }
 
 // Shared helper: sends a prompt, returns plain text response
-async function askAI({ system, prompt, maxTokens = 1024, model = 'gemini-1.5-flash' }) {
+async function askAI({ system, prompt, maxTokens = 1024, model = 'gemini-flash-latest' }) {
   const genAI = getClient()
   const geminiModel = genAI.getGenerativeModel({
     model,

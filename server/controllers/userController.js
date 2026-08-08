@@ -114,10 +114,15 @@ exports.getPublicProfile = async (req, res, next) => {
       { $group: { _id: null, total: { $sum: '$views' } } }
     ])
 
+    const isFollowing = req.user
+      ? user.followers?.some(id => id.toString() === req.user._id.toString()) || false
+      : false
+
     res.json({
       success: true,
       user,
       blogs,
+      isFollowing,
       stats: {
         articleCount: blogs.length,
         totalViews: totalViews[0]?.total || 0,

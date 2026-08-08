@@ -39,11 +39,11 @@ export default function SearchFilters() {
   return (
     <div style={{ position: 'relative', fontFamily: "'Inter',sans-serif" }}>
       <style>{`
-        .sf-input { padding:8px 12px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);border-radius:8px;font-size:13px;color:#fff;outline:none;font-family:'Inter',sans-serif;width:100%;box-sizing:border-box;transition:border-color 0.2s; }
+        .sf-input { padding:8px 12px;background:var(--bg-surface-2);border:1px solid var(--border-soft);border-radius:8px;font-size:13px;color:#fff;outline:none;font-family:'Inter',sans-serif;width:100%;box-sizing:border-box;transition:border-color 0.2s; }
         .sf-input:focus { border-color:rgba(167,139,250,0.4); }
-        .sf-input::placeholder { color:rgba(255,255,255,0.2); }
-        .sf-select { padding:8px 12px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);border-radius:8px;font-size:13px;color:#fff;outline:none;font-family:'Inter',sans-serif;width:100%;cursor:pointer;appearance:none; }
-        .sf-select option { background:#0d0d1a; }
+        .sf-input::placeholder { color:var(--text-tertiary); }
+        .sf-select { padding:8px 12px;background:var(--bg-surface-2);border:1px solid var(--border-soft);border-radius:8px;font-size:13px;color:#fff;outline:none;font-family:'Inter',sans-serif;width:100%;cursor:pointer;appearance:none; }
+        .sf-select option { background:var(--bg-surface); }
       `}</style>
 
       <button
@@ -51,10 +51,10 @@ export default function SearchFilters() {
         style={{
           display: 'inline-flex', alignItems: 'center', gap: 7,
           padding: '9px 16px',
-          background: hasFilters ? 'rgba(124,58,237,0.2)' : 'rgba(255,255,255,0.05)',
-          border: `1px solid ${hasFilters ? 'rgba(124,58,237,0.4)' : 'rgba(255,255,255,0.08)'}`,
-          borderRadius: 10, color: hasFilters ? '#a78bfa' : 'rgba(255,255,255,0.5)',
-          fontSize: 13, cursor: 'pointer', fontFamily: "'Inter',sans-serif", transition: 'all 0.2s'
+          background: hasFilters ? 'rgba(124,58,237,0.2)' : 'var(--bg-surface-2)',
+          border: `1px solid ${hasFilters ? 'rgba(124,58,237,0.4)' : 'var(--border-soft)'}`,
+          borderRadius: 10, color: hasFilters ? '#a78bfa' : 'var(--text-secondary)',
+          fontSize: 'var(--text-sm)', cursor: 'pointer', fontFamily: "'Inter',sans-serif", transition: 'all 0.2s'
         }}>
         <FiFilter size={13} />
         Filters
@@ -64,14 +64,14 @@ export default function SearchFilters() {
       {open && (
         <div style={{
           position: 'absolute', top: '100%', left: 0, marginTop: 8,
-          width: 280, background: '#0d0d1a',
-          border: '1px solid rgba(255,255,255,0.08)',
+          width: 280, background: 'var(--bg-surface)',
+          border: '1px solid var(--border-soft)',
           borderRadius: 14, padding: 20, zIndex: 100,
           boxShadow: '0 20px 48px rgba(0,0,0,0.6)'
         }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
-            <span style={{ fontSize: 13, fontWeight: 600, color: '#fff' }}>Filter Stories</span>
-            <button onClick={() => setOpen(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(255,255,255,0.3)', fontSize: 16, display: 'flex' }}>
+            <span style={{ fontSize: 'var(--text-sm)', fontWeight: 600, color: 'var(--text-primary)' }}>Filter Stories</span>
+            <button onClick={() => setOpen(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-tertiary)', fontSize: 'var(--text-md)', display: 'flex' }}>
               <FiX />
             </button>
           </div>
@@ -79,7 +79,7 @@ export default function SearchFilters() {
           <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
             {/* Sort */}
             <div>
-              <label style={{ fontSize: 11, color: 'rgba(255,255,255,0.3)', letterSpacing: '1px', textTransform: 'uppercase', display: 'block', marginBottom: 6 }}>Sort by</label>
+              <label style={{ fontSize: 'var(--text-xs)', color: 'var(--text-tertiary)', letterSpacing: '1px', textTransform: 'uppercase', display: 'block', marginBottom: 6 }}>Sort by</label>
               <select className="sf-select" value={filters.sortBy}
                 onChange={e => setFilters(p => ({ ...p, sortBy: e.target.value }))}>
                 <option value="latest">Latest first</option>
@@ -91,7 +91,7 @@ export default function SearchFilters() {
 
             {/* Read time */}
             <div>
-              <label style={{ fontSize: 11, color: 'rgba(255,255,255,0.3)', letterSpacing: '1px', textTransform: 'uppercase', display: 'block', marginBottom: 6 }}>Read time (minutes)</label>
+              <label style={{ fontSize: 'var(--text-xs)', color: 'var(--text-tertiary)', letterSpacing: '1px', textTransform: 'uppercase', display: 'block', marginBottom: 6 }}>Read time (minutes)</label>
               <div style={{ display: 'flex', gap: 8 }}>
                 <input className="sf-input" type="number" placeholder="Min" min="1" max="60"
                   value={filters.minReadTime}
@@ -104,7 +104,7 @@ export default function SearchFilters() {
 
             {/* Tag */}
             <div>
-              <label style={{ fontSize: 11, color: 'rgba(255,255,255,0.3)', letterSpacing: '1px', textTransform: 'uppercase', display: 'block', marginBottom: 6 }}>Tag</label>
+              <label style={{ fontSize: 'var(--text-xs)', color: 'var(--text-tertiary)', letterSpacing: '1px', textTransform: 'uppercase', display: 'block', marginBottom: 6 }}>Tag</label>
               <input className="sf-input" type="text" placeholder="e.g. react, ai, design"
                 value={filters.tag}
                 onChange={e => setFilters(p => ({ ...p, tag: e.target.value }))} />
@@ -112,11 +112,11 @@ export default function SearchFilters() {
 
             <div style={{ display: 'flex', gap: 8, marginTop: 4 }}>
               <button onClick={clearFilters}
-                style={{ flex: 1, padding: '9px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 8, color: 'rgba(255,255,255,0.4)', fontSize: 13, cursor: 'pointer', fontFamily: "'Inter',sans-serif" }}>
+                style={{ flex: 1, padding: '9px', background: 'var(--bg-surface-2)', border: '1px solid var(--border-soft)', borderRadius: 8, color: 'var(--text-secondary)', fontSize: 'var(--text-sm)', cursor: 'pointer', fontFamily: "'Inter',sans-serif" }}>
                 Clear
               </button>
               <button onClick={applyFilters}
-                style={{ flex: 1, padding: '9px', background: 'linear-gradient(135deg,#7c3aed,#2563eb)', border: 'none', borderRadius: 8, color: '#fff', fontSize: 13, fontWeight: 500, cursor: 'pointer', fontFamily: "'Inter',sans-serif" }}>
+                style={{ flex: 1, padding: '9px', background: 'linear-gradient(135deg,#7c3aed,#2563eb)', border: 'none', borderRadius: 8, color: '#fff', fontSize: 'var(--text-sm)', fontWeight: 500, cursor: 'pointer', fontFamily: "'Inter',sans-serif" }}>
                 Apply
               </button>
             </div>

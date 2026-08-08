@@ -128,8 +128,19 @@ exports.sendDigestNow = async (req, res, next) => {
 // @POST /api/newsletter/cron-trigger — for external cron services (protected by secret key, not user auth)
 exports.cronTriggerDigest = async (req, res, next) => {
   try {
-    const providedKey = req.headers['x-cron-secret']
-    if (providedKey !== process.env.CRON_SECRET) {
+    if (!process.env.CRON_SECRET) {
+      console.error('❌ CRON_SECRET is not set — refusing to run cron-trigger (fails closed, not open)')
+      return res.status(503).json({ message: 'Cron endpoint not configured' })
+    }
+    const providedKey = req.headers['x-cron-secret'] || ''
+    const expectedKey = process.env.CRON_SECRET
+    // Constant-time comparison — avoids leaking how many leading characters
+    // matched via response-timing differences on a plain !== check.
+    const providedBuf = Buffer.from(providedKey)
+    const expectedBuf = Buffer.from(expectedKey)
+    const isValid = providedBuf.length === expectedBuf.length &&
+      crypto.timingSafeEqual(providedBuf, expectedBuf)
+    if (!isValid) {
       return res.status(403).json({ message: 'Invalid cron secret' })
     }
     const result = await sendWeeklyDigest()

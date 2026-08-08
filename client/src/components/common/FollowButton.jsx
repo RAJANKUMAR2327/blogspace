@@ -14,6 +14,7 @@ export default function FollowButton({ userId, isFollowing }) {
     mutationFn: () => userAPI.follow(userId),
     onSuccess: () => {
       queryClient.invalidateQueries(['publicProfile', userId])
+      queryClient.invalidateQueries({ queryKey: ['blog'] }) // FollowButton also appears on article pages
       toast.success(isFollowing ? 'Unfollowed' : 'Following!')
     },
     onError: () => toast.error('Failed to follow')
@@ -28,7 +29,7 @@ export default function FollowButton({ userId, isFollowing }) {
       style={{
         padding: '8px 20px',
         borderRadius: 'var(--radius-md)',
-        fontSize: 13,
+        fontSize: 'var(--text-sm)',
         fontWeight: 500,
         cursor: mutation.isPending ? 'not-allowed' : 'pointer',
         transition: 'all 0.2s',

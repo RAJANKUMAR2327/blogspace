@@ -1,14 +1,19 @@
 const { parseReferrerSource } = require('../middleware/analytics')
 const Blog = require('../models/Blog')
+const User = require('../models/User')
 const slugify = require('slugify')
 const { logAction } = require('../utils/auditLog') // Added audit log import
+
+// Escapes regex metacharacters so user search input can't be used to build
+// a catastrophic-backtracking pattern (ReDoS) or an unintended regex.
+const escapeRegex = (str) => str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
 
 // @GET /api/blogs
 exports.getBlogs = async (req, res, next) => {
   try {
     const page  = parseInt(req.query.page)  || 1
-    const limit = parseInt(req.query.limit) || 9
-    const { category, search, tag, sortBy, status, featured } = req.query
+    const limit = Math.min(parseInt(req.query.limit) || 9, 50) // clamp to avoid unbounded reads
+    const { category, search, tag, sortBy, status, featured, minReadTime, maxReadTime } = req.query
 
     let query = {}
 
@@ -22,12 +27,18 @@ exports.getBlogs = async (req, res, next) => {
     if (featured === 'true') query.featured = true
     if (category) query.category = category
     if (tag) query.tags = { $in: [tag] }
+    if (minReadTime || maxReadTime) {
+      query.readTime = {}
+      if (minReadTime) query.readTime.$gte = parseInt(minReadTime)
+      if (maxReadTime) query.readTime.$lte = parseInt(maxReadTime)
+    }
     if (search) {
+      const safeSearch = escapeRegex(search)
       query.$or = [
-        { title:   { $regex: search, $options: 'i' } },
-        { content: { $regex: search, $options: 'i' } },
-        { tags:    { $regex: search, $options: 'i' } },
-        { excerpt: { $regex: search, $options: 'i' } }
+        { title:   { $regex: safeSearch, $options: 'i' } },
+        { content: { $regex: safeSearch, $options: 'i' } },
+        { tags:    { $regex: safeSearch, $options: 'i' } },
+        { excerpt: { $regex: safeSearch, $options: 'i' } }
       ]
     }
     if (search && search.trim()) {
@@ -99,6 +110,11 @@ exports.getBlogBySlug = async (req, res, next) => {
 
     if (!blog) return res.status(404).json({ message: 'Blog not found' })
 
+    let isFollowing = false
+    if (req.user && blog.author && req.user._id.toString() !== blog.author._id.toString()) {
+      isFollowing = !!(await User.exists({ _id: blog.author._id, followers: req.user._id }))
+    }
+
     // Update referrer count (separate operation since it needs array logic)
     const existingReferrer = blog.referrers.find(r => r.source === source)
     if (existingReferrer) {
@@ -113,7 +129,7 @@ exports.getBlogBySlug = async (req, res, next) => {
       )
     }
 
-    res.json({ success: true, blog })
+    res.json({ success: true, blog, isFollowing })
   } catch (error) { next(error) }
 }
 
@@ -180,7 +196,15 @@ exports.updateBlog = async (req, res, next) => {
     if (blog.author.toString() !== req.user._id.toString() && req.user.role !== 'admin') {
       return res.status(403).json({ message: 'Not authorized' })
     }
-    const updated = await Blog.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true })
+    // Only content fields are editable here — ownership (author), moderation
+    // flags (status/featured/isDeleted), and counters (views/likes) all have
+    // their own dedicated, properly-guarded endpoints and must never be
+    // settable via an arbitrary request body.
+    const { title, content, excerpt, image, gallery, category, tags } = req.body
+    const edits = { title, content, excerpt, image, gallery, category, tags }
+    Object.keys(edits).forEach(key => edits[key] === undefined && delete edits[key])
+
+    const updated = await Blog.findByIdAndUpdate(req.params.id, edits, { new: true, runValidators: true })
     res.json({ success: true, blog: updated })
   } catch (error) { next(error) }
 }

@@ -1,4 +1,5 @@
 const { askAI } = require('../utils/aiClient')
+const Blog = require('../models/Blog')
 
 // @POST /api/ai/suggest-titles-tags
 exports.suggestTitlesAndTags = async (req, res, next) => {
@@ -51,6 +52,35 @@ Rules:
   } catch (error) {
     console.error('AI suggestion error:', error.message)
     res.status(500).json({ message: 'AI suggestion failed. Please try again or write your own title/tags.' })
+  }
+}
+
+// @POST /api/ai/summarize/:id — TL;DR summary of a published article
+exports.summarizeArticle = async (req, res, next) => {
+  try {
+    const filter = { _id: req.params.id }
+    if (req.user?.role !== 'admin') filter.status = 'published'
+    const blog = await Blog.findOne(filter).select('title content status')
+    if (!blog) return res.status(404).json({ message: 'Article not found' })
+
+    const trimmedContent = blog.content.slice(0, 6000)
+
+    const prompt = `Summarize the following blog article in 3-4 concise sentences (a TL;DR).
+Focus on the key takeaways only. Do not include a preamble like "This article discusses" — start directly with the substance.
+
+Title: ${blog.title}
+
+Article content:
+"""
+${trimmedContent}
+"""`
+
+    const summary = await askAI({ prompt, maxTokens: 300 })
+
+    res.json({ success: true, summary: summary.trim() })
+  } catch (error) {
+    console.error('Summarize error:', error.message)
+    res.status(500).json({ message: 'Failed to summarize article. Please try again.' })
   }
 }
 

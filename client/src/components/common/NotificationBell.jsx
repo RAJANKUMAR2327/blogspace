@@ -8,10 +8,10 @@ import axios from '../../services/api'
 import EmptyState from './EmptyState'
 
 const notificationAPI = {
-  getAll:      ()   => axios.default.get('/notifications'),
-  markRead:    (id) => axios.default.put(`/notifications/${id}/read`),
-  markAllRead: ()   => axios.default.put('/notifications/read-all'),
-  remove:      (id) => axios.default.delete(`/notifications/${id}`),
+  getAll:      ()   => axios.get('/notifications'),
+  markRead:    (id) => axios.put(`/notifications/${id}/read`),
+  markAllRead: ()   => axios.put('/notifications/read-all'),
+  remove:      (id) => axios.delete(`/notifications/${id}`),
 }
 
 const ICON_MAP = {
@@ -67,16 +67,16 @@ export default function NotificationBell() {
         onClick={() => setOpen(!open)}
         style={{
           position: 'relative', background: 'none', border: 'none', cursor: 'pointer',
-          color: 'rgba(255,255,255,0.5)', fontSize: 18, display: 'flex', alignItems: 'center', padding: 4
+          color: 'var(--text-secondary)', fontSize: 'var(--text-lg)', display: 'flex', alignItems: 'center', padding: 4
         }}
         onMouseEnter={e => e.currentTarget.style.color = '#a78bfa'}
-        onMouseLeave={e => e.currentTarget.style.color = unreadCount > 0 ? '#a78bfa' : 'rgba(255,255,255,0.5)'}>
+        onMouseLeave={e => e.currentTarget.style.color = unreadCount > 0 ? '#a78bfa' : 'var(--text-secondary)'}>
         <FiBell style={{ color: unreadCount > 0 ? '#a78bfa' : 'inherit' }} />
         {unreadCount > 0 && (
           <span style={{
             position: 'absolute', top: -2, right: -2, minWidth: 16, height: 16,
             background: '#f472b6', borderRadius: 8, fontSize: 10, fontWeight: 700,
-            color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 4px'
+            color: 'var(--text-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 4px'
           }}>
             {unreadCount > 9 ? '9+' : unreadCount}
           </span>
@@ -87,11 +87,11 @@ export default function NotificationBell() {
         <div style={{
           position: 'absolute', top: '100%', right: 0, marginTop: 10,
           width: 360, maxHeight: 480, overflowY: 'auto',
-          background: '#0d0d1a', border: '1px solid rgba(255,255,255,0.08)',
+          background: 'var(--bg-surface)', border: '1px solid var(--border-soft)',
           borderRadius: 14, boxShadow: '0 20px 48px rgba(0,0,0,0.6)', zIndex: 200
         }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 18px', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
-            <span style={{ fontSize: 14, fontWeight: 600, color: '#fff' }}>Notifications</span>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 18px', borderBottom: '1px solid var(--border-soft)' }}>
+            <span style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-primary)' }}>Notifications</span>
             {unreadCount > 0 && (
               <button onClick={() => markAllReadMutation.mutate()}
                 style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#a78bfa', fontSize: 12, fontFamily: "'Inter',sans-serif" }}>
@@ -115,7 +115,7 @@ export default function NotificationBell() {
                 <div key={n._id}
                   style={{
                     display: 'flex', gap: 12, padding: '14px 18px',
-                    borderBottom: '1px solid rgba(255,255,255,0.04)',
+                    borderBottom: '1px solid var(--bg-surface-2)',
                     background: n.isRead ? 'transparent' : 'rgba(167,139,250,0.04)',
                     transition: 'background 0.2s'
                   }}>
@@ -126,23 +126,23 @@ export default function NotificationBell() {
                     <Link
                       to={n.blog ? `/blog/${n.blog.slug}` : '#'}
                       onClick={() => { if (!n.isRead) markReadMutation.mutate(n._id); setOpen(false) }}
-                      style={{ fontSize: 13, color: 'rgba(255,255,255,0.7)', textDecoration: 'none', lineHeight: 1.4, display: 'block' }}>
+                      style={{ fontSize: 'var(--text-sm)', color: 'var(--text-secondary)', textDecoration: 'none', lineHeight: 1.4, display: 'block' }}>
                       {n.message}
                     </Link>
-                    <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.25)', marginTop: 4 }}>
+                    <p style={{ fontSize: 'var(--text-xs)', color: 'var(--text-tertiary)', marginTop: 4 }}>
                       {formatDistanceToNow(new Date(n.createdAt), { addSuffix: true })}
                     </p>
                   </div>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 6, flexShrink: 0 }}>
                     {!n.isRead && (
                       <button onClick={() => markReadMutation.mutate(n._id)}
-                        style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(255,255,255,0.2)', display: 'flex' }}
+                        style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-tertiary)', display: 'flex' }}
                         title="Mark as read">
                         <FiCheck size={13} />
                       </button>
                     )}
                     <button onClick={() => removeMutation.mutate(n._id)}
-                      style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(255,255,255,0.2)', display: 'flex' }}
+                      style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-tertiary)', display: 'flex' }}
                       title="Remove">
                       <FiX size={13} />
                     </button>
