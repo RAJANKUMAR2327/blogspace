@@ -19,4 +19,4 @@ const subscriberSchema = new mongoose.Schema({
 
 subscriberSchema.index({ isActive: 1 })
 
-module.exports = mongoose.model('Subscriber', subscriberSchema)
+module.exports = mongoose.models.Subscriber || mongoose.model('Subscriber', subscriberSchema)

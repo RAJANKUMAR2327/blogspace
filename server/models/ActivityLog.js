@@ -11,4 +11,8 @@ const activityLogSchema = new mongoose.Schema({
 
 activityLogSchema.index({ createdAt: -1 })
 
-module.exports = mongoose.model('ActivityLog', activityLogSchema)
+// Guards against "Cannot overwrite model" errors when this file's top-level
+// code re-runs in the same process (e.g. Vitest's per-test-file module
+// isolation, or nodemon hot-reload) — reuse the already-registered model
+// instead of re-registering it.
+module.exports = mongoose.models.ActivityLog || mongoose.model('ActivityLog', activityLogSchema)

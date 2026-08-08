@@ -10,4 +10,4 @@ const loginActivitySchema = new mongoose.Schema({
 
 loginActivitySchema.index({ user: 1, createdAt: -1 })
 
-module.exports = mongoose.model('LoginActivity', loginActivitySchema)
+module.exports = mongoose.models.LoginActivity || mongoose.model('LoginActivity', loginActivitySchema)

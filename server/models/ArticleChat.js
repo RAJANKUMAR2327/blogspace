@@ -15,4 +15,4 @@ const articleChatSchema = new mongoose.Schema({
 articleChatSchema.index({ blog: 1, user: 1 })
 articleChatSchema.index({ blog: 1, sessionId: 1 })
 
-module.exports = mongoose.model('ArticleChat', articleChatSchema)
+module.exports = mongoose.models.ArticleChat || mongoose.model('ArticleChat', articleChatSchema)

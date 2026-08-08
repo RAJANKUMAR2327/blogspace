@@ -8,4 +8,4 @@ const searchLogSchema = new mongoose.Schema({
 searchLogSchema.index({ createdAt: -1 })
 searchLogSchema.index({ query: 1 })
 
-module.exports = mongoose.model('SearchLog', searchLogSchema)
+module.exports = mongoose.models.SearchLog || mongoose.model('SearchLog', searchLogSchema)

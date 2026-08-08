@@ -194,7 +194,16 @@ exports.verifyLoginTwoFactor = async (req, res, next) => {
     }
 
     const { verify } = require('otplib')
-    const result = await verify({ secret: user.twoFactorSecret, token: code })
+    // otplib's verify() throws on malformed input (e.g. a non-6-digit
+    // string) instead of returning { valid: false } — but backup codes are
+    // longer than a TOTP code, so a legitimate backup-code attempt would
+    // otherwise crash here before ever reaching the backup-code check below.
+    let result
+    try {
+      result = await verify({ secret: user.twoFactorSecret, token: code })
+    } catch {
+      result = { valid: false }
+    }
 
     if (!result.valid) {
       // Not a valid TOTP code — check if it matches (and consume) a backup code instead
