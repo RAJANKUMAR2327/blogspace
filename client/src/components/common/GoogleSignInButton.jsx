@@ -1,68 +1,36 @@
-import { useEffect, useRef, useContext } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { AuthContext } from '../../context/AuthContext'
-import { authAPI } from '../../services/api'
-import toast from 'react-hot-toast'
+import { FcGoogle } from 'react-icons/fc'
 
+// Google OAuth is redirect-based (see server/controllers/authController.js
+// googleRedirect/googleCallback) — no SDK needed, just send the browser to
+// the server, which sends it to Google with prompt=select_account, which
+// sends it back to /auth/callback?token=... (handled by pages/AuthCallback.jsx).
+//
+// This deliberately replaces the old Google Identity Services JS button.
+// That SDK button can silently show a personalized "Continue as [name]"
+// chip for whichever Google account is already active in the visitor's
+// browser, skipping the account picker. The redirect flow below always
+// forces Google's account chooser to appear, the same way GitHub sign-in
+// already works on this site.
 export default function GoogleSignInButton() {
-  const buttonRef = useRef(null)
-  const { login } = useContext(AuthContext)
-  const navigate = useNavigate()
+  const apiBaseUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000/api'
+  const serverUrl = apiBaseUrl.replace(/\/api\/?$/, '')
 
-  useEffect(() => {
-    const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID
-
-    if (!clientId) {
-      console.warn('VITE_GOOGLE_CLIENT_ID is not set — Google sign-in disabled')
-      return
-    }
-
-    const handleCredentialResponse = async (response) => {
-      try {
-        const res = await authAPI.googleAuth(response.credential)
-        login(res.data.user, res.data.token)
-        toast.success(`Welcome, ${res.data.user.name.split(' ')[0]}!`)
-        navigate(res.data.user.role === 'admin' ? '/admin' : '/')
-      } catch (err) {
-        toast.error(err.response?.data?.message || 'Google sign-in failed')
-      }
-    }
-
-    const initGoogle = () => {
-      if (!window.google?.accounts?.id) return
-      window.google.accounts.id.initialize({
-        client_id: clientId,
-        callback: handleCredentialResponse,
-        // Without this, Google shows a personalized "Continue as [name]"
-        // chip instead of the plain button whenever the browser already has
-        // an active Google session (a newer feature called FedCM). This
-        // keeps the button generic for everyone, letting any visitor pick
-        // which account to use instead of defaulting to whoever's logged
-        // into Google on that device.
-        use_fedcm_for_button: false,
-      })
-      if (buttonRef.current) {
-        window.google.accounts.id.renderButton(buttonRef.current, {
-          theme: 'outline',
-          size: 'large',
-          width: 360,
-          text: 'continue_with',
-        })
-      }
-    }
-
-    if (window.google?.accounts?.id) {
-      initGoogle()
-    } else {
-      const interval = setInterval(() => {
-        if (window.google?.accounts?.id) {
-          clearInterval(interval)
-          initGoogle()
-        }
-      }, 200)
-      return () => clearInterval(interval)
-    }
-  }, [login, navigate])
-
-  return <div ref={buttonRef} style={{ display: 'flex', justifyContent: 'center', width: '100%' }} />
+  return (
+    <button
+      type="button"
+      onClick={() => { window.location.href = `${serverUrl}/api/auth/google` }}
+      style={{
+        width: '100%', padding: '12px', borderRadius: 10,
+        border: '1px solid var(--border-strong)', background: 'var(--bg-surface)',
+        color: 'var(--text-primary)', fontSize: 14, fontWeight: 500,
+        fontFamily: 'var(--font-ui)', cursor: 'pointer',
+        display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10,
+        transition: 'all 0.2s'
+      }}
+      onMouseEnter={e => e.currentTarget.style.background = 'var(--bg-surface-2)'}
+      onMouseLeave={e => e.currentTarget.style.background = 'var(--bg-surface)'}
+    >
+      <FcGoogle size={18} /> Continue with Google
+    </button>
+  )
 }

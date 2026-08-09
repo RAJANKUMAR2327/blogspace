@@ -4,6 +4,7 @@ const {
   register, login, getMe,
   forgotPassword, resetPassword,
   githubRedirect, githubCallback,
+  googleRedirect, googleCallback,
   sendVerificationEmail, verifyEmail,
   refreshAccessToken, logout, googleAuth,
   verifyLoginTwoFactor
@@ -33,6 +34,12 @@ router.put ('/reset-password/:token',  resetPassword)
 // GitHub OAuth
 router.get('/github',           githubRedirect)
 router.get('/github/callback',  githubCallback)
+
+// Google OAuth (full redirect flow — always shows Google's account picker,
+// unlike the JS button's googleAuth above which can silently default to
+// whichever Google account is already active in the visitor's browser)
+router.get('/google',           googleRedirect)
+router.get('/google/callback',  googleCallback)
 
 // Email verification
 router.post('/send-verification', protect, sendVerificationEmail)

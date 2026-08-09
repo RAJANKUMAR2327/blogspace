@@ -272,6 +272,73 @@ exports.googleAuth = async (req, res, next) => {
   }
 }
 
+// @GET /api/auth/google — redirect user to Google's account picker.
+// Unlike the JS button above (googleAuth), this is a full-page redirect
+// flow using prompt=select_account, which forces Google's account chooser
+// to appear every time regardless of any existing browser/session state —
+// used when the site wants sign-in to never silently default to whichever
+// Google account happens to be logged into the visitor's browser.
+exports.googleRedirect = (req, res) => {
+  const redirectUri = `${process.env.SERVER_URL || 'http://localhost:5000'}/api/auth/google/callback`
+  const params = new URLSearchParams({
+    client_id: process.env.GOOGLE_CLIENT_ID,
+    redirect_uri: redirectUri,
+    response_type: 'code',
+    scope: 'openid email profile',
+    prompt: 'select_account'
+  })
+  res.redirect(`https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`)
+}
+
+// @GET /api/auth/google/callback — Google redirects back here with a ?code=
+exports.googleCallback = async (req, res, next) => {
+  try {
+    const { code, error: googleError } = req.query
+    if (googleError) return res.redirect(`${process.env.CLIENT_URL}/login?error=google_${googleError}`)
+    if (!code) return res.redirect(`${process.env.CLIENT_URL}/login?error=google_no_code`)
+
+    const redirectUri = `${process.env.SERVER_URL || 'http://localhost:5000'}/api/auth/google/callback`
+    const callbackClient = new OAuth2Client({
+      clientId: process.env.GOOGLE_CLIENT_ID,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+      redirectUri
+    })
+
+    const { tokens } = await callbackClient.getToken(code)
+    const ticket = await callbackClient.verifyIdToken({
+      idToken: tokens.id_token,
+      audience: process.env.GOOGLE_CLIENT_ID
+    })
+    const payload = ticket.getPayload()
+    const { email, name, picture, sub: googleId } = payload
+
+    if (!email) return res.redirect(`${process.env.CLIENT_URL}/login?error=google_no_email`)
+
+    let user = await User.findOne({ $or: [{ googleId }, { email }] })
+    if (!user) {
+      user = await User.create({
+        name,
+        email,
+        googleId,
+        profileImage: picture || '',
+        isVerified: true
+      })
+    } else if (!user.googleId) {
+      user.googleId = googleId
+      await user.save({ validateBeforeSave: false })
+    }
+
+    if (user.isBanned) return res.redirect(`${process.env.CLIENT_URL}/login?error=account_banned`)
+
+    // Same session scheme as every other login path — see githubCallback.
+    const appAccessToken = await issueSession(user, req, res)
+    res.redirect(`${process.env.CLIENT_URL}/auth/callback?token=${appAccessToken}`)
+  } catch (error) {
+    console.error('Google OAuth callback error:', error.message)
+    res.redirect(`${process.env.CLIENT_URL}/login?error=google_callback_failed`)
+  }
+}
+
 exports.forgotPassword = async (req, res, next) => {
   try {
     const { email } = req.body
