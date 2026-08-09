@@ -33,6 +33,13 @@ export default function GoogleSignInButton() {
       window.google.accounts.id.initialize({
         client_id: clientId,
         callback: handleCredentialResponse,
+        // Without this, Google shows a personalized "Continue as [name]"
+        // chip instead of the plain button whenever the browser already has
+        // an active Google session (a newer feature called FedCM). This
+        // keeps the button generic for everyone, letting any visitor pick
+        // which account to use instead of defaulting to whoever's logged
+        // into Google on that device.
+        use_fedcm_for_button: false,
       })
       if (buttonRef.current) {
         window.google.accounts.id.renderButton(buttonRef.current, {
